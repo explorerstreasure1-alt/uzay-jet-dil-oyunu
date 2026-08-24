@@ -38,7 +38,7 @@ class AudioEngine {
 
   /* ─────────── background playlist ─────────── */
   private bgm: HTMLAudioElement | null = null;
-  private bgmVol = 0.16; // orta halli — rahatsız etmesin, SFX/TTS üstte kalsın
+  private bgmVol = 0.07; // çok kısık — mobilde bile fısıldar, tamamen arka plan
   private playlist = ['/music/Defiant_Horizon.mp3', '/music/Broadside_Command.mp3'];
   private trackIdx = 0;
 
@@ -53,7 +53,7 @@ class AudioEngine {
       this.ctx = ctx;
 
       this.master = ctx.createGain();
-      this.master.gain.value = 0.5;
+      this.master.gain.value = 0.42;
 
       const comp = ctx.createDynamicsCompressor();
       comp.threshold.value = -14; comp.knee.value = 22;
@@ -61,7 +61,7 @@ class AudioEngine {
       this.master.connect(comp); comp.connect(ctx.destination);
 
       this.music = ctx.createGain(); this.music.gain.value = 0; this.music.connect(this.master);
-      this.sfx = ctx.createGain(); this.sfx.gain.value = 0.85; this.sfx.connect(this.master);
+      this.sfx = ctx.createGain(); this.sfx.gain.value = 0.72; this.sfx.connect(this.master);
 
       /* tiny algorithmic plate reverb */
       const dur = 1.5, sr = ctx.sampleRate;
@@ -190,7 +190,7 @@ class AudioEngine {
     const ctx = this.ensure(); if (!ctx || !this.music) return;
     this.heat = heat;
     this.music.gain.cancelScheduledValues(ctx.currentTime);
-    this.music.gain.setTargetAtTime(this.musicOn ? 0.18 : 0, ctx.currentTime, 0.6);
+    this.music.gain.setTargetAtTime(this.musicOn ? 0.10 : 0, ctx.currentTime, 0.6);
     if (this.seq !== null) { this.playBgm(); return; }
     this.nextT = ctx.currentTime + 0.1;
     this.seq = window.setInterval(() => this.pump(), 25);
@@ -212,7 +212,7 @@ class AudioEngine {
   setMusicEnabled(on: boolean) {
     this.musicOn = on;
     const ctx = this.ctx;
-    if (ctx && this.music) this.music.gain.setTargetAtTime(on ? 0.18 : 0, ctx.currentTime, 0.25);
+    if (ctx && this.music) this.music.gain.setTargetAtTime(on ? 0.10 : 0, ctx.currentTime, 0.25);
     if (on) this.playBgm();
     else if (this.bgm) this.bgm.pause();
   }
@@ -454,8 +454,8 @@ class AudioEngine {
     const ctx = this.ctx;
     if (!ctx || !this.sfx || !this.music) return;
     this.sfx.gain.setTargetAtTime(to, ctx.currentTime, time * 0.3);
-    this.music.gain.setTargetAtTime(this.musicOn ? (to < 0.5 ? 0.08 : 0.18) : 0, ctx.currentTime, time * 0.4);
-    // BGM sabit kısık kalır — seslendirme sırasında yükselip alçalmaz
+    this.music.gain.setTargetAtTime(this.musicOn ? (to < 0.5 ? 0.04 : 0.10) : 0, ctx.currentTime, time * 0.4);
+    // BGM sabit çok kısık kalır — seslendirme sırasında yükselip alçalmaz
   }
 
   setRate(r: number) { this.ttsRate = r; }

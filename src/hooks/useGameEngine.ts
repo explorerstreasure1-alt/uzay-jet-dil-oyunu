@@ -467,11 +467,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (dirHold.current !== 0) { want = dirHold.current; moveTarget.current = null; }
 
     if (want !== 0) {
-      s.shipVx += want * 2.25 * dt;
+      s.shipVx += want * 2.6 * dt;
     } else if (moveTarget.current !== null) {
       const d = moveTarget.current - s.shipX;
       if (Math.abs(d) < 1.1) s.shipVx *= Math.pow(0.42, dt);
-      else s.shipVx += Math.max(-4.4, Math.min(4.4, d * 0.18)) * dt;
+      else s.shipVx += Math.max(-6.2, Math.min(6.2, d * 0.32)) * dt;
     }
     s.shipVx *= Math.pow(0.82, dt);
     s.shipVx = Math.max(-15.5, Math.min(15.5, s.shipVx));

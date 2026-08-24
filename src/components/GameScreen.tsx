@@ -352,6 +352,11 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
     return ((clientX - r.left) / r.width) * VW;
   }, []);
 
+  // sol/sağ basılı tut — esnek kaydırma
+  const holdLeftDown = useCallback((e: React.PointerEvent) => { (e.currentTarget as Element).setPointerCapture?.(e.pointerId); api.holdDir(-1); }, [api]);
+  const holdRightDown = useCallback((e: React.PointerEvent) => { (e.currentTarget as Element).setPointerCapture?.(e.pointerId); api.holdDir(1); }, [api]);
+  const endHold = useCallback((e: React.PointerEvent) => { try { (e.currentTarget as Element).releasePointerCapture?.(e.pointerId); } catch {} api.holdDir(0); }, [api]);
+
   const down = useCallback((e: React.PointerEvent) => {
     if (dragId.current !== null) return;
     dragId.current = e.pointerId;
@@ -581,8 +586,8 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
         {/* lane-snap steering + fire */}
         <div className="flex items-center gap-2">
           <button
-            onPointerDown={() => api.stepLane(-1)}
-            className="glass rounded-xl h-[60px] w-[68px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none"
+            onPointerDown={holdLeftDown} onPointerUp={endHold} onPointerCancel={endHold} onPointerLeave={endHold} onClick={() => api.stepLane(-1)}
+            className="glass rounded-xl h-[60px] w-[68px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none select-none"
             style={guideLeft ? { border: '1.4px solid #00ff9d', boxShadow: '0 0 18px rgba(0,255,157,0.5)' } : undefined}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="3"
               strokeLinecap="round" strokeLinejoin="round" style={{ filter: `drop-shadow(0 0 5px ${guideLeft ? '#00ff9d' : '#00d4ff'})` }}>
@@ -615,8 +620,8 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
           </button>
 
           <button
-            onPointerDown={() => api.stepLane(1)}
-            className="glass rounded-xl h-[60px] w-[68px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none"
+            onPointerDown={holdRightDown} onPointerUp={endHold} onPointerCancel={endHold} onPointerLeave={endHold} onClick={() => api.stepLane(1)}
+            className="glass rounded-xl h-[60px] w-[68px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none select-none"
             style={guideRight ? { border: '1.4px solid #00ff9d', boxShadow: '0 0 18px rgba(0,255,157,0.5)' } : undefined}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="3"
               strokeLinecap="round" strokeLinejoin="round" style={{ filter: `drop-shadow(0 0 5px ${guideRight ? '#00ff9d' : '#00d4ff'})` }}>

@@ -23,7 +23,7 @@ function write(key: string, value: unknown) {
 
 export const DEFAULT_SETTINGS: Settings = {
   crt: true, music: true, sfx: true, tts: true, haptics: true, leftHanded: false,
-  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0.16,
+  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0.07,
 };
 export const DEFAULT_STATS: RunStats = {
   highScores: {}, totalCorrect: 0, totalWrong: 0, wavesTotal: 0, bossesKilled: 0, sessionsPlayed: 0,
@@ -37,7 +37,16 @@ export const store = {
   loadCustom: (): VocabWord[] => read<VocabWord[]>(K.custom, []),
   saveCustom: (c: VocabWord[]) => write(K.custom, c),
 
-  loadSettings: (): Settings => ({ ...DEFAULT_SETTINGS, ...read<Partial<Settings>>(K.settings, {}) }),
+  loadSettings: (): Settings => {
+    const raw = read<Partial<Settings>>(K.settings, {});
+    const merged = { ...DEFAULT_SETTINGS, ...raw };
+    // migrated: eski yüksek BGM sesi otomatik kısılır (mobil şikayeti)
+    if (raw.bgmVolume !== undefined && raw.bgmVolume > 0.09) {
+      merged.bgmVolume = 0.07;
+      write(K.settings, merged);
+    }
+    return merged;
+  },
   saveSettings: (s: Settings) => write(K.settings, s),
 
   loadStats: (): RunStats => ({ ...DEFAULT_STATS, ...read<Partial<RunStats>>(K.stats, {}) }),
