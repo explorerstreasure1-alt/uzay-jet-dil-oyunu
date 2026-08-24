@@ -13,9 +13,9 @@ const A_MINOR = [220.0, 246.94, 261.63, 293.66, 329.63, 349.23, 392.0];
 const PROGRESSION = [0, 5, 2, 6];
 
 const STYLE: Record<HeatLevel, { bpm: number; arpVol: number; lead: boolean; hats: boolean; bell: boolean }> = {
-  ice:     { bpm: 92,  arpVol: 0.030, lead: false, hats: false, bell: true  },
-  amber:   { bpm: 116, arpVol: 0.048, lead: false, hats: true,  bell: false },
-  crimson: { bpm: 138, arpVol: 0.060, lead: true,  hats: true,  bell: false },
+  ice:     { bpm: 96,  arpVol: 0.018, lead: false, hats: false, bell: true  },
+  amber:   { bpm: 118, arpVol: 0.028, lead: false, hats: true,  bell: false },
+  crimson: { bpm: 142, arpVol: 0.038, lead: true,  hats: true,  bell: false },
 };
 
 class AudioEngine {
@@ -36,11 +36,8 @@ class AudioEngine {
   sfxOn = true;
   ttsOn = true;
 
-  /* ─────────── background playlist ─────────── */
-  private bgm: HTMLAudioElement | null = null;
-  private bgmVol = 0.07; // çok kısık — mobilde bile fısıldar, tamamen arka plan
-  private playlist = ['/music/Defiant_Horizon.mp3', '/music/Broadside_Command.mp3'];
-  private trackIdx = 0;
+  /* ─────────── adrenalin arka plan — prosedürel, MP3 yok, tamamen rahatsız etmez ─────────── */
+  private bgmVol = 0.07;
 
   /* ─────────── graph ─────────── */
   private ensure(): AudioContext | null {
@@ -86,45 +83,7 @@ class AudioEngine {
     return this.ctx;
   }
 
-  unlock() { this.ensure(); this.ensureBgm(); void this.voices(); this.warmTTS(); }
-
-  private ensureBgm(): HTMLAudioElement | null {
-    if (typeof window === 'undefined') return null;
-    if (this.bgm) return this.bgm;
-    const a = new Audio(this.playlist[this.trackIdx]);
-    a.loop = false;
-    a.preload = 'auto';
-    a.volume = this.bgmVol;
-    a.crossOrigin = 'anonymous';
-    a.addEventListener('error', () => console.warn('[BGM] yüklenemedi:', this.playlist[this.trackIdx]));
-    // Sırayla çal ve döngü: parça bitince sıradaki, son → başa
-    a.addEventListener('ended', () => {
-      this.trackIdx = (this.trackIdx + 1) % this.playlist.length;
-      a.src = this.playlist[this.trackIdx];
-      a.load();
-      a.volume = this.bgmVol;
-      if (this.musicOn) {
-        const p = a.play();
-        if (p && typeof (p as Promise<void>).catch === 'function') (p as Promise<void>).catch(() => {});
-      }
-    });
-    this.bgm = a;
-    return a;
-  }
-  private playBgm() {
-    if (!this.musicOn) return;
-    const a = this.ensureBgm();
-    if (!a) return;
-    // src güncel mi kontrol et (track değişmiş olabilir)
-    const expected = this.playlist[this.trackIdx];
-    if (!a.src.includes(expected.split('/').pop()!)) {
-      a.src = expected;
-      a.load();
-    }
-    a.volume = this.bgmVol;
-    const p = a.play();
-    if (p && typeof (p as Promise<void>).catch === 'function') (p as Promise<void>).catch(() => {/* autoplay engeli — sonraki etkileşimde çalacak */});
-  }
+  unlock() { this.ensure(); void this.voices(); this.warmTTS(); }
 
   private pan(v: number): AudioNode | null {
     const ctx = this.ensure(); if (!ctx) return null;
@@ -185,16 +144,15 @@ class AudioEngine {
     return A_MINOR[i] * Math.pow(2, o);
   }
 
-  /* ─────────── music ─────────── */
+  /* ─────────── adrenalin prosedürel müzik — rahatsız etmez, tamamen arka plan ─────────── */
   startMusic(heat: HeatLevel = 'ice') {
     const ctx = this.ensure(); if (!ctx || !this.music) return;
     this.heat = heat;
     this.music.gain.cancelScheduledValues(ctx.currentTime);
-    this.music.gain.setTargetAtTime(this.musicOn ? 0.10 : 0, ctx.currentTime, 0.6);
-    if (this.seq !== null) { this.playBgm(); return; }
+    this.music.gain.setTargetAtTime(this.musicOn ? this.bgmVol * 1.35 : 0, ctx.currentTime, 0.7);
+    if (this.seq !== null) return;
     this.nextT = ctx.currentTime + 0.1;
     this.seq = window.setInterval(() => this.pump(), 25);
-    this.playBgm();
   }
   setHeat(h: HeatLevel) {
     if (h === this.heat) return;
@@ -205,21 +163,19 @@ class AudioEngine {
   }
   stopMusic() {
     const ctx = this.ctx;
-    if (ctx && this.music) this.music.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+    if (ctx && this.music) this.music.gain.setTargetAtTime(0, ctx.currentTime, 0.35);
     if (this.seq !== null) { window.clearInterval(this.seq); this.seq = null; }
-    if (this.bgm) this.bgm.pause();
   }
   setMusicEnabled(on: boolean) {
     this.musicOn = on;
     const ctx = this.ctx;
-    if (ctx && this.music) this.music.gain.setTargetAtTime(on ? 0.10 : 0, ctx.currentTime, 0.25);
-    if (on) this.playBgm();
-    else if (this.bgm) this.bgm.pause();
+    if (ctx && this.music) this.music.gain.setTargetAtTime(on ? this.bgmVol * 1.35 : 0, ctx.currentTime, 0.3);
   }
   setSfxEnabled(on: boolean) { this.sfxOn = on; }
   setBgmVolume(v: number) {
     this.bgmVol = Math.max(0, Math.min(1, v));
-    if (this.bgm) this.bgm.volume = this.bgmVol;
+    const ctx = this.ctx;
+    if (ctx && this.music && this.musicOn) this.music.gain.setTargetAtTime(this.bgmVol * 1.35, ctx.currentTime, 0.25);
   }
 
   private pump() {
@@ -257,7 +213,7 @@ class AudioEngine {
       o.type = 'sine';
       o.frequency.setValueAtTime(140, t);
       o.frequency.exponentialRampToValueAtTime(42, t + 0.11);
-      g.gain.setValueAtTime(0.42, t);
+      g.gain.setValueAtTime(0.18, t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
       o.connect(g); g.connect(bus); o.start(t); o.stop(t + 0.17);
     }
@@ -265,13 +221,13 @@ class AudioEngine {
       const src = ctx.createBufferSource(); src.buffer = this.noiseBuf!;
       const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 8200;
       const g = ctx.createGain();
-      g.gain.setValueAtTime(s8 === 3 ? 0.09 : 0.05, t);
+      g.gain.setValueAtTime(s8 === 3 ? 0.045 : 0.022, t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
       src.connect(f); f.connect(g); g.connect(bus); src.start(t); src.stop(t + 0.05);
     }
     if (s8 === 0 || s8 === 3 || s8 === 6) {
-      this.mNote({ f: this.deg(chord, -2), t, dur: 0.26, type: 'triangle', vol: 0.20 });
-      this.mNote({ f: this.deg(chord, -2) * 1.004, t, dur: 0.26, type: 'square', vol: 0.05 });
+      this.mNote({ f: this.deg(chord, -2), t, dur: 0.26, type: 'triangle', vol: 0.09 });
+      this.mNote({ f: this.deg(chord, -2) * 1.004, t, dur: 0.26, type: 'square', vol: 0.022 });
     }
     const tones = [0, 2, 4, 2];
     this.mNote({
@@ -454,8 +410,7 @@ class AudioEngine {
     const ctx = this.ctx;
     if (!ctx || !this.sfx || !this.music) return;
     this.sfx.gain.setTargetAtTime(to, ctx.currentTime, time * 0.3);
-    this.music.gain.setTargetAtTime(this.musicOn ? (to < 0.5 ? 0.04 : 0.10) : 0, ctx.currentTime, time * 0.4);
-    // BGM sabit çok kısık kalır — seslendirme sırasında yükselip alçalmaz
+    this.music.gain.setTargetAtTime(this.musicOn ? (to < 0.5 ? this.bgmVol * 0.55 : this.bgmVol * 1.35) : 0, ctx.currentTime, time * 0.4);
   }
 
   setRate(r: number) { this.ttsRate = r; }
