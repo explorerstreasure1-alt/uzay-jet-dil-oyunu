@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body, #root {
+  margin: 0; padding: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  background: #03060f;
+  overflow: hidden;
+  overscroll-behavior: none;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  -webkit-user-select: none; user-select: none;
+  touch-action: manipulation;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+}
+
+#root {
+  position: fixed;
+  inset: 0;
+}
+
+.font-pixel    { font-family: 'VT323', ui-monospace, monospace; }
+.font-orbitron { font-family: 'Orbitron', ui-sans-serif, sans-serif; }
+.font-mono-tech{ font-family: 'Share Tech Mono', ui-monospace, monospace; }
+
+/* ── frosted glass panels ── */
+.glass {
+  background: rgba(10, 20, 54, 0.62);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  border: 1px solid rgba(0, 212, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* ── liquid metal heat fill ── */
+.liquid-metal {
+  background: linear-gradient(90deg, #8be9ff, #00b3ff, #ffc247, #ff9500, #ff4d6d, #ff0044);
+  background-size: 260% 100%;
+  animation: liquidFlow 3.4s linear infinite;
+}
+@keyframes liquidFlow {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 260% 50%; }
+}
+
+/* ── CRT scanlines + aperture grille ── */
+.crt {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0px, rgba(0, 0, 0, 0.22) 1px, transparent 1px, transparent 3px),
+    repeating-linear-gradient(90deg, rgba(255, 0, 80, 0.028) 0px, rgba(0, 255, 180, 0.028) 1px, rgba(80, 120, 255, 0.028) 2px, transparent 3px);
+  mix-blend-mode: multiply;
+}
+.crt::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+}
+
+/* ── glitch text ── */
+.glitch { animation: glitchShift 2.6s steps(2, end) infinite; }
+@keyframes glitchShift {
+  0%, 92%, 100% { transform: translate(0, 0); text-shadow: 0 0 22px rgba(255,46,99,0.85); }
+  93% { transform: translate(-2px, 1px); text-shadow: 2px 0 #00d4ff, -2px 0 #ff2e63; }
+  95% { transform: translate(2px, -1px); text-shadow: -2px 0 #00d4ff, 2px 0 #ff2e63; }
+  97% { transform: translate(-1px, 0); text-shadow: 0 0 22px rgba(255,46,99,0.85); }
+}
+
+/* ── scrollbar hygiene ── */
+.no-bar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-bar::-webkit-scrollbar { width: 0; height: 0; }
+
+input, button { font-family: inherit; }
+input::placeholder { color: rgba(255, 255, 255, 0.24); }
+button { cursor: pointer; }
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.9) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.glass { animation: popIn 0.22s ease-out both; }

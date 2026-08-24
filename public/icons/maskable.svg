@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Word Invaders maskable icon">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="75%">
+      <stop offset="0" stop-color="#173d91"/>
+      <stop offset="0.55" stop-color="#081a49"/>
+      <stop offset="1" stop-color="#03060f"/>
+    </radialGradient>
+    <filter id="glow" x="-45%" y="-45%" width="190%" height="190%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#00d4ff" stroke-width="5" opacity=".38"/>
+  <circle cx="256" cy="256" r="132" fill="none" stroke="#c77dff" stroke-width="4" opacity=".32"/>
+  <g filter="url(#glow)">
+    <path d="M256 122l43 121 78 76-75-21-24 61h-44l-24-61-75 21 78-76z" fill="#00d4ff"/>
+    <path d="M256 122l16 87h-32z" fill="#fff" opacity=".92"/>
+    <circle cx="256" cy="254" r="18" fill="#03060f" stroke="#fff" stroke-width="5"/>
+    <path d="M230 362c10 44 20 66 26 84 6-18 16-40 26-84z" fill="#00ffa3"/>
+    <path d="M96 170h48v20H96zm272 0h48v20h-48zM82 306h52v20H82zm296 0h52v20h-52z" fill="#ff2e63"/>
+  </g>
+</svg>

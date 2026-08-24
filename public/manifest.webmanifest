@@ -1,0 +1,78 @@
+{
+  "name": "Word Invaders: Polyglot Edition",
+  "short_name": "Word Invaders",
+  "description": "Mobil retro arcade kelime öğrenme oyunu. İngilizce, İspanyolca, İtalyanca ve Rusça için çevrimdışı kelime çalış.",
+  "id": "/?source=pwa",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "fullscreen"],
+  "orientation": "portrait",
+  "background_color": "#03060f",
+  "theme_color": "#060d26",
+  "categories": ["games", "education", "productivity"],
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Word Invaders oyun ekranı"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Oyuna Başla",
+      "short_name": "Başla",
+      "description": "Word Invaders görev seçimine git",
+      "url": "/?shortcut=start",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Kelime Destesi",
+      "short_name": "Deste",
+      "description": "Özel kelime destesini aç",
+      "url": "/?shortcut=deck",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
