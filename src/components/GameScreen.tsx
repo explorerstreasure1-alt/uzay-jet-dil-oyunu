@@ -89,7 +89,7 @@ function Plates({ s, hintId, lockedId }: { s: GameState; hintId: string | null; 
         const plateW = Math.max(54, a.laneW - (a.isBoss ? 4 : 8));
         const cx = a.laneX + a.laneW / 2;
         const len = a.word.foreign.length;
-        const size = len > 34 ? 9.5 : len > 26 ? 10.5 : len > 18 ? 12 : len > 11 ? 14 : 16;
+        const size = len > 34 ? 10.5 : len > 26 ? 11.5 : len > 18 ? 13 : len > 11 ? 15 : 17;
         const lines = len > 24 ? 3 : len > 12 ? 2 : 1;
 
         return (
@@ -99,19 +99,19 @@ function Plates({ s, hintId, lockedId }: { s: GameState; hintId: string | null; 
               left: cx,
               top: a.y + h + (a.isBoss ? 12 : 4),
               width: plateW,
-              minHeight: Math.max(22, lines * (size + 3) + 6),
-              padding: '3px 4px',
-              borderRadius: 5,
-              background: isHint ? 'rgba(0,40,26,0.94)' : 'rgba(4,9,26,0.92)',
+              minHeight: Math.max(24, lines * (size + 3) + 8),
+              padding: '4px 5px',
+              borderRadius: 6,
+              background: isHint ? 'rgba(0,40,26,0.96)' : 'rgba(4,9,26,0.96)',
               border: `1px solid ${isHint ? '#00ff9d' : color}`,
-              borderWidth: isHint || isLock ? 1.4 : 0.8,
-              boxShadow: isHint ? '0 0 14px rgba(0,255,157,0.55)' : `0 0 8px ${color}44`,
+              borderWidth: isHint || isLock ? 1.4 : 0.9,
+              boxShadow: isHint ? '0 0 10px rgba(0,255,157,0.35)' : `0 0 6px ${color}33`,
               zIndex: 12,
             }}>
             <span style={{
               fontFamily: "'Share Tech Mono', ui-monospace, monospace",
               fontSize: size,
-              lineHeight: 1.08,
+              lineHeight: 1.12,
               fontWeight: 700,
               color: isHint ? '#b6ffe4' : '#ffffff',
               textShadow: `0 0 7px ${isHint ? '#00ff9d' : color}`,
@@ -523,12 +523,12 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
         </div>
       )}
 
-      {/* ── tehlike vignette: hedef tabana yaklaşınca kalp atışı gibi kızarır ── */}
-      {s.danger > 0.15 && (
+      {/* ── tehlike vignette: göz yormayacak kadar hafif ── */}
+      {s.danger > 0.2 && (
         <div className="absolute inset-0 pointer-events-none z-24"
           style={{
-            background: `radial-gradient(ellipse at center, transparent 42%, rgba(255,46,99,${0.18 + s.danger * 0.32}) 100%)`,
-            opacity: 0.55 + Math.sin(s.gameTime * 0.018) * 0.35 * s.danger,
+            background: `radial-gradient(ellipse at center, transparent 56%, rgba(255,46,99,${0.09 + s.danger * 0.14}) 100%)`,
+            opacity: 0.35 + Math.sin(s.gameTime * 0.014) * 0.18 * s.danger,
           }} />
       )}
       {s.frenzy && (

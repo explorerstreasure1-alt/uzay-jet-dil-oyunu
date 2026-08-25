@@ -103,6 +103,7 @@ export interface GameState {
   danger: number;
   /** frenzy dalgası mı */
   frenzy: boolean;
+  hitPause: number;
 }
 
 export interface TouchState {

@@ -61,7 +61,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, waveAge: 0, danger: 0, frenzy: false,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -290,6 +290,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       waveAge: 0,
       hitCard: null,
       danger: 0,
+      hitPause: 0,
       waveBanner: { text: autoBanner, sub: autoSub, t: 1 },
     };
     audio.setHeat(ref.current.targetHeat);
@@ -498,15 +499,16 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.flash) { s.flash.t -= dt * 0.075; if (s.flash.t <= 0) s.flash = null; }
     if (s.waveBanner) { s.waveBanner.t -= dt * 0.013; if (s.waveBanner.t <= 0) s.waveBanner = null; }
 
+    // hit-stop: doğru vuruşta 45ms donma (göz yormadan tatmin)
+    if (s.hitPause > 0) s.hitPause = Math.max(0, s.hitPause - dt);
     /* ── aliens descend; sway is cosmetic only ── */
     const focusSlow = s.focusTimer > 0 ? 0.46 : 1;
+    const freeze = s.hitPause > 0 ? 0 : 1;
     for (const a of s.aliens) {
-      a.y += a.vy * dt * focusSlow;
-      a.glowPhase += 0.045 * dt;
-      a.cloakPhase += (a.variant === 'phantom' ? 0.09 : 0.015) * dt;
-      // frenzy: ekstra hız titreşimi
-      if (s.frenzy) a.glowPhase += 0.02 * dt;
-      // swift zigzag daha agresif sway
+      a.y += a.vy * dt * focusSlow * freeze;
+      a.glowPhase += 0.045 * dt * freeze;
+      a.cloakPhase += (a.variant === 'phantom' ? 0.09 : 0.015) * dt * freeze;
+      if (s.frenzy) a.glowPhase += 0.02 * dt * freeze;
       const swayMul = a.variant === 'swift' ? 1.35 : 1;
       a.drawX = a.laneX + a.laneW / 2 + Math.sin(s.gameTime * 0.0018 * swayMul + a.glowPhase) * a.sway;
       if (a.hitFlash > 0) a.hitFlash = Math.max(0, a.hitFlash - dt * 0.11);
@@ -521,11 +523,10 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         // kalp atışı titreşimi
         const pulse = Math.sin(s.gameTime * 0.018) * raw;
         if (pulse > 0.85 && Math.random() < 0.35) {
-          s.shake = Math.max(s.shake, raw * 5);
+          s.shake = Math.max(s.shake, raw * 2.2);
           if (raw > 0.85) haptic('tap', hap);
         }
-        // frenzy + tehlike birleşince ekstra flash
-        if (s.frenzy && raw > 0.5 && Math.random() < 0.06) s.flash = { color: '#ff2e63', t: 0.3 * raw };
+        if (s.frenzy && raw > 0.5 && Math.random() < 0.04) s.flash = { color: '#ff2e63', t: 0.14 * raw };
       }
     } else s.danger = 0;
 
@@ -589,8 +590,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             s.explosions.push({ id: uid(), x: cx, y: cy, radius: 2, maxRadius: 38 * comboScale, opacity: 0.9, color: '#ffffff', isChain: true });
           }
           s.floats.push({ id: uid(), x: cx, y: a.y - 4, text: `+${gained}`, color: meta.core, life: 1.15, vy: -1.5 });
-          s.flash = { color: meta.core, t: 0.65 + (s.frenzy ? 0.25 : 0) };
-          s.shake = Math.max(s.shake, s.frenzy ? 6 : s.combo >= 5 ? 4 : 0);
+          s.flash = { color: meta.core, t: 0.22 + (s.frenzy ? 0.08 : 0) };
+          s.shake = Math.max(s.shake, s.frenzy ? 2.4 : s.combo >= 5 ? 1.6 : 0);
+          s.hitPause = 3.2;
           s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1 };
 
           audio.explode(a.isBoss);
@@ -641,8 +643,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1;
           if (absorbed) s.shield = false;
           else s.lives -= 1;
-          s.shake = 13;
-          s.flash = { color: '#ff2e63', t: 1 };
+          s.shake = 6;
+          s.flash = { color: '#ff2e63', t: 0.42 };
           heatRef.current = applyResult(heatRef.current, a.word.id, false);
           statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
           flushSoon();
@@ -682,8 +684,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         if (absorbed) s.shield = false;
         else s.lives -= 1;
         s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1;
-        s.shake = 16;
-        s.flash = { color: '#ff2e63', t: 1 };
+        s.shake = 7;
+        s.flash = { color: '#ff2e63', t: 0.45 };
         heatRef.current = applyResult(heatRef.current, a.word.id, false);
         statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
         flushSoon();
@@ -761,7 +763,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         s.floats.push({ id: uid(), x: VW / 2, y: 210, text: `★ SEVİYE EFSANESİ +${loopBonus}`, color: '#ffd166', life: 2.2, vy: -0.45 });
         s.floats.push({ id: uid(), x: VW / 2, y: 250, text: `+1 CAN · SONSUZ MOD DEVAM`, color: '#00ffa3', life: 2, vy: -0.4 });
         s.waveBanner = { text: '★ SEVİYE EFSANESİ', sub: `SONSUZ MOD — DALGA ${s.wave + 1} DEVAM`, t: 1 };
-        s.flash = { color: '#ffd166', t: 0.9 };
+        s.flash = { color: '#ffd166', t: 0.42 };
         audio.levelUp(); haptic('level', hap);
       }
 

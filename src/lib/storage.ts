@@ -22,8 +22,8 @@ function write(key: string, value: unknown) {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  crt: true, music: true, sfx: true, tts: true, haptics: true, leftHanded: false,
-  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0.07,
+  crt: false, music: false, sfx: true, tts: true, haptics: true, leftHanded: false,
+  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0,
 };
 export const DEFAULT_STATS: RunStats = {
   highScores: {}, totalCorrect: 0, totalWrong: 0, wavesTotal: 0, bossesKilled: 0, sessionsPlayed: 0,
@@ -39,13 +39,19 @@ export const store = {
 
   loadSettings: (): Settings => {
     const raw = read<Partial<Settings>>(K.settings, {});
-    const merged = { ...DEFAULT_SETTINGS, ...raw };
-    // migrated: eski yüksek BGM sesi otomatik kısılır (mobil şikayeti)
-    if (raw.bgmVolume !== undefined && raw.bgmVolume > 0.09) {
-      merged.bgmVolume = 0.07;
+    const merged = { ...DEFAULT_SETTINGS, ...raw } as Settings & { eyeComfort?: boolean };
+    // migrated: müziği tamamen sustur (kullanıcı şikayeti), eski yüksek sesi sıfırla
+    if (raw.music !== undefined && raw.music === true) {
+      // ilk migrasyonda sessize çek, kullanıcı isterse ayarlardan açar
+      merged.music = false;
+      merged.bgmVolume = 0;
+      merged.crt = false;
+      write(K.settings, merged);
+    } else if (raw.bgmVolume !== undefined && raw.bgmVolume > 0.01) {
+      merged.bgmVolume = 0;
       write(K.settings, merged);
     }
-    return merged;
+    return merged as Settings;
   },
   saveSettings: (s: Settings) => write(K.settings, s),
 
