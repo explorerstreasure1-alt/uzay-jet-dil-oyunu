@@ -573,7 +573,7 @@ const DATA: Record<LangCode, { N: Noun[]; A: Adj[]; V: Verb[]; P: string }> = {
   ru: { N: [...N_RU, ...nouns(EXT_N.ru)], A: [...A_RU, ...adjs(EXT_A.ru)], V: [...V_RU, ...verbs(EXT_V.ru)], P: P_RU + EXT_P.ru },
 };
 
-export const WORDS_PER_LANGUAGE = 4000;
+export const WORDS_PER_LANGUAGE = 4500;
 const TARGET = WORDS_PER_LANGUAGE;
 const cache = new Map<LangCode, Entry[]>();
 
@@ -643,60 +643,68 @@ export function buildLanguage(lang: LangCode): Entry[] {
     push(poss(lang, n), TT.my(n.n), 'A1', 'phrase');
   });
 
-  /* 7 — adjective templates */
+  /* 7 — verb + object collocations (öncelik: mantık hatasız, erken üretilir) */
+   const DRINKABLE_TR = new Set(['su','süt','kahve','çay','meyve suyu','şarap','çorba']);
+   const READABLE_NOUN_TR = new Set(['kitap','defter','sayfa','kelime']);
+   const OBJ_OK: Record<string, CatId[]> = {
+     'yemek':            ['food'],
+     'içmek':            ['food'],
+     'yemek pişirmek':   ['food'],
+     'satın almak':      ['food', 'daily', 'travel', 'tech'],
+     'satmak':           ['food', 'daily', 'tech'],
+     'okumak':           ['daily'],
+     'yazmak':           ['daily', 'business'],
+     'açmak':            ['daily', 'tech'],
+     'kapatmak':         ['daily', 'tech'],
+     'yıkamak':          ['daily'],
+     'temizlemek':       ['daily'],
+     'tamir etmek':      ['daily', 'tech', 'travel'],
+     'giymek':           ['daily'],
+     'kırmak':           ['daily'],
+     'taşımak':          ['daily', 'travel'],
+     'getirmek':         ['food', 'daily'],
+     'ziyaret etmek':    ['travel'],
+     'kaybetmek':        ['daily', 'travel'],
+     'bulmak':           ['daily', 'travel'],
+   };
+   const READABLE = new Set<CatId>(['food', 'daily', 'travel', 'tech', 'business']);
+   V.forEach(v => {
+      const allow = OBJ_OK[v.n];
+      if (!allow) return;
+      N.forEach(o => {
+        if (!allow.includes(o.c) || !READABLE.has(o.c)) return;
+        if (lang === 'ru' && o.acc) return;
+        if (v.n === 'içmek' && !DRINKABLE_TR.has(o.n)) return;
+        if ((v.n === 'yemek' || v.n === 'yemek pişirmek') && DRINKABLE_TR.has(o.n) && o.n !== 'çorba') return;
+        if (v.n === 'okumak' && !READABLE_NOUN_TR.has(o.n)) return;
+        if (v.n === 'yazmak' && !READABLE_NOUN_TR.has(o.n)) return;
+        if ((v.n === 'açmak' || v.n === 'kapatmak') && !['kapı','pencere','kitap','çanta','şişe','kutu'].includes(o.n)) return;
+        if (v.n === 'yıkamak' && !['gömlek','pantolon','elbise','ceket','havlu','tabak','bardak','çatal','bıçak','kaşık','şişe'].includes(o.n)) return;
+        if (v.n === 'giymek' && !['gömlek','pantolon','elbise','ceket','etek','şapka','çorap','eldiven','kemer','ayakkabı','palto'].includes(o.n)) return;
+        const obj = objForm(lang, o);
+        if (!obj) return;
+        push(`${v.f} ${obj}`, `${o.n} ${v.n}`, o.lv === 'A1' && v.lv === 'A1' ? 'A2' : 'B1', 'phrase');
+      });
+    });
+
+  /* 8 — adjective templates */
   A.forEach(a => {
     push(T.very[lang](a.f), TT.very(a.n), a.lv, 'phrase');
     push(T.not[lang](a.f), TT.not(a.n), a.lv, 'phrase');
     push(T.too[lang](a.f), TT.too(a.n), 'A2', 'phrase');
   });
 
-  /* 8 — verb templates */
+  /* 9 — verb templates */
   V.forEach(v => {
     push(T.want[lang](v.f), TT.want(v.n), v.lv, 'phrase');
     push(T.must[lang](v.f), TT.must(v.n), 'A2', 'phrase');
     push(T.like[lang](v.f), TT.like(v.n), 'A2', 'phrase');
   });
 
-  /* 9 — quantity + countable noun (natural shopping/ordering language) */
+  /* 10 — quantity + countable noun (natural shopping/ordering language) */
   const counts = [2, 3, 4, 5, 10];
   N.filter(n => n.c === 'food' || n.c === 'travel').forEach(n => {
     counts.forEach(k => push(`${num(k)} ${n.f}`, `${trNum(k)} ${n.n}`, 'A2', 'number'));
-  });
-
-  /* 10 — verb + object collocations, semantically filtered so every
-     pairing is something a person would actually say. */
-  const OBJ_OK: Record<string, CatId[]> = {
-    'yemek':            ['food'],
-    'içmek':            ['food'],
-    'yemek pişirmek':   ['food'],
-    'satın almak':      ['food', 'daily', 'travel', 'tech'],
-    'satmak':           ['food', 'daily', 'tech'],
-    'okumak':           ['daily'],
-    'yazmak':           ['daily', 'business'],
-    'açmak':            ['daily', 'tech'],
-    'kapatmak':         ['daily', 'tech'],
-    'yıkamak':          ['daily', 'food'],
-    'temizlemek':       ['daily'],
-    'tamir etmek':      ['daily', 'tech', 'travel'],
-    'giymek':           ['daily'],
-    'kırmak':           ['daily'],
-    'taşımak':          ['daily', 'travel'],
-    'getirmek':         ['food', 'daily'],
-    'ziyaret etmek':    ['travel'],
-    'kaybetmek':        ['daily', 'travel'],
-    'bulmak':           ['daily', 'travel'],
-  };
-  const READABLE = new Set<CatId>(['food', 'daily', 'travel', 'tech', 'business']);
-  V.forEach(v => {
-    const allow = OBJ_OK[v.n];
-    if (!allow) return;
-    N.forEach(o => {
-      if (!allow.includes(o.c) || !READABLE.has(o.c)) return;
-      if (lang === 'ru' && o.acc) return;      // skip nouns that would need declension
-      const obj = objForm(lang, o);
-      if (!obj) return;
-      push(`${v.f} ${obj}`, `${o.n} ${v.n}`, o.lv === 'A1' && v.lv === 'A1' ? 'A2' : 'B1', 'phrase');
-    });
   });
 
   /* 11 — adjective + noun, agreement-correct and semantically screened */
