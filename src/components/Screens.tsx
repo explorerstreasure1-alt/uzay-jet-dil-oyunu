@@ -19,6 +19,8 @@ const btn = (color: string, strong = false): React.CSSProperties => ({
 function Title() {
   return (
     <div className="text-center">
+      <div className="font-mono-tech text-[7px] tracking-[0.38em] text-white/30 mb-0.5">HOLOGRAPHIC SUBCONSCIOUS PROTOCOL v2.1</div>
+      <div className="font-mono-tech text-[6px] tracking-[0.22em] text-[#00d4ff]/60 mb-1">NEURAL LINK ESTABLISHED — MEMORY SECTOR ACTIVE</div>
       <div className="font-mono-tech text-[8px] tracking-[0.42em] text-white/35 mb-1">POLYGLOT EDITION</div>
       <h1 className="font-orbitron text-[40px] font-black leading-[0.92] tracking-[0.06em]"
         style={{ color: '#00d4ff', textShadow: '0 0 18px rgba(0,212,255,0.9), 0 0 44px rgba(0,102,255,0.45)' }}>
@@ -29,6 +31,7 @@ function Title() {
         INVADERS
       </h1>
       <div className="mx-auto mt-2 h-px w-40" style={{ background: 'linear-gradient(90deg,transparent,#00d4ff,transparent)' }} />
+      <div className="font-mono-tech text-[6px] tracking-[0.18em] text-white/25 mt-1.5">BİLİNÇALTI HOLOGRAMI — KELİMELER İSTİLA EDİYOR</div>
     </div>
   );
 }
