@@ -5,6 +5,7 @@ import { VW, VH, SHIP_Y, FLOOR_Y, SPRITE_H } from '../hooks/useGameEngine';
 import type { EngineApi } from '../hooks/useGameEngine';
 import { speechSupported, listenOnce } from '../lib/speech';
 
+const CAT_EMOJI: Record<string, string> = { food:'🍎', daily:'🏠', travel:'✈️', business:'💼', tech:'💻', nature:'🌲', emotion:'💜', slang:'💬', verb:'⚡', number:'🔢', phrase:'💬' };
 const BODY = ['..X.....X..', '...X...X...', '..XXXXXXX..', '.XX.XXX.XX.', 'XXXXXXXXXXX', 'X.XXXXXXX.X', 'X.X.....X.X', '...XX.XX...'];
 const BOSS = ['X....X....X', '.X..XXX..X.', '..XXXXXXX..', '.XXX.X.XXX.', 'XXXXXXXXXXX', 'X.XXXXXXX.X', 'X.X.X.X.X.X', '..X.....X..'];
 
@@ -536,6 +537,24 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
             <div className="font-mono-tech text-[13px] mt-1 break-words" style={{ color: 'rgba(255,255,255,0.72)' }}>
               {s.hitCard.native}
             </div>
+            {s.hitCard.ok && (()=> {
+              const seen = s.hitCard!.seen ?? 1;
+              const cat = s.aliens.find(a=>a.word.foreign===s.hitCard!.foreign)?.word.category ?? 'daily';
+              const pct = Math.min(100, seen*33);
+              return (
+                <div className="mt-2">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <span className="text-[14px]">{CAT_EMOJI[cat] ?? '🧠'}</span>
+                    <span className="font-mono-tech text-[7px] tracking-[0.2em] text-white/40">HAFIZA İZİ</span>
+                    <span className="font-mono-tech text-[7px] text-[#00ffa3]">{Math.min(seen,3)}/3</span>
+                  </div>
+                  <div className="h-[5px] rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct>=100?'#00ffa3': pct>=66?'#ffd166':'#00d4ff', boxShadow: `0 0 6px ${pct>=100?'#00ffa3':'#00d4ff'}` }} />
+                  </div>
+                  <div className="font-mono-tech text-[6px] text-white/30 mt-1">{pct>=100?'✓ SİNAPS KURULDU — HAFIZAYA KAZINDI':'Tekrar et, iz güçlensin'}</div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

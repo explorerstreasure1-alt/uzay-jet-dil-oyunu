@@ -2,9 +2,9 @@ import { useState } from 'react';
 
 const STEPS = [
   {
-    icon: '◈',
-    title: 'HOŞ GELDİN, PILOT',
-    desc: 'Word Invaders beynini arcade ile çalıştırır. Yukarıdan gelen yabancı kelimeleri vur, Türkçesini öğren.',
+    icon: '🧠',
+    title: 'HAFIZA PROTOKOLÜ AKTİF',
+    desc: 'Beynin holografik korteksine sızdık. Her kelime bir sinaps — vur, gör, söyle, anında hafızaya kazı. 3 duyu, 1 iz.',
     color: '#00d4ff',
   },
   {

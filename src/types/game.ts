@@ -161,6 +161,7 @@ export interface HitCard {
   native: string;
   ok: boolean;
   t: number;
+  seen?: number;
 }
 
 export interface RunStats {

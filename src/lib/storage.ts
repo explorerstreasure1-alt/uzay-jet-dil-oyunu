@@ -141,9 +141,10 @@ function waveWeight(word: VocabWord, heat: HeatMap, allowCrimson: boolean, now =
   const recall = recallProbability(stat, now);
 
   if (h === 'crimson' && !due && !allowCrimson) return 0;
-  // Tekrar pekiştirme: relearning ve yeni kelimeler daha agresif ağırlıkta
+  // Hafıza kazıma: yeni kelime anında 3 kez peş peşe — ağırlık maksimum
   if (stat.phase === 'relearning') return 18;
-  if (stat.seen === 0) return 9;
+  if (stat.seen === 0) return 14;
+  if (stat.seen < 3) return 12;
   if (due) return Math.round(clamp(11 + overdue * 4 + (1 - recall) * 5, 10, 26));
   if (h === 'ice') return 7;
   if (h === 'amber') return 4;
@@ -199,8 +200,9 @@ export function applyResult(heat: HeatMap, wordId: string, correct: boolean): He
     const difficulty = clamp(prev.difficulty - 0.03 - (recall < 0.45 ? 0.02 : 0), 0.05, 0.95);
 
     let intervalDays: number;
-    // Pekiştirme: daha kısa interval, daha fazla tekrar gerektir — mastery eşiği yükseldi
-    if (prev.phase === 'new' || prev.seen === 0) intervalDays = 0.18;       // ~4.3 saat (daha sık tekrar)
+    // Hafıza kazıma: ilk 3 tekrarda 1 saat içinde geri çağır — anında pekişsin
+    if (prev.phase === 'new' || prev.seen === 0) intervalDays = 0.08;       // ~1.9 saat (hemen tekrar)
+    else if (prev.seen < 3) intervalDays = 0.12;                              // ~2.9 saat (3’lü seri)
     else if (prev.phase === 'relearning') intervalDays = 0.35;               // ~8.4 saat
     else if (streak === 2) intervalDays = 0.75;
     else if (streak === 3) intervalDays = 2;

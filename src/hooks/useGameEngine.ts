@@ -654,7 +654,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           s.flash = { color: meta.core, t: 0.22 + (s.frenzy ? 0.08 : 0) };
           s.shake = Math.max(s.shake, s.frenzy ? 2.4 : s.combo >= 5 ? 1.6 : 0);
           s.hitPause = 3.2;
-          s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1 };
+          s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0) + 1 };
 
           audio.explode(a.isBoss);
           audio.correct();
