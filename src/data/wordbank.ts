@@ -703,20 +703,31 @@ export function buildLanguage(lang: LangCode): Entry[] {
 
   /* 10 — quantity + countable noun (natural shopping/ordering language) */
   const counts = [2, 3, 4, 5, 10];
-  N.filter(n => n.c === 'food' || n.c === 'travel').forEach(n => {
+  // yalnızca sayılabilir: su/süt/kahve/çay/şeker/tuz/yağ hariç
+  const COUNTABLE_TR = new Set(['ekmek','elma','portakal','muz','üzüm','limon','çilek','havuç','salatalık','sarımsak','mantar','karpuz','şeftali','biber','peynir','yumurta','tavuk','patates','domates','soğan','pasta','dondurma','bilet','pasaport','bavul','harita','otel','taksi','tren','otobüs']);
+  N.filter(n => (n.c === 'food' || n.c === 'travel') && COUNTABLE_TR.has(n.n)).forEach(n => {
     counts.forEach(k => push(`${num(k)} ${n.f}`, `${trNum(k)} ${n.n}`, 'A2', 'number'));
   });
 
-  /* 11 — adjective + noun, agreement-correct and semantically screened */
+  /* 11 — adjective + noun, agreement + anlam süzgeci */
   const SIZE_OK = new Set<CatId>(['daily', 'food', 'travel', 'nature', 'tech', 'business']);
+  const ADJ_CAT: Record<string, CatId[]> = {
+    'sıcak': ['food'], 'soğuk': ['food'],
+    'hızlı': ['travel','tech'], 'yavaş': ['travel','tech'],
+    'güvenli': ['travel','daily'], 'tehlikeli': ['travel','daily','nature'],
+    'ağır': ['daily','travel'], 'hafif': ['daily','travel'],
+    'boş': ['daily','travel','food'], 'dolu': ['daily','travel','food'],
+    'açık': ['daily'], 'kapalı': ['daily'],
+  };
   const descriptive = A.filter(a =>
     /büyük|küçük|yeni|eski|sıcak|soğuk|güzel|temiz|kirli|ucuz|pahalı|uzun|kısa|ağır|hafif|boş|dolu|açık|kapalı|hızlı|yavaş|güvenli|tehlikeli/.test(a.n));
   N.filter(n => SIZE_OK.has(n.c)).forEach(n => {
     descriptive.forEach(a => {
+      const allow = ADJ_CAT[a.n];
+      if (allow && !allow.includes(n.c)) return;
       let f: string;
       if (lang === 'en' || lang === 'ru') f = `${a.f} ${n.f}`;
       else {
-        /* Spanish & Italian: post-nominal, gender-agreed */
         const ag = n.g === 'f' ? a.f.replace(/o$/, 'a') : a.f;
         f = `${n.f} ${ag}`;
       }
