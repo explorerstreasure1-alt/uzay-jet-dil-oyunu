@@ -199,6 +199,8 @@ free=serbest|A2; open=açık|A1; closed=kapalı|A1; correct=doğru|A1; wrong=yan
 similar=benzer|B1; different=farklı|A2; simple=basit|A2; complex=karmaşık|B1; useful=faydalı|A2;
 useless=işe yaramaz|B1; modern=modern|A2; traditional=geleneksel|B1; natural=doğal|A2; artificial=yapay|B1;
 public=kamusal|B1; private=özel|A2; local=yerel|B1; global=küresel|B1; sudden=ani|B1;
+sophisticated=sofistike|C1; ambiguous=muğlak|C1; pragmatic=pragmatik|C1; holistic=bütünsel|C1; empirical=ampirik|C1;
+coherent=tutarlı|B2; sustainable=sürdürülebilir|B2; innovative=yenilikçi|B2; strategic=stratejik|B2; comprehensive=kapsamlı|B2;
 `,
 es: `interesante=ilginç|A2; aburrido=sıkıcı|A2; divertido=komik|A2; serio=ciddi|A2; famoso=ünlü|A2;
 importante=önemli|A2; posible=mümkün|A2; imposible=imkânsız|B1; listo=hazır|A1; ocupado=meşgul|A2;
@@ -206,6 +208,8 @@ libre=serbest|A2; abierto=açık|A1; cerrado=kapalı|A1; correcto=doğru|A1; inc
 parecido=benzer|B1; diferente=farklı|A2; sencillo=basit|A2; complejo=karmaşık|B1; útil=faydalı|A2;
 inútil=işe yaramaz|B1; moderno=modern|A2; tradicional=geleneksel|B1; natural=doğal|A2; artificial=yapay|B1;
 público=kamusal|B1; privado=özel|A2; local=yerel|B1; global=küresel|B1; repentino=ani|B1;
+sofisticado=sofistike|C1; ambiguo=muğlak|C1; pragmático=pragmatik|C1; holístico=bütünsel|C1; empírico=ampirik|C1;
+coherente=tutarlı|B2; sostenible=sürdürülebilir|B2; innovador=yenilikçi|B2; estratégico=stratejik|B2; integral=kapsamlı|B2;
 `,
 it: `interessante=ilginç|A2; noioso=sıkıcı|A2; divertente=komik|A2; serio=ciddi|A2; famoso=ünlü|A2;
 importante=önemli|A2; possibile=mümkün|A2; impossibile=imkânsız|B1; pronto=hazır|A1; occupato=meşgul|A2;
@@ -213,6 +217,8 @@ libero=serbest|A2; aperto=açık|A1; chiuso=kapalı|A1; corretto=doğru|A1; sbag
 simile=benzer|B1; diverso=farklı|A2; semplice=basit|A2; complesso=karmaşık|B1; utile=faydalı|A2;
 inutile=işe yaramaz|B1; moderno=modern|A2; tradizionale=geleneksel|B1; naturale=doğal|A2; artificiale=yapay|B1;
 pubblico=kamusal|B1; privato=özel|A2; locale=yerel|B1; globale=küresel|B1; improvviso=ani|B1;
+sofisticato=sofistike|C1; ambiguo=muğlak|C1; pragmatico=pragmatik|C1; olistico=bütünsel|C1; empirico=ampirik|C1;
+coerente=tutarlı|B2; sostenibile=sürdürülebilir|B2; innovativo=yenilikçi|B2; strategico=stratejik|B2; completo=kapsamlı|B2;
 `,
 ru: `интересный=ilginç|A2; скучный=sıkıcı|A2; смешной=komik|A2; серьёзный=ciddi|A2; известный=ünlü|A2;
 важный=önemli|A2; возможный=mümkün|A2; невозможный=imkânsız|B1; готовый=hazır|A1; занятый=meşgul|A2;
@@ -220,6 +226,8 @@ ru: `интересный=ilginç|A2; скучный=sıkıcı|A2; смешно�
 похожий=benzer|B1; разный=farklı|A2; простой=basit|A2; сложный=karmaşık|B1; полезный=faydalı|A2;
 бесполезный=işe yaramaz|B1; современный=modern|A2; традиционный=geleneksel|B1; естественный=doğal|A2; искусственный=yapay|B1;
 общественный=kamusal|B1; частный=özel|A2; местный=yerel|B1; глобальный=küresel|B1; внезапный=ani|B1;
+утончённый=sofistike|C1; двусмысленный=muğlak|C1; прагматичный=pragmatik|C1; холистический=bütünsel|C1; эмпирический=ampirik|C1;
+связный=tutarlı|B2; стабильный=sürdürülebilir|B2; инновационный=yenilikçi|B2; стратегический=stratejik|B2; комплексный=kapsamlı|B2;
 `,
 };
 
