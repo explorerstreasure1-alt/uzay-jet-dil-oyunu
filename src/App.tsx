@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useGameEngine, VW, VH } from './hooks/useGameEngine';
 import { GameScreen } from './components/GameScreen';
 import {
-  MenuScreen, SetupScreen, DeckScreen, StatsScreen, SettingsScreen, InstallScreen, WrongBookScreen, DailyChallengeScreen,
+  MenuScreen, SetupScreen, DeckScreen, StatsScreen, SettingsScreen, InstallScreen, WrongBookScreen, DailyChallengeScreen, LeaderboardScreen, CampaignScreen, TeacherScreen,
   LevelCompleteScreen, GameOverScreen, PauseOverlay, type MenuView,
 } from './components/Screens';
 import { highScoreKey } from './lib/storage';
@@ -64,18 +64,24 @@ export default function App() {
     };
   }, []);
 
-  const start = useCallback((lang: LangCode, level: CEFRLevel, category: CategoryId) => {
+  const start = useCallback((lang: LangCode, level: CEFRLevel, category: CategoryId, cloze?: boolean) => {
     setRun({ lang, level, category });
-    api.startRun(lang, level, category);
+    api.startRun(lang, level, category, cloze);
     setRoot('playing');
   }, [api]);
 
   const isDesktop = viewport.width > 520;
+  const a11yStyle: React.CSSProperties = {
+    fontSize: `${(api.settings.fontScale ?? 1) * 16}px`,
+    filter: api.settings.highContrast ? 'contrast(1.25) saturate(1.15)' : undefined,
+    fontFamily: api.settings.dyslexia ? 'OpenDyslexic, Verdana, sans-serif' : undefined,
+  };
 
   return (
-    <div className="fixed inset-0 overflow-hidden"
+    <div className={`fixed inset-0 overflow-hidden ${api.settings.reduceMotion ? 'reduce-motion' : ''} ${api.settings.highContrast ? 'high-contrast' : ''} ${api.settings.dyslexia ? 'dyslexia' : ''}`}
       style={{
-        background: 'radial-gradient(ellipse at 50% 0%, #101f4d 0%, #060d26 55%, #03060f 100%)',
+        ...a11yStyle,
+        background: api.settings.highContrast ? '#000' : 'radial-gradient(ellipse at 50% 0%, #101f4d 0%, #060d26 55%, #03060f 100%)',
         touchAction: 'none',
       }}>
 
@@ -112,6 +118,9 @@ export default function App() {
             {view === 'daily' && <DailyChallengeScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}
             {view === 'stats' && <StatsScreen api={api} onBack={() => setView('menu')} />}
             {view === 'settings' && <SettingsScreen api={api} onBack={() => setView('menu')} />}
+            {view === 'leaderboard' && <LeaderboardScreen api={api} onBack={() => setView('menu')} />}
+            {view === 'campaign' && <CampaignScreen api={api} onBack={() => setView('menu')} onStart={(lang, lv) => start(lang, lv, 'all', false)} />}
+            {view === 'teacher' && <TeacherScreen api={api} onBack={() => setView('menu')} />}
             {view === 'install' && (
               <InstallScreen
                 canInstall={pwa.canInstall}

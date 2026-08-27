@@ -195,6 +195,13 @@ export function MenuScreen({ api, lang, setLang, go, pwa }: {
             </button>
           ))}
         </div>
+        <div className="grid grid-cols-3 gap-2 mt-2">
+          {([['leaderboard','LİDERLİK'],['campaign','SEFER'],['teacher','ÖĞRETMEN']] as const).map(([k,label])=>(
+            <button key={k} onClick={()=>{ audio.ui(); go(k as any); }} className="glass rounded-lg py-2 active:scale-95 transition-transform">
+              <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55">{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </Shell>
   );
@@ -286,10 +293,11 @@ export function InstallScreen({ canInstall, installed, isIos, onInstall, onBack 
 /* ══════════════════ SETUP WIZARD ══════════════════ */
 export function SetupScreen({ api, lang, setLang, onStart, onBack }: {
   api: EngineApi; lang: LangCode; setLang: (l: LangCode) => void;
-  onStart: (l: LangCode, lv: CEFRLevel, c: CategoryId) => void; onBack: () => void;
+  onStart: (l: LangCode, lv: CEFRLevel, c: CategoryId, cloze?: boolean) => void; onBack: () => void;
 }) {
   const [lv, setLv] = useState<CEFRLevel>('A1');
   const [cat, setCat] = useState<CategoryId>('all');
+  const [cloze, setCloze] = useState(false);
   const words = useMemo(() => getWords(lang, lv, cat, api.customWords), [lang, lv, cat, api.customWords]);
   const bd = useMemo(() => heatBreakdown(getWords(lang, lv, 'all', api.customWords), api.heat), [lang, lv, api.heat, api.customWords]);
   const rs = useMemo(() => reviewSummary(words, api.heat), [words, api.heat]);
@@ -345,6 +353,14 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack }: {
         })}
       </div>
 
+      <button onClick={() => { setCloze(!cloze); audio.ui(); }} className="w-full glass rounded-lg px-3 py-2.5 mb-3 flex items-center justify-between active:scale-95 transition-all">
+        <div>
+          <div className="font-mono-tech text-[9px] tracking-[0.12em] text-white/80">CÜMLE MODU (CLOZE)</div>
+          <div className="font-mono-tech text-[7px] text-white/30">Boşluğu doldur — bağlamda öğren</div>
+        </div>
+        <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${cloze ? 'bg-[#00d4ff]' : 'bg-white/10'}`}><div className={`w-4 h-4 rounded-full bg-white transition-transform ${cloze ? 'translate-x-5' : ''}`} /></div>
+      </button>
+
       <div className="glass rounded-xl px-3 py-2.5 mb-3">
         <div className="flex justify-between items-center mb-2">
           <span className="font-mono-tech text-[8px] tracking-[0.24em] text-white/35">SEÇİLİ HAVUZ</span>
@@ -388,10 +404,10 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack }: {
         </div>
       )}
 
-      <button disabled={words.length < 4} onClick={() => onStart(lang, lv, cat)}
+      <button disabled={words.length < 4} onClick={() => onStart(lang, lv, cat, cloze)}
         className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform disabled:opacity-35"
-        style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,102,255,0.16))', border: '1px solid #00d4ff', boxShadow: '0 0 20px rgba(0,212,255,0.4)' }}>
-        <span className="font-orbitron text-[15px] font-black tracking-[0.28em] text-[#e6faff]">SAVAŞA GİR</span>
+        style={{ background: cloze ? 'linear-gradient(135deg, rgba(199,125,255,0.32), rgba(0,212,255,0.18))' : 'linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,102,255,0.16))', border: `1px solid ${cloze ? '#c77dff' : '#00d4ff'}`, boxShadow: `0 0 20px ${cloze ? 'rgba(199,125,255,0.4)' : 'rgba(0,212,255,0.4)'}` }}>
+        <span className="font-orbitron text-[15px] font-black tracking-[0.28em] text-[#e6faff]">{cloze ? 'CÜMLE MODU — BAŞLAT' : 'SAVAŞA GİR'}</span>
       </button>
     </Shell>
   );
@@ -969,6 +985,58 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
         ))}
       </div>
 
+      <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">ERİŞİLEBİLİRLİK</div>
+      <div className="glass rounded-xl px-3 py-3 mb-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="font-mono-tech text-[9px] text-white/70">Yazı Boyutu</span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono-tech text-[7px] text-white/40">%90</span>
+            <input type="range" min={0.9} max={1.25} step={0.05} value={api.settings.fontScale ?? 1} onChange={e=>{ api.updateSettings({fontScale: Number(e.target.value)}); audio.ui(); }} className="w-24 accent-[#00d4ff]" />
+            <span className="font-mono-tech text-[7px] text-white/40">%125</span>
+            <span className="font-mono-tech text-[8px] text-[#00d4ff] w-8 text-right">{Math.round((api.settings.fontScale ?? 1)*100)}%</span>
+          </div>
+        </div>
+        {([
+          ['highContrast','YÜKSEK KONTRAST','Kenarlık ve metni güçlendir'],
+          ['reduceMotion','HAREKETİ AZALT','Parallax ve shake’i yumuşat'],
+          ['dyslexia','DISLEKSİ DOSTU FONT','Okunabilirliği artır'],
+        ] as const).map(([k,label,sub])=> {
+          const on = Boolean((api.settings as any)[k]);
+          return (
+            <button key={k} onClick={()=>{ (api.updateSettings as any)({[k]: !on}); audio.ui(); }} className="w-full flex items-center justify-between py-1.5 active:scale-95">
+              <div className="text-left">
+                <div className="font-mono-tech text-[9px] text-white/70">{label}</div>
+                <div className="font-mono-tech text-[7px] text-white/30">{sub}</div>
+              </div>
+              <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${on?'bg-[#00d4ff]':'bg-white/10'}`}><div className={`w-4 h-4 rounded-full bg-white transition-transform ${on?'translate-x-5':''}`} /></div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">ÇEVRİMDIŞI SES PAKETİ</div>
+      <div className="glass rounded-xl px-3 py-3 mb-4">
+        <div className="font-mono-tech text-[8px] text-white/35 mb-2">Telaffuz seslerini önbelleğe al — uçakta bile konuşur.</div>
+        <button onClick={async ()=>{
+          audio.unlock();
+          const key='wi_voice_pack_cached';
+          try{
+            if('caches' in window){
+              const c=await caches.open('voice-pack-v1');
+              await c.addAll(['/','/manifest.webmanifest']);
+            }
+            // warm TTS voices
+            try{ speechSynthesis.getVoices(); }catch{}
+            localStorage.setItem(key, Date.now().toString());
+            audio.correct();
+            alert('Ses paketi önbelleğe alındı ✓');
+          }catch(e){ alert('Önbellek hatası'); }
+        }} className="w-full rounded-lg py-2.5 active:scale-95" style={{background:'linear-gradient(135deg, rgba(0,212,255,0.18), rgba(0,102,255,0.12))', border:'1px solid #00d4ff'}}>
+          <span className="font-mono-tech text-[9px] tracking-[0.12em] text-white/80">⬇ SES PAKETİNİ İNDİR / ÖNBELLEĞE AL</span>
+        </button>
+        <div className="font-mono-tech text-[7px] text-white/25 mt-1.5 text-center">Bir kez indir, sonra çevrimdışı çalışır. PWA zaten müzik ve ikonları önbellekliyor.</div>
+      </div>
+
       <div className="glass rounded-xl px-3 py-3 mb-3">
         <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-2">KONTROLLER</div>
         {[['SÜRÜKLE', 'Gemi yatay kayar (ataletli)'], ['◀ ▶', 'Basılı tut → yönlü hareket'],
@@ -1005,5 +1073,111 @@ export function PauseOverlay({ onResume, onQuit }: { onResume: () => void; onQui
   );
 }
 
-export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily';
+/* ══════════════════ LEADERBOARD ══════════════════ */
+export function LeaderboardScreen({ api, onBack }: { api: EngineApi; onBack: () => void }) {
+  const entries = Object.entries(api.stats.highScores).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const share = async (key:string, score:number) => {
+    const url = `${location.origin}${location.pathname}?challenge=${encodeURIComponent(key)}:${score}`;
+    try { if (navigator.share) await navigator.share({ title: 'Word Invaders Meydan Okuma', text: `Skorum ${score} — geçebilir misin?`, url }); else await navigator.clipboard.writeText(url); audio.correct(); } catch {}
+  };
+  return (
+    <Shell>
+      <BackBtn onClick={onBack} />
+      <div className="font-orbitron text-[20px] font-black tracking-[0.14em] text-white/90 mb-1">LİDERLİK</div>
+      <div className="font-mono-tech text-[9px] text-white/35 mb-3">Lokal tablo — meydan okuma linki kopyala.</div>
+      <div className="space-y-1.5 mb-4">
+        {entries.length===0 && <div className="glass rounded-xl px-3 py-6 text-center font-mono-tech text-[9px] text-white/30">Henüz skor yok — oyna ve rekor kır.</div>}
+        {entries.map(([k,score],i)=> {
+          const [lc,lv]=k.split(':'); const meta=LANGUAGES.find(x=>x.code===lc);
+          return (
+            <div key={k} className="glass rounded-lg px-3 py-2 flex items-center gap-2">
+              <span className="font-orbitron text-[12px] font-black w-6" style={{color: i===0?'#ffd166':i===1?'#c0c0c0':'#cd7f32'}}>#{i+1}</span>
+              <span className="font-mono-tech text-[10px] flex-1" style={{color: meta?.accent}}>{meta?.flag} {lv}</span>
+              <span className="font-orbitron text-[13px] font-black" style={{color:'#00d4ff'}}>{score.toString().padStart(6,'0')}</span>
+              <button onClick={()=>share(k,score)} className="ml-2 rounded-md px-2 py-1 text-[10px] glass active:scale-95">↗ Paylaş</button>
+            </div>
+          );
+        })}
+      </div>
+      <div className="glass rounded-xl px-3 py-3">
+        <div className="font-mono-tech text-[9px] text-white/50">Meydan okuma linki: ?challenge=EN:A1:004200 ile arkadaşına gönder, aynı skor üzerine oynasın.</div>
+      </div>
+    </Shell>
+  );
+}
+
+/* ══════════════════ CAMPAIGN (5 Gezegen) ══════════════════ */
+export function CampaignScreen({ api, onBack, onStart }: { api: EngineApi; onBack: ()=>void; onStart: (lang:LangCode, lv:CEFRLevel)=>void }) {
+  const planets: { lv:CEFRLevel; name:string; color:string; icon:string }[] = [
+    { lv:'A1', name:'Aqua', color:'#00d4ff', icon:'◈' },
+    { lv:'A2', name:'Terra', color:'#00ffa3', icon:'✦' },
+    { lv:'B1', name:'Ignis', color:'#ffb300', icon:'▲' },
+    { lv:'B2', name:'Nimbus', color:'#ff6b1a', icon:'⬡' },
+    { lv:'C1', name:'Void', color:'#ff2e63', icon:'⬢' },
+  ];
+  return (
+    <Shell>
+      <BackBtn onClick={onBack} />
+      <div className="font-orbitron text-[20px] font-black tracking-[0.14em] text-white/90 mb-1">HİKAYE SEFERİ</div>
+      <div className="font-mono-tech text-[9px] text-white/35 mb-4">5 gezegen — her biri bir seviye, sırayla fethet.</div>
+      <div className="space-y-2 pb-4">
+        {planets.map((p,i)=>{
+          const done = (api.stats.wavesTotal ?? 0) > i*12;
+          const locked = i>0 && !(api.stats.wavesTotal > (i-1)*12);
+          return (
+            <button key={p.lv} disabled={locked} onClick={()=>{ if(!locked) onStart('en', p.lv); }} className="w-full rounded-xl px-3 py-3 flex items-center gap-3 active:scale-[0.97] disabled:opacity-40" style={{...btn(p.color, !locked), border: `1px solid ${p.color}55`}}>
+              <span className="font-orbitron text-[18px] w-7" style={{color:p.color}}>{p.icon}</span>
+              <div className="flex-1 text-left">
+                <div className="font-orbitron text-[13px] font-black" style={{color:p.color}}>{i+1}. {p.name} — {p.lv}</div>
+                <div className="font-mono-tech text-[7px] text-white/40">{locked?'Önce önceki gezegeni bitir':'Hazır'}</div>
+              </div>
+              <span className="font-mono-tech text-[8px] px-2 py-1 rounded-full" style={{background: done?'rgba(0,255,163,0.15)':'rgba(255,255,255,0.06)', color: done?'#00ffa3':'rgba(255,255,255,0.35)'}}>{done?'✓':'○'}</span>
+            </button>
+          );
+        })}
+      </div>
+    </Shell>
+  );
+}
+
+/* ══════════════════ TEACHER PANEL ══════════════════ */
+export function TeacherScreen({ api, onBack }: { api: EngineApi; onBack: ()=>void }) {
+  const [code] = useState(()=> Math.random().toString(36).slice(2,8).toUpperCase());
+  const csv = useMemo(()=>{
+    const header='dil,seviye,toplamDogru,toplamYanlis,boss,waves,seri';
+    const row=`all,all,${api.stats.totalCorrect},${api.stats.totalWrong},${api.stats.bossesKilled},${api.stats.wavesTotal},${api.stats.bestStreak ?? 0}`;
+    return header+'\n'+row;
+  },[api.stats]);
+  const download = () => {
+    const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=`sinif-${code}.csv`; a.click(); URL.revokeObjectURL(url);
+  };
+  return (
+    <Shell>
+      <BackBtn onClick={onBack} />
+      <div className="font-orbitron text-[20px] font-black tracking-[0.14em] text-white/90 mb-1">ÖĞRETMEN PANELİ</div>
+      <div className="font-mono-tech text-[9px] text-white/35 mb-3">Sınıf kodu ile ödev ver — CSV rapor al.</div>
+      <div className="glass rounded-xl px-3 py-3 mb-3 text-center">
+        <div className="font-mono-tech text-[8px] tracking-[0.2em] text-white/35">SINIF KODU</div>
+        <div className="font-orbitron text-[28px] font-black tracking-[0.18em]" style={{color:'#ffd166', textShadow:'0 0 12px #ffd166'}}>{code}</div>
+        <div className="font-mono-tech text-[7px] text-white/30">Öğrenciler giriş ekranında bu kodu girsin (yakında).</div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        {[['Öğrenci','—','—'],['Ödev','50 kelime','Haftalık']].map(([k,v,s])=>(
+          <div key={k as string} className="glass rounded-lg px-3 py-2">
+            <div className="font-mono-tech text-[7px] text-white/30">{k}</div>
+            <div className="font-orbitron text-[14px] font-black" style={{color:'#00d4ff'}}>{v as string}</div>
+            <div className="font-mono-tech text-[6px] text-white/30">{s as string}</div>
+          </div>
+        ))}
+      </div>
+      <button onClick={download} className="w-full rounded-xl py-3 active:scale-95" style={{background:'linear-gradient(135deg, rgba(0,212,255,0.22), rgba(0,102,255,0.12))', border:'1px solid #00d4ff'}}>
+        <span className="font-mono-tech text-[10px] tracking-[0.14em] text-white/80">⬇ CSV RAPOR İNDİR</span>
+      </button>
+      <div className="font-mono-tech text-[7px] text-white/25 mt-2 text-center">Şimdilik lokal demo — çok yakında bulut senkron.</div>
+    </Shell>
+  );
+}
+
+export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily' | 'leaderboard' | 'campaign' | 'teacher';
 export function heatOfUnused(h: HeatMap) { void h; }

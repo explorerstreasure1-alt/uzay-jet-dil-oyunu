@@ -104,6 +104,8 @@ export interface GameState {
   /** frenzy dalgası mı */
   frenzy: boolean;
   hitPause: number;
+  cloze: { foreign: string; native: string } | null;
+  isCloze: boolean;
 }
 
 export interface TouchState {
@@ -148,6 +150,10 @@ export interface Settings {
   echo: boolean;
   ttsRate: number;
   bgmVolume: number;
+  fontScale: number;
+  highContrast: boolean;
+  reduceMotion: boolean;
+  dyslexia: boolean;
 }
 
 export interface HitCard {

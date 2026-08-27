@@ -62,7 +62,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -153,7 +153,7 @@ export interface EngineApi {
   stepLane: (d: -1 | 1) => void;
   gotoX: (x: number) => void;
   replay: () => void;
-  startRun: (lang: LangCode, level: CEFRLevel, category: CategoryId) => void;
+  startRun: (lang: LangCode, level: CEFRLevel, category: CategoryId, cloze?: boolean) => void;
   startWrongRun: (lang: LangCode, level: CEFRLevel, ids: string[]) => void;
   addSpeechBonus: (pts: number) => void;
   fire: () => void;
@@ -195,6 +195,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   const reinforceQueue = useRef<string[]>([]);
   /** Yanlış defteri filtresi: sadece bu id'ler havuzda kalır */
   const wrongFilterRef = useRef<Set<string> | null>(null);
+  const clozeModeRef = useRef(false);
 
   /* ── debounced persistence (keeps localStorage out of the hot path) ── */
   const flushT = useRef<number | null>(null);
@@ -278,6 +279,17 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
     const autoBanner = banner ?? (isFrenzy ? '⚡ FRENZY' : `DALGA ${wave}`);
     const autoSub = sub ?? (isFrenzy ? 'TÜM ŞERİTLER HIZLI — HİÇ DURMA' : '');
+    let clozeData: GameState['cloze'] = null;
+    let isCloze = clozeModeRef.current;
+    if (isCloze) {
+      const isVerb = target.category === 'verb';
+      let foreignBlank: string, nativeBlank: string;
+      if (s.lang === 'en') { foreignBlank = isVerb ? 'I want to ___' : 'Where is ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
+      else if (s.lang === 'es') { foreignBlank = isVerb ? 'Quiero ___' : '¿Dónde está ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
+      else if (s.lang === 'it') { foreignBlank = isVerb ? 'Voglio ___' : 'Dov\'è ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
+      else { foreignBlank = isVerb ? 'Я хочу ___' : 'Где ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
+      clozeData = { foreign: foreignBlank, native: nativeBlank };
+    }
     ref.current = {
       ...s,
       wave,
@@ -293,6 +305,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       hitCard: null,
       danger: 0,
       hitPause: 0,
+      cloze: clozeData,
+      isCloze,
       waveBanner: { text: autoBanner, sub: autoSub, t: 1 },
     };
     audio.setHeat(ref.current.targetHeat);
@@ -305,16 +319,17 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   }, [sync]);
 
   /* ── controls ── */
-  const startRun = useCallback((lang: LangCode, level: CEFRLevel, category: CategoryId) => {
+  const startRun = useCallback((lang: LangCode, level: CEFRLevel, category: CategoryId, cloze = false) => {
     const diff = DIFF[setRef.current.difficulty];
     const vig = { A1: 0, A2: 0.12, B1: 0.24, B2: 0.36, C1: 0.5 }[level];
     audio.unlock();
     audio.setMusicEnabled(setRef.current.music);
     audio.setSfxEnabled(setRef.current.sfx);
-    audio.setBgmVolume(setRef.current.bgmVolume ?? 0.16);
+    audio.setBgmVolume(setRef.current.bgmVolume ?? 0);
     audio.ttsOn = setRef.current.tts;
     audio.setRate(setRef.current.ttsRate ?? 1);
 
+    clozeModeRef.current = cloze;
     statsRef.current = { ...statsRef.current, sessionsPlayed: statsRef.current.sessionsPlayed + 1 };
     ref.current = {
       ...initialState(),
@@ -326,7 +341,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     moveTarget.current = null; dirHold.current = 0;
     reinforceQueue.current = [];
     wrongFilterRef.current = null;
-    spawnWave(1, 'HAZIR OL', LEVEL_CONFIG[level].label);
+    spawnWave(1, cloze ? 'CÜMLE MODU' : 'HAZIR OL', cloze ? 'Boşluğu doldur' : LEVEL_CONFIG[level].label);
     audio.startMusic('ice');
     flushSoon();
   }, [spawnWave, flushSoon]);
@@ -439,6 +454,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   const quit = useCallback(() => {
     ref.current = { ...ref.current, phase: 'menu' };
     wrongFilterRef.current = null;
+    clozeModeRef.current = false;
     audio.stopMusic(); audio.stopSpeech(); flushNow(); sync();
   }, [sync, flushNow]);
 
