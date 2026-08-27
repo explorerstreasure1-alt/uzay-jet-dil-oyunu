@@ -169,6 +169,13 @@ export interface RunStats {
   lastStreakDate: string | null;
   todayCount: number;
   todayDate: string | null;
+  xp?: number;
+  level?: number;
+  achievements?: string[];
+  frenzyCleared?: number;
+  wrongBookRuns?: number;
+  dailyRuns?: number;
+  speechCount?: number;
 }
 
 export interface StreakInfo {

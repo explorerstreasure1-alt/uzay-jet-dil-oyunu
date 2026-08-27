@@ -1,8 +1,9 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import type { GameState, Alien } from '../types/game';
 import { HEAT_META, LEVEL_CONFIG, LANGUAGES } from '../data/vocabulary';
 import { VW, VH, SHIP_Y, FLOOR_Y, SPRITE_H } from '../hooks/useGameEngine';
 import type { EngineApi } from '../hooks/useGameEngine';
+import { speechSupported, listenOnce } from '../lib/speech';
 
 const BODY = ['..X.....X..', '...X...X...', '..XXXXXXX..', '.XX.XXX.XX.', 'XXXXXXXXXXX', 'X.XXXXXXX.X', 'X.X.....X.X', '...XX.XX...'];
 const BOSS = ['X....X....X', '.X..XXX..X.', '..XXXXXXX..', '.XXX.X.XXX.', 'XXXXXXXXXXX', 'X.XXXXXXX.X', 'X.X.X.X.X.X', '..X.....X..'];
@@ -356,6 +357,22 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
   const holdLeftDown = useCallback((e: React.PointerEvent) => { (e.currentTarget as Element).setPointerCapture?.(e.pointerId); api.holdDir(-1); }, [api]);
   const holdRightDown = useCallback((e: React.PointerEvent) => { (e.currentTarget as Element).setPointerCapture?.(e.pointerId); api.holdDir(1); }, [api]);
   const endHold = useCallback((e: React.PointerEvent) => { try { (e.currentTarget as Element).releasePointerCapture?.(e.pointerId); } catch {} api.holdDir(0); }, [api]);
+  const [micListening, setMicListening] = useState(false);
+  const [micMsg, setMicMsg] = useState<string | null>(null);
+  const doMic = useCallback(async () => {
+    if (!speechSupported() || !s.targetWord || micListening) return;
+    setMicListening(true); setMicMsg(null);
+    const res = await listenOnce(s.targetWord.lang, s.targetWord.foreign);
+    setMicListening(false);
+    if (res.ok) {
+      api.addSpeechBonus(80);
+      setMicMsg('✓ ' + Math.round(res.score * 100) + '%');
+      setTimeout(() => setMicMsg(null), 1400);
+    } else {
+      setMicMsg(res.transcript ? `✕ ${res.transcript.slice(0,12)}` : '✕ duyamadım');
+      setTimeout(() => setMicMsg(null), 1400);
+    }
+  }, [s.targetWord, micListening, api]);
 
   const down = useCallback((e: React.PointerEvent) => {
     if (dragId.current !== null) return;
@@ -580,6 +597,14 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
             className="glass rounded-xl w-[52px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none">
             <span className="text-[15px] leading-none">🔊</span>
             <span className="font-mono-tech text-[6.5px] tracking-[0.1em] text-white/45 mt-0.5">DİNLE</span>
+          </button>
+          <button onPointerDown={doMic}
+            className="glass rounded-xl w-[52px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none"
+            style={micListening ? { border: '1.4px solid #00ffa3', boxShadow: '0 0 14px rgba(0,255,163,0.5)' } : micMsg ? { border: `1px solid ${micMsg.startsWith('✓') ? '#00ffa3' : '#ff2e63'}` } : undefined}>
+            <span className="text-[15px] leading-none" style={{ filter: micListening ? 'drop-shadow(0 0 6px #00ffa3)' : undefined }}>{micListening ? '●' : '🎤'}</span>
+            <span className="font-mono-tech text-[6px] tracking-[0.08em] mt-0.5" style={{ color: micListening ? '#00ffa3' : micMsg ? (micMsg.startsWith('✓') ? '#00ffa3' : '#ff8fa8') : 'rgba(255,255,255,0.45)' }}>
+              {micListening ? 'DİNLİYOR' : micMsg ?? 'SÖYLE'}
+            </span>
           </button>
         </div>
 

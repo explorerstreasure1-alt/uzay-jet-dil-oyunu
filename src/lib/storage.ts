@@ -28,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export const DEFAULT_STATS: RunStats = {
   highScores: {}, totalCorrect: 0, totalWrong: 0, wavesTotal: 0, bossesKilled: 0, sessionsPlayed: 0,
   streak: 0, bestStreak: 0, lastStreakDate: null, todayCount: 0, todayDate: null,
+  achievements: [], frenzyCleared: 0, wrongBookRuns: 0, dailyRuns: 0, speechCount: 0,
 };
 
 export const store = {
@@ -338,4 +339,43 @@ export function bumpStreak(stats: RunStats, correctDelta = 1): RunStats {
     todayCount,
     todayDate: today,
   };
+}
+
+export function getDailyChallenge(words: VocabWord[], heat: HeatMap, n = 10): VocabWord[] {
+  const due = words.filter(w => isDue(heat[w.id]));
+  const fresh = words.filter(w => !heat[w.id] || heat[w.id].seen === 0);
+  const learning = words.filter(w => {
+    const s = heat[w.id];
+    return s && (s.phase === 'learning' || s.phase === 'relearning');
+  });
+  const pool: VocabWord[] = [];
+  const add = (src: VocabWord[], cnt: number) => {
+    const sh = [...src].sort(() => Math.random() - 0.5);
+    for (let i = 0; i < cnt && pool.length < n; i++) if (sh[i] && !pool.some(p => p.id === sh[i].id)) pool.push(sh[i]);
+  };
+  add(due, Math.min(6, due.length));
+  add(learning, 3);
+  add(fresh, 4);
+  if (pool.length < n) add(words, n - pool.length);
+  return pool.slice(0, n).sort(() => Math.random() - 0.5);
+}
+
+export function requestDailyPush(): Promise<NotificationPermission> {
+  if (typeof window === 'undefined' || !('Notification' in window)) return Promise.resolve('denied' as NotificationPermission);
+  if (Notification.permission === 'granted') return Promise.resolve('granted');
+  if (Notification.permission === 'denied') return Promise.resolve('denied');
+  return Notification.requestPermission();
+}
+export function scheduleDailyPush() {
+  if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;
+  // basit: 20:00'da hatırlatma (eğer bugün hedef tamamlanmadıysa)
+  try {
+    const now = new Date();
+    const target = new Date(); target.setHours(20, 0, 0, 0);
+    if (target.getTime() <= now.getTime()) target.setDate(target.getDate() + 1);
+    const delay = target.getTime() - now.getTime();
+    window.setTimeout(() => {
+      try { new Notification('Word Invaders — Günlük Hedef', { body: '🔥 Serin kırılmak üzere! 3 kelime kaldı, hemen oyna.', icon: '/icons/icon-512.png', badge: '/icons/icon-192.png' }); } catch {}
+    }, delay);
+  } catch {}
 }

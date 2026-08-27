@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useGameEngine, VW, VH } from './hooks/useGameEngine';
 import { GameScreen } from './components/GameScreen';
 import {
-  MenuScreen, SetupScreen, DeckScreen, StatsScreen, SettingsScreen, InstallScreen, WrongBookScreen,
+  MenuScreen, SetupScreen, DeckScreen, StatsScreen, SettingsScreen, InstallScreen, WrongBookScreen, DailyChallengeScreen,
   LevelCompleteScreen, GameOverScreen, PauseOverlay, type MenuView,
 } from './components/Screens';
 import { highScoreKey } from './lib/storage';
@@ -109,6 +109,7 @@ export default function App() {
             {view === 'setup' && <SetupScreen api={api} lang={uiLang} setLang={setUiLang} onStart={start} onBack={() => setView('menu')} />}
             {view === 'deck' && <DeckScreen api={api} onBack={() => setView('menu')} />}
             {view === 'wrongbook' && <WrongBookScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}
+            {view === 'daily' && <DailyChallengeScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}
             {view === 'stats' && <StatsScreen api={api} onBack={() => setView('menu')} />}
             {view === 'settings' && <SettingsScreen api={api} onBack={() => setView('menu')} />}
             {view === 'install' && (

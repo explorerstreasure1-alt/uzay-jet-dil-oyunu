@@ -5,6 +5,7 @@ import { LEVEL_CONFIG, getWords, HEAT_META } from '../data/vocabulary';
 import {
   store, heatOf, isDue, buildWavePool, pickTarget, pickDecoys, applyResult, highScoreKey, DEFAULT_SETTINGS, bumpStreak,
 } from '../lib/storage';
+import { ACHIEVEMENTS } from '../lib/achievements';
 import { audio, haptic } from '../lib/audio';
 
 export const VW = 400;
@@ -154,6 +155,7 @@ export interface EngineApi {
   replay: () => void;
   startRun: (lang: LangCode, level: CEFRLevel, category: CategoryId) => void;
   startWrongRun: (lang: LangCode, level: CEFRLevel, ids: string[]) => void;
+  addSpeechBonus: (pts: number) => void;
   fire: () => void;
   setMoveTarget: (x: number | null) => void;
   holdDir: (d: -1 | 0 | 1) => void;
@@ -340,7 +342,13 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.setRate(setRef.current.ttsRate ?? 1);
 
     wrongFilterRef.current = new Set(ids);
-    statsRef.current = { ...statsRef.current, sessionsPlayed: statsRef.current.sessionsPlayed + 1 };
+    const isDaily = ids.length === 10;
+    statsRef.current = {
+      ...statsRef.current,
+      sessionsPlayed: statsRef.current.sessionsPlayed + 1,
+      wrongBookRuns: (statsRef.current.wrongBookRuns ?? 0) + (isDaily ? 0 : 1),
+      dailyRuns: (statsRef.current.dailyRuns ?? 0) + (isDaily ? 1 : 0),
+    };
     ref.current = {
       ...initialState(),
       phase: 'playing', lang, level, category: 'all' as CategoryId,
@@ -354,6 +362,29 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.startMusic('ice');
     flushSoon();
   }, [spawnWave, flushSoon]);
+
+  const addSpeechBonus = useCallback((pts: number) => {
+    const s = ref.current;
+    if (s.phase !== 'playing') return;
+    s.score += pts;
+    s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 92, text: `🎤 +${pts}`, color: '#00ffa3', life: 1.4, vy: -0.9 });
+    s.combo += 1;
+    statsRef.current = { ...statsRef.current, speechCount: (statsRef.current.speechCount ?? 0) + 1 };
+    {
+      const before = new Set(statsRef.current.achievements ?? []);
+      const after = ACHIEVEMENTS.filter(x => x.check(statsRef.current, { combo: s.combo })).map(x => x.id);
+      const newly = after.filter(id => !before.has(id));
+      if (newly.length) {
+        statsRef.current = { ...statsRef.current, achievements: after };
+        for (const nid of newly) {
+          const ach = ACHIEVEMENTS.find(x => x.id === nid);
+          if (ach) s.floats.push({ id: uid(), x: VW/2, y: 170, text: `🏆 ${ach.title}`, color: '#ffd166', life: 2, vy: -0.4 });
+        }
+      }
+    }
+    flushSoon();
+    sync();
+  }, [sync, flushSoon]);
 
   const fire = useCallback(() => {
     const s = ref.current;
@@ -580,6 +611,20 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             totalCorrect: statsRef.current.totalCorrect + 1,
             bossesKilled: statsRef.current.bossesKilled + (a.isBoss ? 1 : 0),
           }, 1);
+          // rozet kontrol
+          {
+            const before = new Set(statsRef.current.achievements ?? []);
+            const after = ACHIEVEMENTS.filter(x => x.check(statsRef.current, { combo: s.combo })).map(x => x.id);
+            const newly = after.filter(id => !before.has(id));
+            if (newly.length) {
+              statsRef.current = { ...statsRef.current, achievements: after };
+              for (const nid of newly) {
+                const ach = ACHIEVEMENTS.find(x => x.id === nid);
+                if (ach) s.floats.push({ id: uid(), x: VW/2, y: 190 + newly.indexOf(nid)*18, text: `🏆 ${ach.title}`, color: '#ffd166', life: 2, vy: -0.4 });
+              }
+              audio.combo();
+            }
+          }
           flushSoon();
 
           // Adrenalin: combo ve frenzy ile patlama büyür
@@ -729,8 +774,13 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     /* ── wave resolution ── */
     const targetAlive = s.aliens.some(a => a.isTarget && !a.dead);
     if (!targetAlive) {
+      const wasFrenzy = s.frenzy;
       s.wavesCleared += 1;
-      statsRef.current = { ...statsRef.current, wavesTotal: statsRef.current.wavesTotal + 1 };
+      statsRef.current = {
+        ...statsRef.current,
+        wavesTotal: statsRef.current.wavesTotal + 1,
+        frenzyCleared: (statsRef.current.frenzyCleared ?? 0) + (wasFrenzy ? 1 : 0),
+      };
 
       if (s.wrongThisWave === 0 && !targetBreached) {
         s.perfectStreak += 1;
@@ -862,7 +912,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   return {
     state: st, settings, stats, heat, customWords, lockedId, hintId,
-    startRun, startWrongRun, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
+    startRun, startWrongRun, addSpeechBonus, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
     pause, resume, quit,
     updateSettings, addCustomWord, removeCustomWord, resetProgress,
   };

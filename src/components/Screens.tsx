@@ -6,7 +6,8 @@ import type { CategoryId, CEFRLevel, LangCode } from '../data/vocabulary';
 import {
   LANGUAGES, LEVEL_CONFIG, CATEGORIES, HEAT_META, getWords, countWords, allWords, WORDS_PER_LANGUAGE,
 } from '../data/vocabulary';
-import { heatBreakdown, highScoreKey, reviewSummary, getWrongWords, streakInfo } from '../lib/storage';
+import { heatBreakdown, highScoreKey, reviewSummary, getWrongWords, streakInfo, getDailyChallenge, requestDailyPush, scheduleDailyPush } from '../lib/storage';
+import { ACHIEVEMENTS, xpFor } from '../lib/achievements';
 import { audio } from '../lib/audio';
 
 const btn = (color: string, strong = false): React.CSSProperties => ({
@@ -47,7 +48,7 @@ function BackBtn({ onClick }: { onClick: () => void }) {
 /* ══════════════════ MENU ══════════════════ */
 export function MenuScreen({ api, lang, setLang, go, pwa }: {
   api: EngineApi; lang: LangCode; setLang: (l: LangCode) => void;
-  go: (v: 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook') => void;
+  go: (v: 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily') => void;
   pwa?: { canInstall: boolean; isInstalled: boolean; isIos: boolean; install: () => Promise<string> };
 }) {
   const counts = useMemo(() => countWords(lang, api.customWords), [lang, api.customWords]);
@@ -170,6 +171,12 @@ export function MenuScreen({ api, lang, setLang, go, pwa }: {
             const c = getWrongWords([...allWords(), ...api.customWords].filter(w => w.lang === lang), api.heat).length;
             return c ? <span className="font-orbitron text-[11px] font-black px-1.5 py-0.5 rounded" style={{ background: '#ff2e63', color: '#fff' }}>{c}</span> : null;
           })()}
+        </button>
+        <button onClick={() => { audio.ui(); go('daily'); }}
+          className="w-full rounded-xl py-2.5 active:scale-95 transition-transform flex items-center justify-center gap-2"
+          style={{ background: 'rgba(255,209,102,0.14)', border: '1px solid rgba(255,209,102,0.44)', boxShadow: '0 0 14px rgba(255,209,102,0.18)' }}>
+          <span className="font-mono-tech text-[10px] tracking-[0.16em] text-[#ffd166]">⚡ GÜNLÜK MEYDAN OKUMA</span>
+          {(() => { const si = streakInfo(api.stats); return si.today >= 10 ? <span className="font-mono-tech text-[8px] px-1.5 py-0.5 rounded" style={{background:'#00ffa3', color:'#061a12'}}>✓</span> : <span className="font-mono-tech text-[8px] text-white/40">{si.today}/10</span>; })()}
         </button>
         <button onClick={() => { audio.unlock(); audio.ui(); go('setup'); }}
           className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform"
@@ -571,6 +578,39 @@ export function StatsScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
             </div>
         ))}
       </div>
+      {(() => {
+        const { xp, level, pct } = xpFor(api.stats);
+        return (
+          <div className="glass rounded-xl px-3 py-2.5 mb-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-mono-tech text-[8px] tracking-[0.14em] text-white/35">SEVİYE {level} · {xp} XP</span>
+              <span className="font-mono-tech text-[7px] text-white/30">{500 - (xp % 500)} XP → Lv{level+1}</span>
+            </div>
+            <div className="h-[7px] rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#00d4ff,#c77dff)', boxShadow: '0 0 8px #00d4ff' }} />
+            </div>
+          </div>
+        );
+      })()}
+      {(() => {
+        const unlocked = new Set(api.stats.achievements ?? []);
+        return (
+          <div className="mb-3">
+            <div className="font-mono-tech text-[8px] tracking-[0.2em] text-white/30 mb-1.5">ROZETLER ({unlocked.size}/{ACHIEVEMENTS.length})</div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {ACHIEVEMENTS.map(a => {
+                const on = unlocked.has(a.id);
+                return (
+                  <div key={a.id} className="rounded-lg px-1.5 py-2 text-center" style={{ background: on ? 'rgba(0,212,255,0.12)' : 'rgba(255,255,255,0.04)', border: `1px solid ${on ? '#00d4ff55' : 'rgba(255,255,255,0.08)'}`, opacity: on ? 1 : 0.38 }}>
+                    <div className="font-orbitron text-[13px]" style={{ filter: on ? 'drop-shadow(0 0 4px #00d4ff)' : undefined }}>{a.icon}</div>
+                    <div className="font-mono-tech text-[6px] leading-tight mt-0.5" style={{ color: on ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)' }}>{a.title}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">REKORLAR</div>
       <div className="space-y-1 mb-4">
@@ -739,6 +779,81 @@ export function WrongBookScreen({ api, onBack, onStart }: { api: EngineApi; onBa
   );
 }
 
+export function DailyChallengeScreen({ api, onBack, onStart }: { api: EngineApi; onBack: () => void; onStart: (lang: LangCode, lvl: CEFRLevel, ids: string[]) => void }) {
+  const [lang, setLang] = useState<LangCode>('en');
+  const [lvl, setLvl] = useState<CEFRLevel>('A1');
+  const [notif, setNotif] = useState<NotificationPermission>(typeof Notification !== 'undefined' ? Notification.permission : 'denied');
+  const all = useMemo(() => [...allWords(), ...api.customWords].filter(w => w.lang === lang && w.level === lvl), [lang, lvl, api.customWords]);
+  const challenge = useMemo(() => getDailyChallenge(all, api.heat, 10), [all, api.heat]);
+  const ids = challenge.map(w => w.id);
+  const si = streakInfo(api.stats);
+  const doneToday = si.today >= 10;
+
+  return (
+    <Shell>
+      <BackBtn onClick={onBack} />
+      <div className="font-orbitron text-[20px] font-black tracking-[0.14em] text-white/90 mb-1">GÜNLÜK MEYDAN OKUMA</div>
+      <div className="font-mono-tech text-[9px] text-white/35 mb-3">Her gün 10 kelime — due + yeni karışık. Bitir, serini koru.</div>
+
+      <div className="flex gap-1.5 mb-3">
+        {LANGUAGES.map(l => (
+          <button key={l.code} onClick={() => setLang(l.code)} className="flex-1 rounded-md py-1.5 active:scale-95 transition-all" style={btn(l.accent, lang === l.code)}>
+            <span className="font-orbitron text-[11px] font-black" style={{ color: lang === l.code ? l.accent : 'rgba(255,255,255,0.4)' }}>{l.flag}</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-1.5 mb-3">
+        {(['A1','A2','B1','B2','C1'] as CEFRLevel[]).map(l => (
+          <button key={l} onClick={() => setLvl(l)} className="flex-1 rounded-md py-1.5 active:scale-95 transition-all" style={btn(LEVEL_CONFIG[l].color, lvl === l)}>
+            <span className="font-mono-tech text-[9px]" style={{ color: lvl === l ? LEVEL_CONFIG[l].color : 'rgba(255,255,255,0.4)' }}>{l}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="glass rounded-xl px-3 py-2.5 mb-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="font-mono-tech text-[8px] tracking-[0.14em] text-white/35">BUGÜN</span>
+          <span className="font-mono-tech text-[8px]" style={{ color: doneToday ? '#00ffa3' : '#ffb300' }}>{doneToday ? '✓ BİTTİ' : `${si.today}/10`}</span>
+        </div>
+        <div className="h-[6px] rounded-full bg-white/10 overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${Math.min(100, (si.today/10)*100)}%`, background: doneToday ? '#00ffa3' : '#ffd166', boxShadow: `0 0 8px ${doneToday ? '#00ffa3' : '#ffd166'}` }} />
+        </div>
+        <div className="font-mono-tech text-[7px] text-white/30 mt-1">Seri: 🔥 {si.current} gün · En iyi: {si.best}</div>
+      </div>
+
+      <button onClick={() => onStart(lang, lvl, ids)} className="w-full rounded-xl py-3 mb-3 active:scale-[0.97] transition-transform"
+        style={{ background: 'linear-gradient(135deg, rgba(255,209,102,0.28), rgba(255,140,0,0.18))', border: '1px solid #ffd166', boxShadow: '0 0 18px rgba(255,209,102,0.35)' }}>
+        <span className="font-orbitron text-[13px] font-black tracking-[0.14em] text-[#fff8e6]">⚡ 10 KELİME — MEYDAN OKU</span>
+      </button>
+
+      <div className="glass rounded-xl px-3 py-2.5 mb-3 flex items-center justify-between">
+        <div>
+          <div className="font-mono-tech text-[9px] text-white/70">BİLDİRİM</div>
+          <div className="font-mono-tech text-[7px] text-white/30">20:00’da hatırlatma</div>
+        </div>
+        <button onClick={async () => { const p = await requestDailyPush(); setNotif(p); if (p==='granted') scheduleDailyPush(); }}
+          className="rounded-full px-3 py-1.5 active:scale-95 transition-transform"
+          style={{ background: notif==='granted' ? 'rgba(0,255,163,0.2)' : 'rgba(255,255,255,0.08)', border: `1px solid ${notif==='granted' ? '#00ffa3' : 'rgba(255,255,255,0.12)'}` }}>
+          <span className="font-mono-tech text-[8px]" style={{ color: notif==='granted' ? '#00ffa3' : 'rgba(255,255,255,0.5)' }}>{notif==='granted' ? '✓ AÇIK' : 'AÇ'}</span>
+        </button>
+      </div>
+
+      <div className="font-mono-tech text-[8px] tracking-[0.2em] text-white/30 mb-1.5">BUGÜNKÜ 10</div>
+      <div className="space-y-1 pb-4">
+        {challenge.map(w => (
+          <div key={w.id} className="glass rounded-lg px-3 py-2 flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="font-mono-tech text-[11px] text-white/90 truncate">{w.foreign} → {w.native}</div>
+              <div className="font-mono-tech text-[7px] text-white/30">{w.category} · {w.level}</div>
+            </div>
+            <span className="font-mono-tech text-[7px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,209,102,0.12)', color: '#ffd166', border: '1px solid rgba(255,209,102,0.25)' }}>GÜN</span>
+          </div>
+        ))}
+      </div>
+    </Shell>
+  );
+}
+
 /* ══════════════════ SETTINGS ══════════════════ */
 const SAMPLES: Record<LangCode, string> = {
   en: 'Good morning, welcome aboard.',
@@ -890,5 +1005,5 @@ export function PauseOverlay({ onResume, onQuit }: { onResume: () => void; onQui
   );
 }
 
-export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook';
+export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily';
 export function heatOfUnused(h: HeatMap) { void h; }
