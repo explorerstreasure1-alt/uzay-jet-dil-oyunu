@@ -86,17 +86,14 @@ function Plates({ s, hintId, lockedId }: { s: GameState; hintId: string | null; 
         const isLock = a.id === lockedId;
         const w = a.isBoss ? Math.min(a.laneW * 1.45, 92) : Math.min(a.laneW * 0.7, 56);
         const h = (w / 11) * 8;
-        /* Keep every label inside its own lane. This prevents neighbouring
-           invader words from ever covering each other on narrow phones. */
         const plateW = Math.max(54, a.laneW - (a.isBoss ? 4 : 8));
         const cx = a.laneX + a.laneW / 2;
         const len = a.word.foreign.length;
         const size = len > 34 ? 10.5 : len > 26 ? 11.5 : len > 18 ? 13 : len > 11 ? 15 : 17;
         const lines = len > 24 ? 3 : len > 12 ? 2 : 1;
-
         return (
           <div key={`p-${a.id}`}
-            className="absolute -translate-x-1/2 pointer-events-none flex items-center justify-center"
+            className="absolute -translate-x-1/2 pointer-events-none flex flex-col items-center justify-center"
             style={{
               left: cx,
               top: a.y + h + (a.isBoss ? 12 : 4),
@@ -110,6 +107,12 @@ function Plates({ s, hintId, lockedId }: { s: GameState; hintId: string | null; 
               boxShadow: isHint ? '0 0 10px rgba(0,255,157,0.35)' : `0 0 6px ${color}33`,
               zIndex: 12,
             }}>
+            {a.heat === 'ice' && !a.isBoss && (
+              <span className="font-mono-tech text-[6px] tracking-[0.18em] leading-none mb-0.5"
+                style={{ color: isHint ? '#00ff9d' : meta.core, opacity: 0.9 }}>
+                ★ YENİ
+              </span>
+            )}
             <span style={{
               fontFamily: "'Share Tech Mono', ui-monospace, monospace",
               fontSize: size,
@@ -247,6 +250,8 @@ function Hud({ s, onPause }: { s: GameState; onPause: () => void }) {
   const lang = LANGUAGES.find(l => l.code === s.lang)!;
   const cfg = LEVEL_CONFIG[s.level];
   const pct = Math.min(100, (s.wavesCleared / cfg.wavesToClear) * 100);
+  const runTotal = s.runCorrect + s.runWrong;
+  const runAcc = runTotal ? Math.round((s.runCorrect / runTotal) * 100) : 0;
 
   return (
     <div className="absolute top-0 left-0 right-0 z-30 px-2 pt-2 pointer-events-none">
@@ -294,6 +299,12 @@ function Hud({ s, onPause }: { s: GameState; onPause: () => void }) {
           <div className="absolute inset-y-0 left-0 rounded-full liquid-metal"
             style={{ width: `${Math.max(6, pct)}%`, boxShadow: `0 0 9px ${meta.glow}` }} />
         </div>
+        {runTotal > 0 && (
+          <div className="flex justify-between mt-1">
+            <span className="font-mono-tech text-[6px] tracking-[0.12em] text-white/30">KOŞU {s.runCorrect} ✓ / {s.runWrong} ✕</span>
+            <span className="font-mono-tech text-[6px] tracking-[0.12em]" style={{ color: runAcc >= 70 ? '#00ffa3' : runAcc >= 45 ? '#ffd166' : '#ff8fa8' }}>%{runAcc} İSABET</span>
+          </div>
+        )}
       </div>
 
       {s.overcharged && (
@@ -538,20 +549,21 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               {s.hitCard.native}
             </div>
             {s.hitCard.ok && (()=> {
+              const cat = s.hitCard!.category ?? 'daily';
+              const sessionSeen = s.hitCard!.sessionSeen ?? 1;
               const seen = s.hitCard!.seen ?? 1;
-              const cat = s.aliens.find(a=>a.word.foreign===s.hitCard!.foreign)?.word.category ?? 'daily';
-              const pct = Math.min(100, seen*33);
+              const pct = Math.min(100, sessionSeen*50);
               return (
                 <div className="mt-2">
                   <div className="flex items-center justify-center gap-1.5 mb-1">
                     <span className="text-[14px]">{CAT_EMOJI[cat] ?? '🧠'}</span>
                     <span className="font-mono-tech text-[7px] tracking-[0.2em] text-white/40">HAFIZA İZİ</span>
-                    <span className="font-mono-tech text-[7px] text-[#00ffa3]">{Math.min(seen,3)}/3</span>
+                    <span className="font-mono-tech text-[7px] text-[#00ffa3]">{Math.min(sessionSeen,2)}/2 bu koşu · {Math.min(seen,7)} toplam</span>
                   </div>
                   <div className="h-[5px] rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct>=100?'#00ffa3': pct>=66?'#ffd166':'#00d4ff', boxShadow: `0 0 6px ${pct>=100?'#00ffa3':'#00d4ff'}` }} />
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct>=100?'#00ffa3':'#00d4ff', boxShadow: `0 0 6px ${pct>=100?'#00ffa3':'#00d4ff'}` }} />
                   </div>
-                  <div className="font-mono-tech text-[6px] text-white/30 mt-1">{pct>=100?'✓ SİNAPS KURULDU — HAFIZAYA KAZINDI':'Tekrar et, iz güçlensin'}</div>
+                  <div className="font-mono-tech text-[6px] text-white/30 mt-1">{pct>=100?'✓ 2/2 — SIRADAKİ TAZE KELİME GELECEK':'Bir kez daha gelirse havuzdan çıkacak, taze kelime sırası'}</div>
                 </div>
               );
             })()}

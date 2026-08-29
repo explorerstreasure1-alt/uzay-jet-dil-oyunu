@@ -3,7 +3,7 @@ import type { Alien, GameState, Settings, RunStats, HeatMap } from '../types/gam
 import type { CategoryId, CEFRLevel, HeatLevel, LangCode, VocabWord } from '../data/vocabulary';
 import { LEVEL_CONFIG, getWords, HEAT_META } from '../data/vocabulary';
 import {
-  store, heatOf, isDue, buildWavePool, pickTarget, pickDecoys, applyResult, highScoreKey, DEFAULT_SETTINGS, bumpStreak,
+  store, heatOf, isDue, applyResult, highScoreKey, DEFAULT_SETTINGS, bumpStreak,
 } from '../lib/storage';
 import { ACHIEVEMENTS } from '../lib/achievements';
 import { audio, haptic } from '../lib/audio';
@@ -61,7 +61,7 @@ const initialState = (): GameState => ({
   neurons: makeNeurons(), parallaxStars: makeStars(),
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
-  vignette: 0, correctThisWave: 0, wrongThisWave: 0,
+  vignette: 0, correctThisWave: 0, wrongThisWave: 0, runCorrect: 0, runWrong: 0,
   waveBanner: null, masteredThisLevel: [], hitCard: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
@@ -191,11 +191,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   const endCb = useRef(onEnd);
   useEffect(() => { endCb.current = onEnd; }, [onEnd]);
 
-  /** Son görülen hedefler — pekiştirme için sıradaki dalgalarda tekrar çıkarılır. */
-  const reinforceQueue = useRef<string[]>([]);
   /** Yanlış defteri filtresi: sadece bu id'ler havuzda kalır */
   const wrongFilterRef = useRef<Set<string> | null>(null);
   const clozeModeRef = useRef(false);
+  /** Koşu boyunca her hedefin kaç kez sorulduğu — en fazla 2 tekrar, sonra taze kelimeye geç. */
+  const sessionCountsRef = useRef<Map<string, number>>(new Map());
 
   /* ── debounced persistence (keeps localStorage out of the hot path) ── */
   const flushT = useRef<number | null>(null);
@@ -212,7 +212,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   }, [flushNow]);
   useEffect(() => () => { if (flushT.current !== null) window.clearTimeout(flushT.current); }, []);
 
-  /* ── wave construction ── */
+  /* ── wave construction — taze kelime öncelikli, en fazla 2 tekrar, havuz bitince başa sar ── */
   const spawnWave = useCallback((wave: number, banner?: string, sub?: string) => {
     const s = ref.current;
     let pool = getWords(s.lang, s.level, s.category, customRef.current);
@@ -220,7 +220,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       const filtered = pool.filter(w => wrongFilterRef.current!.has(w.id));
       if (filtered.length >= 2) pool = filtered;
       else if (filtered.length === 1) {
-        // tek kelime kaldıysa havuzu genişlet ama ağırlık ver
         const extra = pool.filter(w => !wrongFilterRef.current!.has(w.id)).slice(0, 6);
         pool = [...filtered, ...extra];
       }
@@ -234,48 +233,97 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     let lanes = Math.min(cfg.lanes, Math.max(2, pool.length));
     if (isFrenzy) lanes = Math.min(5, Math.max(4, pool.length));
 
+    const getCnt = (id: string) => sessionCountsRef.current.get(id) ?? 0;
+    // en fazla 2 tekrar: limiti dolduranları havuzdan çıkar, hepsi dolduysa başa sar
+    let available = pool.filter(w => getCnt(w.id) < 2);
+    if (available.length === 0) {
+      sessionCountsRef.current.clear();
+      available = pool;
+    }
+    // yanlış defteri modunda da aynı kural — ama tek kelimeyse tekrarına izin ver
+    if (available.length < 2 && wrongFilterRef.current) available = pool;
+
     let target: VocabWord;
     if (isBoss) {
-      /* Spaced-repetition boss: resurface a word already burned in */
-      const dueCrimson = pool.filter(w => heatOf(heatRef.current[w.id]) === 'crimson' && isDue(heatRef.current[w.id]));
-      const dueAny = pool.filter(w => isDue(heatRef.current[w.id]));
-      const crimson = pool.filter(w => heatOf(heatRef.current[w.id]) === 'crimson');
-      const amber = pool.filter(w => heatOf(heatRef.current[w.id]) === 'amber');
-      const src = dueCrimson.length ? dueCrimson : dueAny.length ? dueAny : crimson.length ? crimson : amber.length ? amber : pool;
-      target = src[Math.floor(Math.random() * src.length)];
+      const pickBoss = (src: VocabWord[]) => {
+        const never = src.filter(w => !heatRef.current[w.id] || heatRef.current[w.id].seen === 0);
+        const tier = never.length ? never : src.filter(w => getCnt(w.id) === 0).length ? src.filter(w => getCnt(w.id) === 0) : src;
+        return tier[Math.floor(Math.random() * tier.length)];
+      };
+      const dueCrimson = available.filter(w => heatOf(heatRef.current[w.id]) === 'crimson' && isDue(heatRef.current[w.id]));
+      const dueAny = available.filter(w => isDue(heatRef.current[w.id]));
+      const crimson = available.filter(w => heatOf(heatRef.current[w.id]) === 'crimson');
+      const amber = available.filter(w => heatOf(heatRef.current[w.id]) === 'amber');
+      const ice = available.filter(w => heatOf(heatRef.current[w.id]) === 'ice');
+      let src: VocabWord[] = [];
+      if (dueCrimson.length) src = dueCrimson;
+      else if (dueAny.length) src = dueAny;
+      else if (crimson.length) src = crimson;
+      else if (amber.length) src = amber;
+      else if (ice.length) src = ice;
+      else src = available;
+      target = pickBoss(src) ?? available[Math.floor(Math.random() * available.length)];
     } else {
-      /* ── Pekiştirme: son görülen kelimeleri %38 ihtimalle tekrar sor (wave ≥3) ──
-         Özellikle ice/amber kelimeler önceliklidir; crimsonlar da arada tekrar eder. */
-      let reinforced: VocabWord | null = null;
-      if (wave >= 3 && reinforceQueue.current.length && Math.random() < 0.38) {
-        const cands = reinforceQueue.current
-          .map(id => pool.find(w => w.id === id))
-          .filter(Boolean) as VocabWord[];
-        const needRepeat = cands.filter(w => heatOf(heatRef.current[w.id]) !== 'crimson');
-        const src = needRepeat.length ? needRepeat : cands;
-        if (src.length) reinforced = src[Math.floor(Math.random() * src.length)];
+      const neverSeen = available.filter(w => !heatRef.current[w.id] || heatRef.current[w.id].seen === 0);
+      let candidateSet: VocabWord[];
+      if (neverSeen.length) candidateSet = neverSeen;
+      else {
+        const notYet = available.filter(w => getCnt(w.id) === 0);
+        candidateSet = notYet.length ? notYet : available;
       }
-      if (reinforced) {
-        target = reinforced;
-      } else {
-        const weighted = buildWavePool(pool, heatRef.current);
-        target = pickTarget(weighted.length ? weighted : pool);
-      }
+      target = candidateSet[Math.floor(Math.random() * candidateSet.length)];
     }
 
-    const decoys = pickDecoys(pool, target, lanes - 1);
+    // tazelik öncelikli decoy seçimi: aynı havuzdan, en az görülenden başla, kategori çeşitliliği korunsun
+    const decoyNeed = lanes - 1;
+    const others = pool.filter(w => w.id !== target.id && w.native !== target.native && w.foreign !== target.foreign);
+    const decoySelected: VocabWord[] = [];
+    const tiers: VocabWord[][] = [[], [], []];
+    for (const w of others) {
+      const c = getCnt(w.id);
+      if (c === 0) tiers[0].push(w);
+      else if (c === 1) tiers[1].push(w);
+      else tiers[2].push(w);
+    }
+    // her tier içinde: önce hiç görülmemişleri öne al, sonra aynı kategoriyi hafif öne al, sonra karıştır
+    const shuffle = <T,>(a: T[]) => [...a].sort(() => Math.random() - 0.5);
+    const ordered: VocabWord[] = [];
+    for (const tier of tiers) {
+      const unseen = shuffle(tier.filter(w => !heatRef.current[w.id] || heatRef.current[w.id].seen === 0));
+      const seen = shuffle(tier.filter(w => heatRef.current[w.id] && heatRef.current[w.id].seen !== 0));
+      // aynı kategori hafif öncelik: hedefle aynı kategoride olanları başa al
+      const prio = (arr: VocabWord[]) => {
+        const same = arr.filter(w => w.category === target.category);
+        const diffCat = arr.filter(w => w.category !== target.category);
+        return [...shuffle(same), ...shuffle(diffCat)];
+      };
+      ordered.push(...prio(unseen), ...prio(seen));
+    }
+    for (const w of ordered) {
+      if (decoySelected.some(x => x.id === w.id)) continue;
+      decoySelected.push(w);
+      if (decoySelected.length >= decoyNeed) break;
+    }
+    // havuz çok darsa kalanı rastgele doldur
+    if (decoySelected.length < decoyNeed) {
+      const rest = shuffle(others.filter(w => !decoySelected.some(s => s.id === w.id)));
+      for (const w of rest) {
+        decoySelected.push(w);
+        if (decoySelected.length >= decoyNeed) break;
+      }
+    }
+    const decoys = decoySelected.slice(0, decoyNeed);
     const shuffled = [target, ...decoys].sort(() => Math.random() - 0.5);
     const entries = shuffled.map(w => ({ w, heat: heatOf(heatRef.current[w.id]) }));
     const bossIndex = isBoss ? entries.findIndex(e => e.w.id === target.id) : -1;
     let aliens = layoutWave(entries, s.level, bossIndex, target.id, diff.speed, wave);
     if (isFrenzy) {
-      // Frenzy: tüm şeritler swift, ultra hızlı
       for (const a of aliens) {
         if (!a.isBoss) { a.variant = 'swift'; a.vy *= 1.38; a.sway *= 1.45; }
       }
     }
-    /* pekiştirme kuyruğunu güncelle: hedef en başa, max 14 */
-    reinforceQueue.current = [target.id, ...reinforceQueue.current.filter(id => id !== target.id)].slice(0, 14);
+    // koşu sayacını güncelle: hedef 2'ye ulaştı, sonraki dalgalarda gelmeyecek (havuz bitene kadar)
+    sessionCountsRef.current.set(target.id, getCnt(target.id) + 1);
 
     const autoBanner = banner ?? (isFrenzy ? '⚡ FRENZY' : `DALGA ${wave}`);
     const autoSub = sub ?? (isFrenzy ? 'TÜM ŞERİTLER HIZLI — HİÇ DURMA' : '');
@@ -339,7 +387,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       gameTime: ref.current.gameTime,
     };
     moveTarget.current = null; dirHold.current = 0;
-    reinforceQueue.current = [];
+    sessionCountsRef.current.clear();
     wrongFilterRef.current = null;
     spawnWave(1, cloze ? 'CÜMLE MODU' : 'HAZIR OL', cloze ? 'Boşluğu doldur' : LEVEL_CONFIG[level].label);
     audio.startMusic('ice');
@@ -372,7 +420,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       gameTime: ref.current.gameTime,
     };
     moveTarget.current = null; dirHold.current = 0;
-    reinforceQueue.current = [...ids].slice(0, 14);
+    sessionCountsRef.current.clear();
     spawnWave(1, 'YANLIŞ DEFTERİ', `${ids.length} kelime · tekrar modu`);
     audio.startMusic('ice');
     flushSoon();
@@ -455,6 +503,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     ref.current = { ...ref.current, phase: 'menu' };
     wrongFilterRef.current = null;
     clozeModeRef.current = false;
+    sessionCountsRef.current.clear();
     audio.stopMusic(); audio.stopSpeech(); flushNow(); sync();
   }, [sync, flushNow]);
 
@@ -620,6 +669,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           const gained = Math.round(100 * s.multiplier * heatBonus * diff.score * (a.isBoss ? 4 : 1));
           s.score += gained;
           s.correctThisWave += 1;
+          s.runCorrect += 1;
 
           heatRef.current = applyResult(heatRef.current, a.word.id, true);
           statsRef.current = bumpStreak({
@@ -654,7 +704,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           s.flash = { color: meta.core, t: 0.22 + (s.frenzy ? 0.08 : 0) };
           s.shake = Math.max(s.shake, s.frenzy ? 2.4 : s.combo >= 5 ? 1.6 : 0);
           s.hitPause = 3.2;
-          s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0) + 1 };
+          s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
 
           audio.explode(a.isBoss);
           audio.correct();
@@ -701,7 +751,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         } else {
           /* ─── WRONG ─── */
           const absorbed = s.shield;
-          s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1;
+          s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
           if (absorbed) s.shield = false;
           else s.lives -= 1;
           s.shake = 6;
@@ -709,11 +759,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           heatRef.current = applyResult(heatRef.current, a.word.id, false);
           statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
           flushSoon();
-          /* yanlış vurulan kelime hemen pekiştirme kuyruğuna: 1-2 dalga içinde tekrar gelecek */
-          reinforceQueue.current = [a.word.id, ...reinforceQueue.current.filter(id => id !== a.word.id)].slice(0, 14);
 
           s.explosions.push({ id: uid(), x: cx, y: cy, radius: 6, maxRadius: 56, opacity: 1, color: '#ff2e63', isChain: false });
-          s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: false, t: 1 };
+          s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: false, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 0 };
           if (absorbed) {
             s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 74, text: 'KALKAN EMİLDİ', color: '#8be9ff', life: 1.3, vy: -0.7 });
             audio.repair();
@@ -744,13 +792,12 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         const absorbed = s.shield;
         if (absorbed) s.shield = false;
         else s.lives -= 1;
-        s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1;
+        s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
         s.shake = 7;
         s.flash = { color: '#ff2e63', t: 0.45 };
         heatRef.current = applyResult(heatRef.current, a.word.id, false);
         statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
         flushSoon();
-        reinforceQueue.current = [a.word.id, ...reinforceQueue.current.filter(id => id !== a.word.id)].slice(0, 14);
         s.floats.push({
           id: uid(), x: a.drawX, y: FLOOR_Y - 24,
           text: absorbed ? `KALKAN · ${a.word.foreign}` : `KAÇTI · ${a.word.foreign} = ${a.word.native}`,

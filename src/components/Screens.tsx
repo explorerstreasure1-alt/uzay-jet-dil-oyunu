@@ -494,7 +494,8 @@ export function LevelCompleteScreen({ s, onNext, onMenu }: { s: GameState; onNex
 
 /* ══════════════════ GAME OVER ══════════════════ */
 export function GameOverScreen({ s, best, onRetry, onMenu }: { s: GameState; best: number; onRetry: () => void; onMenu: () => void }) {
-  const acc = s.correctThisWave + s.wrongThisWave;
+  const runTotal = s.runCorrect + s.runWrong;
+  const runAcc = runTotal ? Math.round((s.runCorrect / runTotal) * 100) : 0;
   return (
     <Shell>
       <div className="text-center pt-8">
@@ -511,11 +512,12 @@ export function GameOverScreen({ s, best, onRetry, onMenu }: { s: GameState; bes
           {s.score >= best && s.score > 0 && (
             <div className="font-pixel text-[13px] mt-0.5" style={{ color: '#ffd166', textShadow: '0 0 8px #ffd166' }}>★ YENİ REKOR ★</div>
           )}
+          {runTotal > 0 && <div className="font-mono-tech text-[8px] tracking-[0.14em] text-white/35 mt-1">{s.runCorrect} doğru · {s.runWrong} kaçırma · %{runAcc} isabet</div>}
         </div>
         <div className="h-px w-full mb-3" style={{ background: 'linear-gradient(90deg,transparent,rgba(0,212,255,0.45),transparent)' }} />
         <div className="grid grid-cols-4 gap-2 text-center">
           {([['DALGA', String(s.wavesCleared), '#c77dff'], ['KOMBO', `×${s.bestCombo}`, '#00ffa3'],
-            ['SEVİYE', s.level, '#ffd166'], ['İSABET', acc ? `%${Math.round((s.correctThisWave / acc) * 100)}` : '—', '#8be9ff']] as const).map(([k, v, c]) => (
+            ['SEVİYE', s.level, '#ffd166'], ['KOŞU', `${s.runCorrect}/${runTotal || 0}`, '#8be9ff']] as const).map(([k, v, c]) => (
             <div key={k}>
               <div className="font-mono-tech text-[7px] tracking-[0.16em] text-white/30">{k}</div>
               <div className="font-orbitron text-[15px] font-black" style={{ color: c, textShadow: `0 0 8px ${c}` }}>{v}</div>

@@ -93,6 +93,8 @@ export interface GameState {
   vignette: number;
   correctThisWave: number;
   wrongThisWave: number;
+  runCorrect: number;
+  runWrong: number;
   waveBanner: { text: string; sub: string; t: number } | null;
   masteredThisLevel: VocabWord[];
   /** large centre read-out of the word that was just hit */
@@ -162,6 +164,8 @@ export interface HitCard {
   ok: boolean;
   t: number;
   seen?: number;
+  category?: string;
+  sessionSeen?: number;
 }
 
 export interface RunStats {

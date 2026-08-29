@@ -200,20 +200,20 @@ export function applyResult(heat: HeatMap, wordId: string, correct: boolean): He
     const difficulty = clamp(prev.difficulty - 0.03 - (recall < 0.45 ? 0.02 : 0), 0.05, 0.95);
 
     let intervalDays: number;
-    // Hafıza kazıma: ilk 3 tekrarda 1 saat içinde geri çağır — anında pekişsin
-    if (prev.phase === 'new' || prev.seen === 0) intervalDays = 0.08;       // ~1.9 saat (hemen tekrar)
-    else if (prev.seen < 3) intervalDays = 0.12;                              // ~2.9 saat (3’lü seri)
-    else if (prev.phase === 'relearning') intervalDays = 0.35;               // ~8.4 saat
-    else if (streak === 2) intervalDays = 0.75;
-    else if (streak === 3) intervalDays = 2;
-    else if (streak === 4) intervalDays = 5;
-    else if (streak === 5) intervalDays = 9;
+    // Yeni sistem: max 2 tekrardan sonra taze kelimeye geç — agresif 2 saatlik tekrar yok
+    if (prev.phase === 'new' || prev.seen === 0) intervalDays = 0.42;       // ~10 saat (gün içinde tekrar değil, yarın)
+    else if (prev.seen < 3) intervalDays = 0.75;                              // ~18 saat
+    else if (prev.phase === 'relearning') intervalDays = 0.55;               // ~13 saat
+    else if (streak === 2) intervalDays = 1.2;
+    else if (streak === 3) intervalDays = 3;
+    else if (streak === 4) intervalDays = 7;
+    else if (streak === 5) intervalDays = 14;
     else {
       const growth = ease * (1.05 + recall * 0.08) * (1 - difficulty * 0.15);
       intervalDays = Math.max(1, prev.intervalDays || 1) * growth;
     }
 
-    intervalDays = clamp(intervalDays, 0.18, 365);
+    intervalDays = clamp(intervalDays, 0.35, 365);
     const stability = clamp(Math.max(intervalDays, prev.stability * (1.18 + accuracy * 0.2)), 0.18, 365);
     // Mastery: 7 streak + 14 gün + %82 doğruluk gerekli (önce 5/10/%78 idi)
     const phase: WordStat['phase'] = streak >= 7 && intervalDays >= 14 && accuracy >= 0.82 ? 'mastered'
@@ -297,7 +297,7 @@ export function getWrongWords(words: VocabWord[], heat: HeatMap): { word: VocabW
 }
 
 /* ───────── Streak & Daily Goal ───────── */
-const STREAK_GOAL = 15;
+const STREAK_GOAL = 10;
 export function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
