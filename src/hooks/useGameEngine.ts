@@ -37,17 +37,17 @@ const MAX_RAMP = 1.90;
 
 function makeNeurons(): GameState['neurons'] {
   const heats: HeatLevel[] = ['ice', 'amber', 'crimson'];
-  return Array.from({ length: 30 }, (_, i) => ({
+  return Array.from({ length: 18 }, (_, i) => ({
     id: `n${i}`, x: rnd(0, VW), y: rnd(0, VH),
-    baseOpacity: rnd(0.05, 0.18), pulsePhase: rnd(0, Math.PI * 2),
-    pulseSpeed: rnd(0.008, 0.028), size: rnd(1, 3),
+    baseOpacity: rnd(0.05, 0.16), pulsePhase: rnd(0, Math.PI * 2),
+    pulseSpeed: rnd(0.008, 0.022), size: rnd(1, 2.5),
     heat: heats[i % 3], color: '#00d4ff',
   }));
 }
 function makeStars(): GameState['parallaxStars'] {
-  return Array.from({ length: 64 }, (_, i) => ({
+  return Array.from({ length: 36 }, (_, i) => ({
     id: `s${i}`, x: rnd(0, VW), y: rnd(0, VH), layer: 1 + (i % 3),
-    opacity: rnd(0.22, 0.85), pulsePhase: rnd(0, Math.PI * 2), size: 1 + (i % 3),
+    opacity: rnd(0.22, 0.8), pulsePhase: rnd(0, Math.PI * 2), size: 1 + (i % 3),
   }));
 }
 
@@ -609,38 +609,39 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.flash) { s.flash.t -= dt * 0.075; if (s.flash.t <= 0) s.flash = null; }
     if (s.waveBanner) { s.waveBanner.t -= dt * 0.013; if (s.waveBanner.t <= 0) s.waveBanner = null; }
 
-    /* ── wingmen auto-fire: sadece decoy, hedefe ASLA ── */
-    for (const w of s.wingmen) {
-      w.cooldown -= dt;
-      if (w.cooldown <= 0) {
-        // en yakın decoy'u bul (hedef hariç)
-        const decoys = s.aliens.filter(a => !a.isTarget && !a.dead);
-        if (decoys.length) {
-          // wingman'e en yakın şeritteki decoy
-          let best: typeof decoys[0] | null = null;
-          let bestD = Infinity;
-          for (const a of decoys) {
-            const d = Math.abs(a.drawX - w.x) + a.y * 0.15; // biraz yukarıdakilere öncelik
-            if (d < bestD) { bestD = d; best = a; }
-          }
-          if (best) {
-            const laneMatch = Math.abs(best.drawX - w.x) < best.laneW * 0.85;
-            // eğer çok uzaktaysa önce ortaya doğru süzül, ateşleme yapma
-            if (laneMatch || Math.random() < 0.35) {
-              s.bullets.push({ id: uid(), x: w.x, y: w.y - 16, vy: -22, power: 1, from: 'wingman' });
-              // wingmen sesi daha tiz ve hafif
-              if (Math.random() < 0.5) audio.tick();
-              w.cooldown = 28 + Math.random() * 18; // ~450-750ms
+    /* ── wingmen auto-fire: sadece decoy, hedefe ASLA — throttled for performance ── */
+    // mermi sayısını cap'le: fazla yığılma donma yapar
+    if (s.bullets.length < 14) {
+      for (const w of s.wingmen) {
+        w.cooldown -= dt;
+        if (w.cooldown <= 0) {
+          const decoys = s.aliens.filter(a => !a.isTarget && !a.dead);
+          if (decoys.length) {
+            let best: typeof decoys[0] | null = null;
+            let bestD = Infinity;
+            for (const a of decoys) {
+              const d = Math.abs(a.drawX - w.x) + a.y * 0.15;
+              if (d < bestD) { bestD = d; best = a; }
+            }
+            if (best) {
+              const laneMatch = Math.abs(best.drawX - w.x) < best.laneW * 0.85;
+              if (laneMatch || Math.random() < 0.25) {
+                s.bullets.push({ id: uid(), x: w.x, y: w.y - 16, vy: -22, power: 1, from: 'wingman' });
+                if (Math.random() < 0.3) audio.tick();
+                w.cooldown = 42 + Math.random() * 22; // ~700-1000ms — daha seyrek, donma önler
+              } else {
+                w.cooldown = 12;
+              }
             } else {
-              w.cooldown = 8; // hızla hizalan
+              w.cooldown = 24;
             }
           } else {
-            w.cooldown = 20;
+            w.cooldown = 40;
           }
-        } else {
-          w.cooldown = 30;
         }
       }
+    } else {
+      for (const w of s.wingmen) w.cooldown = Math.max(w.cooldown, 10);
     }
 
     // hit-stop: doğru vuruşta 45ms donma (göz yormadan tatmin)
@@ -880,14 +881,17 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 56, text: '+1 CAN', color: '#00ffa3', life: 1.4, vy: -1.2 });
     }
 
-    /* ── particles ── */
+    /* ── particles — cap'li, donma önleyici ── */
     for (const e of s.explosions) {
       e.radius += (e.maxRadius - e.radius) * 0.2 * dt;
       e.opacity -= 0.05 * dt;
     }
     s.explosions = s.explosions.filter(e => e.opacity > 0.02);
+    if (s.explosions.length > 14) s.explosions.splice(0, s.explosions.length - 14);
     for (const f of s.floats) { f.y += f.vy * dt; f.life -= 0.015 * dt; }
     s.floats = s.floats.filter(f => f.life > 0);
+    if (s.floats.length > 18) s.floats.splice(0, s.floats.length - 18);
+    if (s.bullets.length > 18) s.bullets.splice(0, s.bullets.length - 18);
 
     for (const n of s.neurons) { n.pulsePhase += n.pulseSpeed * dt; n.heat = s.targetHeat; }
     for (const p of s.parallaxStars) p.pulsePhase += 0.009 * dt * p.layer;
