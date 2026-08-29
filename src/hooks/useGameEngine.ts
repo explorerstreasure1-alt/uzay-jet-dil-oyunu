@@ -200,6 +200,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   const clozeModeRef = useRef(false);
   /** Koşu boyunca her hedefin kaç kez sorulduğu — en fazla 2 tekrar, sonra taze kelimeye geç. */
   const sessionCountsRef = useRef<Map<string, number>>(new Map());
+  const frameTick = useRef(0);
 
   /* ── debounced persistence (keeps localStorage out of the hot path) ── */
   const flushT = useRef<number | null>(null);
@@ -459,7 +460,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const now = performance.now();
     if (now - s.lastShot < 118) return;
     s.lastShot = now;
-    s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -72 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' }];
+    s.bullets.push({ id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -72 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' });
+    // GC azalt: spread yok, push
+    if (s.bullets.length > 18) s.bullets.shift();
     audio.laser();
     haptic('tap', setRef.current.haptics);
   }, []);
@@ -609,12 +612,13 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       w.y = SHIP_Y + 14 + Math.sin(s.gameTime * 0.008 + (w.side === -1 ? 0 : Math.PI)) * 3.5 + Math.abs(w.x - targetX) * 0.06;
     }
 
-    // basılı tutunca tarama (klavye)
+    // basılı tutunca tarama (klavye) — push, GC yok
     if ((keys.current.has(' ') || keys.current.has('ArrowUp') || keys.current.has('w') || keys.current.has('W')) && s.phase === 'playing') {
       const now = performance.now();
       if (now - s.lastShot >= 118) {
         s.lastShot = now;
-        s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -72 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' }];
+        s.bullets.push({ id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -72 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' });
+        if (s.bullets.length > 18) s.bullets.shift();
         audio.laser();
         haptic('tap', hap);
       }
@@ -909,19 +913,27 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     }
 
     /* ── particles — cap'li, donma önleyici ── */
+    const _isMob = typeof window !== 'undefined' && window.innerWidth < 700;
     for (const e of s.explosions) {
       e.radius += (e.maxRadius - e.radius) * 0.2 * dt;
       e.opacity -= 0.05 * dt;
     }
     s.explosions = s.explosions.filter(e => e.opacity > 0.02);
     if (s.explosions.length > 14) s.explosions.splice(0, s.explosions.length - 14);
+    if (_isMob && s.explosions.length > 8) s.explosions.splice(0, s.explosions.length - 8);
     for (const f of s.floats) { f.y += f.vy * dt; f.life -= 0.015 * dt; }
     s.floats = s.floats.filter(f => f.life > 0);
     if (s.floats.length > 18) s.floats.splice(0, s.floats.length - 18);
+    if (_isMob && s.floats.length > 10) s.floats.splice(0, s.floats.length - 10);
     if (s.bullets.length > 18) s.bullets.splice(0, s.bullets.length - 18);
+    if (_isMob && s.bullets.length > 10) s.bullets.splice(0, s.bullets.length - 10);
+    // mobilde shake/flash'i neredeyse kapat — translate donması biter
+    if (_isMob) { s.shake *= 0.35; if (s.flash) s.flash.t *= 0.45; }
 
-    for (const n of s.neurons) { n.pulsePhase += n.pulseSpeed * dt; n.heat = s.targetHeat; }
-    for (const p of s.parallaxStars) p.pulsePhase += 0.009 * dt * p.layer;
+    if (!_isMob || frameTick.current % 2 === 0) {
+      for (const n of s.neurons) { n.pulsePhase += n.pulseSpeed * dt; n.heat = s.targetHeat; }
+      for (const p of s.parallaxStars) p.pulsePhase += 0.009 * dt * p.layer;
+    }
 
     /* ── wave resolution ── */
     const targetAlive = s.aliens.some(a => a.isTarget && !a.dead);
@@ -979,6 +991,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       return;
     }
 
+    frameTick.current++;
+    const _mobSync = typeof window !== 'undefined' && window.innerWidth < 700;
+    if (_mobSync && frameTick.current % 2 === 0) return;
     sync();
   };
 

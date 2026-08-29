@@ -299,6 +299,7 @@ function Cortex({ s }: { s: GameState }) {
     return out;
   }, [s.neurons.length]);
 
+  const isMob = typeof window !== 'undefined' && window.innerWidth < 700;
   return (
     <svg className="absolute inset-0" width={VW} height={VH}>
       <defs>
@@ -312,42 +313,44 @@ function Cortex({ s }: { s: GameState }) {
       <rect width={VW} height={VH} fill="url(#bgA)" />
       <rect width={VW} height={VH} fill="url(#bgB)" />
       <rect width={VW} height={VH} fill="url(#bgC)" />
-      {/* aurora horizon — çok karizmatik */}
-      <ellipse cx={VW / 2} cy={VH + 40} rx={VW * 0.9} ry={180} fill="url(#horizon)" opacity="0.9" />
-      <ellipse cx={VW / 2} cy={VH + 22} rx={VW * 1.1} ry={10} fill={meta.core} opacity="0.18" style={{ filter: 'blur(6px)' }} />
-      {/* tron grid floor */}
-      <g opacity="0.09">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <line key={`hg-${i}`} x1="0" y1={FLOOR_Y + 18 + i * 18} x2={VW} y2={FLOOR_Y + 18 + i * 18} stroke="#00e5ff" strokeWidth="0.6" />
-        ))}
-        {Array.from({ length: 6 }).map((_, i) => {
-          const x = (i + 0.5) * (VW / 6);
-          return <line key={`vg-${i}`} x1={x} y1={FLOOR_Y + 18} x2={x + (i - 2.5) * 18} y2={VH} stroke="#00e5ff" strokeWidth="0.4" opacity="0.5" />;
-        })}
-      </g>
-      {s.parallaxStars.map(p => {
+      {/* aurora horizon — mobilde blur yok */}
+      <ellipse cx={VW / 2} cy={VH + 40} rx={VW * 0.9} ry={180} fill="url(#horizon)" opacity={isMob ? 0.55 : 0.9} />
+      {!isMob && <ellipse cx={VW / 2} cy={VH + 22} rx={VW * 1.1} ry={10} fill={meta.core} opacity="0.18" style={{ filter: 'blur(6px)' }} />}
+      {/* tron grid floor — mobilde kapalı (ciddi GPU) */}
+      {!isMob && (
+        <g opacity="0.09">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <line key={`hg-${i}`} x1="0" y1={FLOOR_Y + 18 + i * 18} x2={VW} y2={FLOOR_Y + 18 + i * 18} stroke="#00e5ff" strokeWidth="0.6" />
+          ))}
+          {Array.from({ length: 6 }).map((_, i) => {
+            const x = (i + 0.5) * (VW / 6);
+            return <line key={`vg-${i}`} x1={x} y1={FLOOR_Y + 18} x2={x + (i - 2.5) * 18} y2={VH} stroke="#00e5ff" strokeWidth="0.4" opacity="0.5" />;
+          })}
+        </g>
+      )}
+      {s.parallaxStars.slice(0, isMob ? 18 : 36).map(p => {
         const tw = Math.sin(p.pulsePhase) * 0.35 + 0.65;
         const isHot = p.layer === 3;
         return (
-          <g key={p.id} opacity={p.opacity * tw * (isHot ? 0.85 : 0.5)}>
-            <rect x={p.x} y={p.y} width={p.size * (isHot ? 1.6 : 1)} height={p.size * (isHot ? 1.6 : 1)}
-              fill={isHot ? meta.core : '#cfe9ff'} style={isHot ? { filter: `drop-shadow(0 0 4px ${meta.glow})` } : undefined} />
-            {isHot && <circle cx={p.x + p.size / 2} cy={p.y + p.size / 2} r={p.size * 1.8} fill={meta.glow} opacity={0.14} />}
+          <g key={p.id} opacity={p.opacity * tw * (isHot ? 0.7 : 0.45)}>
+            <rect x={p.x} y={p.y} width={p.size} height={p.size}
+              fill={isHot ? meta.core : '#cfe9ff'} />
           </g>
         );
       })}
-      {links.map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.6" opacity={l.o * 1.2} />)}
-      {s.neurons.map(n => {
+      {!isMob && links.slice(0, 12).map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.6" opacity={l.o * 1.2} />)}
+      {isMob ? links.slice(0, 6).map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.5" opacity={l.o * 0.9} />) : null}
+      {s.neurons.slice(0, isMob ? 9 : 18).map(n => {
         const pu = Math.sin(n.pulsePhase) * 0.5 + 0.5;
         return (
           <g key={n.id}>
-            <circle cx={n.x} cy={n.y} r={n.size * 6} fill={meta.glow} opacity={n.baseOpacity * pu * 0.22} />
-            <circle cx={n.x} cy={n.y} r={n.size * 1.2} fill={meta.core} opacity={n.baseOpacity + pu * 0.32} style={{ filter: `drop-shadow(0 0 4px ${meta.core})` }} />
+            <circle cx={n.x} cy={n.y} r={n.size * (isMob ? 4 : 6)} fill={meta.glow} opacity={n.baseOpacity * pu * (isMob ? 0.14 : 0.22)} />
+            <circle cx={n.x} cy={n.y} r={n.size} fill={meta.core} opacity={n.baseOpacity + pu * 0.28} />
           </g>
         );
       })}
-      {/* üst vignette karizması */}
-      <rect width={VW} height={90} fill="url(#gridGrad)" opacity="0.5" />
+      {/* üst vignette */}
+      <rect width={VW} height={90} fill="url(#gridGrad)" opacity={isMob ? 0.28 : 0.5} />
     </svg>
   );
 }
