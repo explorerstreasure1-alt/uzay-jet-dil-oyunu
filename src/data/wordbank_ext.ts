@@ -51,6 +51,9 @@ solution=çözüm:n|B1|daily; chance=fırsat:n|B1|daily; luck=şans:n|A2|daily; 
 secret=sır:n|B1|emotion; story=hikâye:n|A2|daily; news=haber:n|A2|daily; art=sanat:n|A2|daily;
 film=film:n|A1|daily; game=oyun:n|A1|daily; sport=spor:n|A1|daily; team=takım:n|A2|daily;
 goal=hedef:n|B1|business; winner=kazanan:n|A2|daily; effort=çaba:n|B1|emotion; habit=alışkanlık:n|B1|emotion;
+investment=yatırım:n|B2|business; acquisition=devralma:n|B2|business; revenue=gelir:n|B2|business; stakeholder=paydaş:n|B2|business; bottleneck=darboğaz:n|B2|business; leverage=kaldıraç:n|C1|business; synergy=sinerji:n|C1|business; paradigm=paradigma:n|C1|business; valuation=değerleme:n|C1|business; equity=öz sermaye:n|C1|business; dividend=temettü:n|C1|business; portfolio=portföy:n|B2|business; compliance=uyum:n|B2|business; merger=birleşme:n|B2|business; subsidiary=bağlı ortaklık:n|C1|business; liability=yükümlülük:n|B2|business; asset=varlık:n|B2|business; deficit=açık:n|B2|business; surplus=fazla:n|B2|business; incentive=teşvik:n|B2|business; benchmark=kıyas:n|B2|business; forecast=tahmin:n|B2|business; turnover=ciro:n|B2|business;
+interface=arayüz:n|B2|tech; framework=çerçeve:n|B2|tech; encryption=şifreleme:n|C1|tech; latency=gecikme:n|B2|tech; bandwidth=bant genişliği:n|B2|tech; deployment=dağıtım:n|B2|tech; repository=depo:n|B2|tech; protocol=protokol:n|B2|tech; firewall=güvenlik duvarı:n|B2|tech; vulnerability=açık:n|C1|tech; scalability=ölçeklenebilirlik:n|C1|tech; authentication=kimlik doğrulama:n|B2|tech; optimization=optimizasyon:n|B2|tech; algorithm=algoritma zaten var ama ek; microservice=mikro hizmet:n|C1|tech; container=kapsayıcı:n|B2|tech; pipeline=boru hattı:n|B2|tech; cache=önbellek:n|B2|tech;
+resilience=dayanıklılık:n|B2|emotion; empathy=empati:n|B2|emotion; burnout=tükenmişlik:n|B2|emotion; nostalgia=nostalji:n|B2|emotion; ambition=hırs:n|B2|emotion; compassion=şefkat:n|C1|emotion; perseverance=azim:n|C1|emotion; integrity=bütünlük:n|C1|emotion; gratitude=minnet:n|B2|emotion; anxiety=kaygı:n|B2|emotion; optimism=iyimserlik:n|B2|emotion; pessimism=karamsarlık:n|C1|emotion; solidarity=dayanışma:n|C1|emotion; humility=tevazu:n|C1|emotion;
 `,
 /* ─────────────────────────── SPANISH ─────────────────────────── */
 es: `
@@ -97,6 +100,9 @@ solución=çözüm:f|B1|daily; oportunidad=fırsat:f|B1|daily; suerte=şans:f|A2
 secreto=sır:m|B1|emotion; historia=hikâye:f|A2|daily; noticia=haber:f|A2|daily; arte=sanat:m|A2|daily;
 película=film:f|A1|daily; juego=oyun:m|A1|daily; deporte=spor:m|A1|daily; equipo=takım:m|A2|daily;
 objetivo=hedef:m|B1|business; ganador=kazanan:m|A2|daily; esfuerzo=çaba:m|B1|emotion; costumbre=alışkanlık:f|B1|emotion;
+inversión=yatırım:f|B2|business; adquisición=devralma:f|B2|business; ingresos=gelir:m|B2|business; interesado=paydaş:m|B2|business; cuello de botella=darboğaz:m|B2|business; apalancamiento=kaldıraç:m|C1|business; sinergia=sinerji:f|C1|business; paradigma=paradigma:m|C1|business; valoración=değerleme:f|C1|business; capital=öz sermaye:m|C1|business; dividendo=temettü:m|C1|business; cartera=portföy:f|B2|business; cumplimiento=uyum:m|B2|business; fusión=birleşme:f|B2|business; filial=bağlı ortaklık:f|C1|business; pasivo=yükümlülük:m|B2|business; activo=varlık:m|B2|business; déficit=açık:m|B2|business; superávit=fazla:m|B2|business; incentivo=teşvik:m|B2|business; referencia=kıyas:f|B2|business; pronóstico=tahmin:m|B2|business; facturación=ciro:f|B2|business;
+interfaz=arayüz:f|B2|tech; marco=çerçeve:m|B2|tech; cifrado=şifreleme:m|C1|tech; latencia=gecikme:f|B2|tech; ancho de banda=bant genişliği:m|B2|tech; despliegue=dağıtım:m|B2|tech; repositorio=depo:m|B2|tech; protocolo=protokol:m|B2|tech; cortafuegos=güvenlik duvarı:m|B2|tech; vulnerabilidad=açık:f|C1|tech; escalabilidad=ölçeklenebilirlik:f|C1|tech; autenticación=kimlik doğrulama:f|B2|tech; optimización=optimizasyon:f|B2|tech; microservicio=mikro hizmet:m|C1|tech; contenedor=kapsayıcı:m|B2|tech; tubería=boru hattı:f|B2|tech; caché=önbellek:m|B2|tech;
+resiliencia=dayanıklılık:f|B2|emotion; empatía=empati:f|B2|emotion; agotamiento=tükenmişlik:m|B2|emotion; nostalgia=nostalji:f|B2|emotion; ambición=hırs:f|B2|emotion; compasión=şefkat:f|C1|emotion; perseverancia=azim:f|C1|emotion; integridad=bütünlük:f|C1|emotion; gratitud=minnet:f|B2|emotion; ansiedad=kaygı:f|B2|emotion; optimismo=iyimserlik:m|B2|emotion; pesimismo=karamsarlık:m|C1|emotion; solidaridad=dayanışma:f|C1|emotion; humildad=tevazu:f|C1|emotion;
 `,
 /* ─────────────────────────── ITALIAN ─────────────────────────── */
 it: `
@@ -143,6 +149,9 @@ soluzione=çözüm:f|B1|daily; occasione=fırsat:f|B1|daily; fortuna=şans:f|A2|
 segreto=sır:m|B1|emotion; storia=hikâye:f|A2|daily; notizia=haber:f|A2|daily; arte=sanat:f|A2|daily;
 film=film:m|A1|daily; gioco=oyun:m|A1|daily; sport=spor:m|A1|daily; squadra=takım:f|A2|daily;
 obiettivo=hedef:m|B1|business; vincitore=kazanan:m|A2|daily; sforzo=çaba:m|B1|emotion; abitudine=alışkanlık:f|B1|emotion;
+investimento=yatırım:m|B2|business; acquisizione=devralma:f|B2|business; ricavo=gelir:m|B2|business; portatore di interesse=paydaş:m|B2|business; collo di bottiglia=darboğaz:m|B2|business; leva=kaldıraç:f|C1|business; sinergia=sinerji:f|C1|business; paradigma=paradigma:m|C1|business; valutazione=değerleme:f|C1|business; capitale=öz sermaye:m|C1|business; dividendo=temettü:m|C1|business; portafoglio=portföy:m|B2|business; conformità=uyum:f|B2|business; fusione=birleşme:f|B2|business; consociata=bağlı ortaklık:f|C1|business; passività=yükümlülük:f|B2|business; attività=varlık:f|B2|business; deficit=açık:m|B2|business; surplus=fazla:m|B2|business; incentivo=teşvik:m|B2|business; benchmark=kıyas:m|B2|business; previsione=tahmin:f|B2|business; fatturato=ciro:m|B2|business;
+interfaccia=arayüz:f|B2|tech; framework=çerçeve:m|B2|tech; crittografia=şifreleme:f|C1|tech; latenza=gecikme:f|B2|tech; larghezza di banda=bant genişliği:f|B2|tech; distribuzione=dağıtım:f|B2|tech; repository=depo:m|B2|tech; protocollo=protokol:m|B2|tech; firewall=güvenlik duvarı:m|B2|tech; vulnerabilità=açık:f|C1|tech; scalabilità=ölçeklenebilirlik:f|C1|tech; autenticazione=kimlik doğrulama:f|B2|tech; ottimizzazione=optimizasyon:f|B2|tech; microservizio=mikro hizmet:m|C1|tech; contenitore=kapsayıcı:m|B2|tech; pipeline=boru hattı:f|B2|tech; cache=önbellek:f|B2|tech;
+resilienza=dayanıklılık:f|B2|emotion; empatia=empati:f|B2|emotion; esaurimento=tükenmişlik:m|B2|emotion; nostalgia=nostalji:f|B2|emotion; ambizione=hırs:f|B2|emotion; compassione=şefkat:f|C1|emotion; perseveranza=azim:f|C1|emotion; integrità=bütünlük:f|C1|emotion; gratitudine=minnet:f|B2|emotion; ansia=kaygı:f|B2|emotion; ottimismo=iyimserlik:m|B2|emotion; pessimismo=karamsarlık:m|C1|emotion; solidarietà=dayanışma:f|C1|emotion; umiltà=tevazu:f|C1|emotion;
 `,
 /* ─────────────────────────── RUSSIAN ─────────────────────────── */
 ru: `
@@ -189,6 +198,9 @@ ru: `
 секрет=sır:m|B1|emotion; история=hikâye:f|A2|daily|историю; новость=haber:f|A2|daily; искусство=sanat:n|A2|daily;
 фильм=film:m|A1|daily; игра=oyun:f|A1|daily|игру; спорт=spor:m|A1|daily; команда=takım:f|A2|daily|команду;
 цель=hedef:f|B1|business; победитель=kazanan:m|A2|daily; усилие=çaba:n|B1|emotion; привычка=alışkanlık:f|B1|emotion|привычку;
+инвестиция=yatırım:f|B2|business|инвестицию; приобретение=devralma:n|B2|business; доход=gelir:m|B2|business; заинтересованная сторона=paydaş:f|B2|business; узкое место=darboğaz:n|B2|business; рычаг=kaldıraç:m|C1|business; синергия=sinerji:f|C1|business|синергию; парадигма=paradigma:f|C1|business|парадигму; оценка=değerleme:f|C1|business|оценку; капитал=öz sermaye:m|C1|business; дивиденд=temettü:m|C1|business; портфель=portföy:m|B2|business; соответствие=uyum:n|B2|business; слияние=birleşme:n|B2|business; дочерняя компания=bağlı ortaklık:f|C1|business; обязательство=yükümlülük:n|B2|business; актив=varlık:m|B2|business; дефицит=açık:m|B2|business; профицит=fazla:m|B2|business; стимул=teşvik:m|B2|business; ориентир=kıyas:m|B2|business; прогноз=tahmin:m|B2|business; оборот=ciro:m|B2|business;
+интерфейс=arayüz:m|B2|tech; фреймворк=çerçeve:m|B2|tech; шифрование=şifreleme:n|C1|tech; задержка=gecikme:f|B2|tech|задержку; пропускная способность=bant genişliği:f|B2|tech; развёртывание=dağıtım:n|B2|tech; репозиторий=depo:m|B2|tech; протокол=protokol:m|B2|tech; брандмауэр=güvenlik duvarı:m|B2|tech; уязвимость=açık:f|C1|tech|уязвимость; масштабируемость=ölçeklenebilirlik:f|C1|tech; аутентификация=kimlik doğrulama:f|B2|tech; оптимизация=optimizasyon:f|B2|tech|оптимизацию; микросервис=mikro hizmet:m|C1|tech; контейнер=kapsayıcı:m|B2|tech; конвейер=boru hattı:m|B2|tech; кэш=önbellek:m|B2|tech;
+устойчивость=dayanıklılık:f|B2|emotion; эмпатия=empati:f|B2|emotion|эмпатию; выгорание=tükenmişlik:n|B2|emotion; ностальгия=nostalji:f|B2|emotion|ностальгию; амбиция=hırs:f|B2|emotion|амбицию; сострадание=şefkat:n|C1|emotion; настойчивость=azim:f|C1|emotion; честность=bütünlük:f|C1|emotion; благодарность=minnet:f|B2|emotion; тревога=kaygı:f|B2|emotion|тревогу; оптимизм=iyimserlik:m|B2|emotion; пессимизм=karamsarlık:m|C1|emotion; солидарность=dayanışma:f|C1|emotion; скромность=tevazu:f|C1|emotion;
 `,
 };
 
@@ -201,6 +213,7 @@ useless=işe yaramaz|B1; modern=modern|A2; traditional=geleneksel|B1; natural=do
 public=kamusal|B1; private=özel|A2; local=yerel|B1; global=küresel|B1; sudden=ani|B1;
 sophisticated=sofistike|C1; ambiguous=muğlak|C1; pragmatic=pragmatik|C1; holistic=bütünsel|C1; empirical=ampirik|C1;
 coherent=tutarlı|B2; sustainable=sürdürülebilir|B2; innovative=yenilikçi|B2; strategic=stratejik|B2; comprehensive=kapsamlı|B2;
+lucrative=kazançlı|B2; volatile=oynak|B2; disruptive=yıkıcı|B2; scalable=ölçeklenebilir|B2; robust=sağlam|B2; agile=çevik|B2; resilient=sürdürülebilir dayanıklı|B2; inclusive=kapsayıcı|B2; redundant=gereksiz tekrarlı|B2; profound=derin|C1; lucrative=kazançlı zaten; diligent=çalışkan|B2; tentative=çekingen|B2; obsolete=modası geçmiş|B2; compelling=ikna edici|C1; intricate=karmaşık girift|C1;
 `,
 es: `interesante=ilginç|A2; aburrido=sıkıcı|A2; divertido=komik|A2; serio=ciddi|A2; famoso=ünlü|A2;
 importante=önemli|A2; posible=mümkün|A2; imposible=imkânsız|B1; listo=hazır|A1; ocupado=meşgul|A2;
@@ -210,6 +223,7 @@ inútil=işe yaramaz|B1; moderno=modern|A2; tradicional=geleneksel|B1; natural=d
 público=kamusal|B1; privado=özel|A2; local=yerel|B1; global=küresel|B1; repentino=ani|B1;
 sofisticado=sofistike|C1; ambiguo=muğlak|C1; pragmático=pragmatik|C1; holístico=bütünsel|C1; empírico=ampirik|C1;
 coherente=tutarlı|B2; sostenible=sürdürülebilir|B2; innovador=yenilikçi|B2; estratégico=stratejik|B2; integral=kapsamlı|B2;
+lucrativo=kazançlı|B2; volátil=oynak|B2; disruptivo=yıkıcı|B2; escalable=ölçeklenebilir|B2; robusto=sağlam|B2; ágil=çevik|B2; inclusivo=kapsayıcı|B2; redundante=gereksiz tekrarlı|B2; profundo=derin|C1; diligente=çalışkan|B2; tentativo=çekingen|B2; obsoleto=modası geçmiş|B2; convincente=ikna edici|C1; intrincado=karmaşık girift|C1;
 `,
 it: `interessante=ilginç|A2; noioso=sıkıcı|A2; divertente=komik|A2; serio=ciddi|A2; famoso=ünlü|A2;
 importante=önemli|A2; possibile=mümkün|A2; impossibile=imkânsız|B1; pronto=hazır|A1; occupato=meşgul|A2;
@@ -219,6 +233,7 @@ inutile=işe yaramaz|B1; moderno=modern|A2; tradizionale=geleneksel|B1; naturale
 pubblico=kamusal|B1; privato=özel|A2; locale=yerel|B1; globale=küresel|B1; improvviso=ani|B1;
 sofisticato=sofistike|C1; ambiguo=muğlak|C1; pragmatico=pragmatik|C1; olistico=bütünsel|C1; empirico=ampirik|C1;
 coerente=tutarlı|B2; sostenibile=sürdürülebilir|B2; innovativo=yenilikçi|B2; strategico=stratejik|B2; completo=kapsamlı|B2;
+lucrativo=kazançlı|B2; volatile=oynak|B2; dirompente=yıkıcı|B2; scalabile=ölçeklenebilir|B2; robusto=sağlam|B2; agile=çevik|B2; inclusivo=kapsayıcı|B2; ridondante=gereksiz tekrarlı|B2; profondo=derin|C1; diligente=çalışkan|B2; tentativo=çekingen|B2; obsoleto=modası geçmiş|B2; convincente=ikna edici|C1; intricato=karmaşık girift|C1;
 `,
 ru: `интересный=ilginç|A2; скучный=sıkıcı|A2; смешной=komik|A2; серьёзный=ciddi|A2; известный=ünlü|A2;
 важный=önemli|A2; возможный=mümkün|A2; невозможный=imkânsız|B1; готовый=hazır|A1; занятый=meşgul|A2;
@@ -228,6 +243,7 @@ ru: `интересный=ilginç|A2; скучный=sıkıcı|A2; смешно�
 общественный=kamusal|B1; частный=özel|A2; местный=yerel|B1; глобальный=küresel|B1; внезапный=ani|B1;
 утончённый=sofistike|C1; двусмысленный=muğlak|C1; прагматичный=pragmatik|C1; холистический=bütünsel|C1; эмпирический=ampirik|C1;
 связный=tutarlı|B2; стабильный=sürdürülebilir|B2; инновационный=yenilikçi|B2; стратегический=stratejik|B2; комплексный=kapsamlı|B2;
+прибыльный=kazançlı|B2; волатильный=oynak|B2; прорывной=yıkıcı|B2; масштабируемый=ölçeklenebilir|B2; надёжный=sağlam|B2; гибкий=çevik|B2; инклюзивный=kapsayıcı|B2; избыточный=gereksiz tekrarlı|B2; глубокий=derin|C1; старательный=çalışkan|B2; пробный=çekingen|B2; устаревший=modası geçmiş|B2; убедительный=ikna edici|C1; запутанный=karmaşık girift|C1;
 `,
 };
 
@@ -255,6 +271,7 @@ to compare=karşılaştırmak>I compare>you compare>I compared|B1; to describe=t
 to suggest=önermek>I suggest>you suggest>I suggested|B1; to accept=kabul etmek>I accept>you accept>I accepted|B1;
 to refuse=reddetmek>I refuse>you refuse>I refused|B1; to allow=izin vermek>I allow>you allow>I allowed|B1;
 to prevent=engellemek>I prevent>you prevent>I prevented|B2;
+to mitigate=hafifletmek>I mitigate>you mitigate>I mitigated|B2; to leverage=kaldıraç kullanmak>I leverage>you leverage>I leveraged|C1; to optimize=optimize etmek>I optimize>you optimize>I optimized|B2; to disrupt=bozmak>I disrupt>you disrupt>I disrupted|B2; to sustain=sürdürmek>I sustain>you sustain>I sustained|B2; to integrate=bütünleştirmek>I integrate>you integrate>I integrated|B2; to validate=doğrulamak>I validate>you validate>I validated|B2; to acquire=edinmek>I acquire>you acquire>I acquired|B2; to generate=üretmek>I generate>you generate>I generated|B2; to implement=uygulamak>I implement>you implement>I implemented|B2; to anticipate=öngörmek>I anticipate>you anticipate>I anticipated|C1;
 `,
 es: `vivir=yaşamak>vivo>vives>viví|A1; morir=ölmek>muero>mueres>morí|B1;
 amar=sevmek>amo>amas>amé|A1; odiar=nefret etmek>odio>odias>odié|A2;
@@ -279,6 +296,7 @@ comparar=karşılaştırmak>comparo>comparas>comparé|B1; describir=tarif etmek>
 sugerir=önermek>sugiero>sugieres>sugerí|B1; aceptar=kabul etmek>acepto>aceptas>acepté|B1;
 rechazar=reddetmek>rechazo>rechazas>rechacé|B1; permitir=izin vermek>permito>permites>permití|B1;
 prevenir=engellemek>prevengo>previenes>previne|B2;
+mitigar=hafifletmek>mitigo>mitigas>mitigué|B2; aprovechar=kaldıraç kullanmak>aprovecho>aprovechas>aproveché|C1; optimizar=optimize etmek>optimizo>optimizas>optimicé|B2; interrumpir=bozmak>interrumpo>interrumpes>interrumpí|B2; sostener=sürdürmek>sostengo>sostienes>sostuve|B2; integrar=bütünleştirmek>integro>integras>integré|B2; validar=doğrulamak>valido>validas>validé|B2; adquirir=edinmek>adquiero>adquieres>adquirí|B2; generar=üretmek>genero>generas>generé|B2; implementar=uygulamak>implemento>implementas>implementé|B2; anticipar=öngörmek>anticipo>anticipas>anticipé|C1;
 `,
 it: `vivere=yaşamak>vivo>vivi>ho vissuto|A1; morire=ölmek>muoio>muori>sono morto|B1;
 amare=sevmek>amo>ami>ho amato|A1; odiare=nefret etmek>odio>odi>ho odiato|A2;
@@ -303,6 +321,7 @@ confrontare=karşılaştırmak>confronto>confronti>ho confrontato|B1; descrivere
 suggerire=önermek>suggerisco>suggerisci>ho suggerito|B1; accettare=kabul etmek>accetto>accetti>ho accettato|B1;
 rifiutare=reddetmek>rifiuto>rifiuti>ho rifiutato|B1; permettere=izin vermek>permetto>permetti>ho permesso|B1;
 prevenire=engellemek>prevengo>previeni>ho prevenuto|B2;
+attenuare=hafifletmek>attenuo>attenui>ho attenuato|B2; sfruttare=kaldıraç kullanmak>sfrutto>sfrutti>ho sfruttato|C1; ottimizzare=optimize etmek>ottimizzo>ottimizzi>ho ottimizzato|B2; interrompere=bozmak>interrompo>interrompi>ho interrotto|B2; sostenere=sürdürmek>sostengo>sostieni>ho sostenuto|B2; integrare=bütünleştirmek>integro>integri>ho integrato|B2; convalidare=doğrulamak>convalido>convalidi>ho convalidato|B2; acquisire=edinmek>acquisisco>acquisisci>ho acquisito|B2; generare=üretmek>genero>generi>ho generato|B2; implementare=uygulamak>implemento>implementi>ho implementato|B2; anticipare=öngörmek>anticipo>anticipi>ho anticipato|C1;
 `,
 ru: `жить=yaşamak>я живу>ты живёшь>я жил|A1; умирать=ölmek>я умираю>ты умираешь>я умер|B1;
 любить=sevmek>я люблю>ты любишь>я любил|A1; ненавидеть=nefret etmek>я ненавижу>ты ненавидишь>я ненавидел|A2;
@@ -327,6 +346,7 @@ ru: `жить=yaşamak>я живу>ты живёшь>я жил|A1; умират�
 предлагать=önermek>я предлагаю>ты предлагаешь>я предложил|B1; принимать=kabul etmek>я принимаю>ты принимаешь>я принял|B1;
 отказываться=reddetmek>я отказываюсь>ты отказываешься>я отказался|B1; разрешать=izin vermek>я разрешаю>ты разрешаешь>я разрешил|B1;
 предотвращать=engellemek>я предотвращаю>ты предотвращаешь>я предотвратил|B2;
+смягчать=hafifletmek>я смягчаю>ты смягчаешь>я смягчил|B2; использовать рычаг=kaldıraç kullanmak>я использую рычаг>ты используешь рычаг>я использовал рычаг|C1; оптимизировать=optimize etmek>я оптимизирую>ты оптимизируешь>я оптимизировал|B2; нарушать=bozmak>я нарушаю>ты нарушаешь>я нарушил|B2; поддерживать=sürdürmek>я поддерживаю>ты поддерживаешь>я поддержал|B2; интегрировать=bütünleştirmek>я интегрирую>ты интегрируешь>я интегрировал|B2; подтверждать=doğrulamak>я подтверждаю>ты подтверждаешь>я подтвердил|B2; приобретать=edinmek>я приобретаю>ты приобретаешь>я приобрёл|B2; генерировать=üretmek>я генерирую>ты генерируешь>я сгенерировал|B2; внедрять=uygulamak>я внедряю>ты внедряешь>я внедрил|B2; предвидеть=öngörmek>я предвижу>ты предвидишь>я предвидел|C1;
 `,
 };
 

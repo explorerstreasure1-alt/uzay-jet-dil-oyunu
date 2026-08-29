@@ -13,9 +13,9 @@ const A_MINOR = [220.0, 246.94, 261.63, 293.66, 329.63, 349.23, 392.0];
 const PROGRESSION = [0, 5, 2, 6];
 
 const STYLE: Record<HeatLevel, { bpm: number; arpVol: number; lead: boolean; hats: boolean; bell: boolean }> = {
-  ice:     { bpm: 96,  arpVol: 0.018, lead: false, hats: false, bell: true  },
-  amber:   { bpm: 118, arpVol: 0.028, lead: false, hats: true,  bell: false },
-  crimson: { bpm: 142, arpVol: 0.038, lead: true,  hats: true,  bell: false },
+  ice:     { bpm: 112, arpVol: 0.032, lead: false, hats: true,  bell: true  },
+  amber:   { bpm: 132, arpVol: 0.042, lead: true,  hats: true,  bell: false },
+  crimson: { bpm: 154, arpVol: 0.055, lead: true,  hats: true,  bell: false },
 };
 
 class AudioEngine {
@@ -36,8 +36,10 @@ class AudioEngine {
   sfxOn = true;
   ttsOn = true;
 
-  /* ─────────── adrenalin arka plan — prosedürel, MP3 yok, tamamen rahatsız etmez ─────────── */
-  private bgmVol = 0.07;
+  /* ─────────── adrenalin arka plan — prosedürel + MP3 hibrit ─────────── */
+  private bgmVol = 0.16;
+  private mp3: HTMLAudioElement | null = null;
+  private mp3Ready = false;
 
   /* ─────────── graph ─────────── */
   private ensure(): AudioContext | null {
@@ -144,15 +146,54 @@ class AudioEngine {
     return A_MINOR[i] * Math.pow(2, o);
   }
 
-  /* ─────────── adrenalin prosedürel müzik — rahatsız etmez, tamamen arka plan ─────────── */
+  /* ─────────── adrenalin prosedürel müzik + MP3 hibrit — arkada güçlü melodi ─────────── */
+  private ensureMp3() {
+    if (this.mp3 || typeof window === 'undefined') return;
+    try {
+      const a = new Audio();
+      // iki adrenalin track'inden birini rastgele seç — ikisi de public/music'de
+      const tracks = ['/music/Defiant_Horizon.mp3', '/music/Broadside_Command.mp3'];
+      a.src = tracks[Math.floor(Math.random() * tracks.length)];
+      a.loop = true;
+      a.preload = 'auto';
+      a.crossOrigin = 'anonymous';
+      a.volume = 0;
+      this.mp3 = a;
+      a.addEventListener('canplaythrough', () => { this.mp3Ready = true; if (this.musicOn) this.fadeMp3(this.bgmVol * 0.42, 1.2); }, { once: true });
+      a.load();
+    } catch {}
+  }
+  private fadeMp3(to: number, time: number) {
+    if (!this.mp3) return;
+    try {
+      const a = this.mp3;
+      const start = a.volume;
+      const t0 = performance.now();
+      const tick = () => {
+        const p = Math.min(1, (performance.now() - t0) / (time * 1000));
+        a.volume = start + (to - start) * p;
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    } catch {}
+  }
   startMusic(heat: HeatLevel = 'ice') {
     const ctx = this.ensure(); if (!ctx || !this.music) return;
     this.heat = heat;
     this.music.gain.cancelScheduledValues(ctx.currentTime);
-    this.music.gain.setTargetAtTime(this.musicOn ? this.bgmVol * 1.35 : 0, ctx.currentTime, 0.7);
-    if (this.seq !== null) return;
+    this.music.gain.setTargetAtTime(this.musicOn ? this.bgmVol * 1.15 : 0, ctx.currentTime, 0.7);
+    if (this.seq !== null) {
+      if (this.mp3Ready && this.mp3 && this.musicOn) { void this.mp3.play().catch(()=>{}); this.fadeMp3(this.bgmVol * 0.44, 0.9); }
+      return;
+    }
     this.nextT = ctx.currentTime + 0.1;
     this.seq = window.setInterval(() => this.pump(), 25);
+    // MP3 adrenalin altyapısı
+    this.ensureMp3();
+    if (this.mp3 && this.musicOn) {
+      void this.mp3.play().catch(()=>{});
+      this.fadeMp3(this.bgmVol * 0.44, 1.1);
+    }
   }
   setHeat(h: HeatLevel) {
     if (h === this.heat) return;
@@ -165,23 +206,29 @@ class AudioEngine {
     const ctx = this.ctx;
     if (ctx && this.music) this.music.gain.setTargetAtTime(0, ctx.currentTime, 0.35);
     if (this.seq !== null) { window.clearInterval(this.seq); this.seq = null; }
+    if (this.mp3) { this.fadeMp3(0, 0.45); window.setTimeout(()=>{ try{ this.mp3!.pause(); }catch{} }, 500); }
   }
   setMusicEnabled(on: boolean) {
     this.musicOn = on;
     const ctx = this.ctx;
-    if (ctx && this.music) this.music.gain.setTargetAtTime(on ? this.bgmVol * 1.35 : 0, ctx.currentTime, 0.3);
+    if (ctx && this.music) this.music.gain.setTargetAtTime(on ? this.bgmVol * 1.15 : 0, ctx.currentTime, 0.3);
+    if (this.mp3) {
+      if (on) { this.ensureMp3(); void this.mp3.play().catch(()=>{}); this.fadeMp3(this.bgmVol * 0.44, 0.7); }
+      else this.fadeMp3(0, 0.4);
+    }
   }
   setSfxEnabled(on: boolean) { this.sfxOn = on; }
   setBgmVolume(v: number) {
     this.bgmVol = Math.max(0, Math.min(1, v));
     const ctx = this.ctx;
-    if (ctx && this.music && this.musicOn) this.music.gain.setTargetAtTime(this.bgmVol * 1.35, ctx.currentTime, 0.25);
+    if (ctx && this.music && this.musicOn) this.music.gain.setTargetAtTime(this.bgmVol * 1.15, ctx.currentTime, 0.25);
+    if (this.mp3 && this.musicOn) this.fadeMp3(this.bgmVol * 0.44, 0.35);
   }
 
   private pump() {
     const ctx = this.ctx; if (!ctx) return;
     const baseBpm = STYLE[this.heat].bpm;
-    const bpm = baseBpm * (1 + this.waveIntensity * 0.42);
+    const bpm = baseBpm * (1 + this.waveIntensity * 0.55);
     const spb = 60 / bpm / 4;
     while (this.nextT < ctx.currentTime + 0.15) {
       this.bar(this.step, this.nextT);
@@ -208,41 +255,55 @@ class AudioEngine {
     const chord = PROGRESSION[Math.floor(step / 8) % 4];
     const s8 = step % 8;
 
-    if (s8 === 0 || s8 === 5) {
+    // KICK — her 4'te, adrenalin dalgası arttıkça daha tok
+    if (s8 % 2 === 0) {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine';
-      o.frequency.setValueAtTime(140, t);
-      o.frequency.exponentialRampToValueAtTime(42, t + 0.11);
-      g.gain.setValueAtTime(0.18, t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
-      o.connect(g); g.connect(bus); o.start(t); o.stop(t + 0.17);
+      o.frequency.setValueAtTime(148, t);
+      o.frequency.exponentialRampToValueAtTime(38, t + 0.12);
+      g.gain.setValueAtTime(0.22 + this.waveIntensity * 0.14, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.connect(g); g.connect(bus); o.start(t); o.stop(t + 0.20);
     }
+    // off-beat hat — ice'da bile hafif tik, amber/crimson'da daha agresif
     if (st.hats && s8 % 2 === 1) {
       const src = ctx.createBufferSource(); src.buffer = this.noiseBuf!;
-      const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 8200;
+      const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = st.heat === 'crimson' ? 9200 : 8200;
       const g = ctx.createGain();
-      g.gain.setValueAtTime(s8 === 3 ? 0.045 : 0.022, t);
+      g.gain.setValueAtTime(s8 === 3 ? 0.052 : 0.028, t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
       src.connect(f); f.connect(g); g.connect(bus); src.start(t); src.stop(t + 0.05);
     }
-    if (s8 === 0 || s8 === 3 || s8 === 6) {
-      this.mNote({ f: this.deg(chord, -2), t, dur: 0.26, type: 'triangle', vol: 0.09 });
-      this.mNote({ f: this.deg(chord, -2) * 1.004, t, dur: 0.26, type: 'square', vol: 0.022 });
+    // BASS — her barın 1 ve 3. vuruşunda, arp'ın altında sürükler
+    if (s8 === 0 || s8 === 4) {
+      const detune = this.heat === 'crimson' ? 1.008 : 1.004;
+      this.mNote({ f: this.deg(chord, -2), t, dur: 0.32, type: 'triangle', vol: 0.11 });
+      this.mNote({ f: this.deg(chord, -2) * detune, t, dur: 0.32, type: 'square', vol: 0.028 });
     }
-    const tones = [0, 2, 4, 2];
+    // ARP — 16'lık, crimson'da daha parlak saw
+    const arpTones = this.heat === 'crimson' ? [0, 2, 4, 7] : [0, 2, 4, 2];
     this.mNote({
-      f: this.deg(chord + tones[s8 % 4], s8 >= 4 ? 1 : 0),
-      t, dur: 0.15, type: this.heat === 'crimson' ? 'sawtooth' : 'square',
-      vol: st.arpVol, verb: 0.2,
+      f: this.deg(chord + arpTones[s8 % 4], s8 >= 4 ? 1 : 0),
+      t, dur: 0.16, type: this.heat === 'crimson' ? 'sawtooth' : 'square',
+      vol: st.arpVol * (1 + this.waveIntensity * 0.35), verb: 0.22,
     });
-    if (st.bell && step % 16 === 10) {
-      this.mNote({ f: this.deg(chord + 4, 1), t, dur: 1.1, type: 'sine', vol: 0.085, verb: 0.5 });
-      this.mNote({ f: this.deg(chord + 2, 2), t: t + 0.28, dur: 0.9, type: 'sine', vol: 0.05, verb: 0.5 });
+    // ikincil arp katmanı — amber/crimson'da adrenalin
+    if ((st.lead || this.waveIntensity > 0.18) && s8 % 2 === 0) {
+      this.mNote({
+        f: this.deg(chord + arpTones[(s8 + 2) % 4], 1),
+        t: t + 0.06, dur: 0.11, type: 'triangle', vol: st.arpVol * 0.42, verb: 0.18,
+      });
     }
-    if (st.lead && step % 8 === 6) {
-      const f = this.deg(chord + 4, 0);
-      this.mNote({ f, t, dur: 0.3, type: 'sawtooth', vol: 0.045, verb: 0.25 });
-      this.mNote({ f: f * 1.006, t, dur: 0.3, type: 'sawtooth', vol: 0.045 });
+    if (st.bell && step % 16 === 10) {
+      this.mNote({ f: this.deg(chord + 4, 1), t, dur: 1.15, type: 'sine', vol: 0.09, verb: 0.52 });
+      this.mNote({ f: this.deg(chord + 2, 2), t: t + 0.28, dur: 0.95, type: 'sine', vol: 0.055, verb: 0.52 });
+    }
+    // LEAD — her 8'de değil, 4'te bir, daha melodik
+    if (st.lead && s8 % 4 === 2) {
+      const leadTones = [4, 7, 9, 7];
+      const f = this.deg(chord + leadTones[Math.floor(step / 4) % 4], 1);
+      this.mNote({ f, t, dur: 0.28, type: 'sawtooth', vol: 0.052, verb: 0.28 });
+      this.mNote({ f: f * 1.007, t, dur: 0.28, type: 'sawtooth', vol: 0.038 });
     }
   }
 

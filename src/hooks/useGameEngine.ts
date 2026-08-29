@@ -333,7 +333,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const autoBanner = banner ?? (isFrenzy ? '⚡ FRENZY' : `DALGA ${wave}`);
     const autoSub = sub ?? (isFrenzy ? 'TÜM ŞERİTLER HIZLI — HİÇ DURMA' : '');
     let clozeData: GameState['cloze'] = null;
-    let isCloze = clozeModeRef.current;
+    // Otomatik akıcılık: cümle modu kapalı olsa bile her 4. dalga cümle dalgası — bağlamda öğrenme
+    const autoCloze = !clozeModeRef.current && wave % 4 === 0 && wave >= 4 && !isBoss && !isFrenzy;
+    let isCloze = clozeModeRef.current || autoCloze;
     if (isCloze) {
       const isVerb = target.category === 'verb';
       let foreignBlank: string, nativeBlank: string;
@@ -343,6 +345,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       else { foreignBlank = isVerb ? 'Я хочу ___' : 'Где ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
       clozeData = { foreign: foreignBlank, native: nativeBlank };
     }
+    const bannerText = autoCloze ? '💬 CÜMLE DALGASI' : autoBanner;
+    const bannerSubText = autoCloze ? 'Bağlamda öğren — boşluğu doldur' : autoSub;
     ref.current = {
       ...s,
       wave,
@@ -360,7 +364,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       hitPause: 0,
       cloze: clozeData,
       isCloze,
-      waveBanner: { text: autoBanner, sub: autoSub, t: 1 },
+      waveBanner: { text: bannerText, sub: bannerSubText, t: 1 },
     };
     audio.setHeat(ref.current.targetHeat);
     audio.setWave(wave, isFrenzy);
@@ -851,6 +855,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
             s.explosions.push({ id: uid(), x: cx, y: cy, radius: 6, maxRadius: 56, opacity: 1, color: '#ff2e63', isChain: false });
             s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: false, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 0 };
+            // Wingman öğretici fısıldaması — yanlışta doğruyu göster, akıcı öğrenme
+            s.floats.push({ id: uid(), x: cx, y: a.y + 18, text: `💡 ${a.word.foreign} → ${a.word.native}`, color: '#ffd166', life: 1.9, vy: -0.32 });
             if (absorbed) {
               s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 74, text: 'KALKAN EMİLDİ', color: '#8be9ff', life: 1.3, vy: -0.7 });
               audio.repair();

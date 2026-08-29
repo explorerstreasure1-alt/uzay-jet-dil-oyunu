@@ -22,8 +22,8 @@ function write(key: string, value: unknown) {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  crt: false, music: false, sfx: true, tts: true, haptics: true, leftHanded: false,
-  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0,
+  crt: false, music: true, sfx: true, tts: true, haptics: true, leftHanded: false,
+  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0.22,
   fontScale: 1, highContrast: false, reduceMotion: false, dyslexia: false,
 };
 export const DEFAULT_STATS: RunStats = {
@@ -42,16 +42,15 @@ export const store = {
   loadSettings: (): Settings => {
     const raw = read<Partial<Settings>>(K.settings, {});
     const merged = { ...DEFAULT_SETTINGS, ...raw } as Settings & { eyeComfort?: boolean };
-    // migrated: müziği tamamen sustur (kullanıcı şikayeti), eski yüksek sesi sıfırla
-    if (raw.music !== undefined && raw.music === true) {
-      // ilk migrasyonda sessize çek, kullanıcı isterse ayarlardan açar
-      merged.music = false;
-      merged.bgmVolume = 0;
-      merged.crt = false;
+    // adrenalin modu: artık varsayılan açık, eski sessiz migrasyonu kaldırıldı
+    // sadece çok yüksek sesi normalize et (>0.85 ise 0.22'ye çek)
+    if (raw.bgmVolume !== undefined && raw.bgmVolume > 0.85) {
+      merged.bgmVolume = 0.22;
       write(K.settings, merged);
-    } else if (raw.bgmVolume !== undefined && raw.bgmVolume > 0.01) {
-      merged.bgmVolume = 0;
-      write(K.settings, merged);
+    }
+    if (raw.bgmVolume === 0 && raw.music === false) {
+      // kullanıcı daha önce sessize almışsa saygı duy, ama bir kez adrenalin için hafif aç
+      // dokunma — ayarlardan açabilir
     }
     return merged as Settings;
   },
