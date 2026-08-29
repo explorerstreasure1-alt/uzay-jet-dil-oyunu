@@ -115,6 +115,9 @@ export function MenuScreen({ api, lang, setLang, go, pwa }: {
       {(() => {
         const si = streakInfo(api.stats);
         const done = si.today >= si.goal;
+        const chestKey = `wi_chest_${new Date().toISOString().slice(0,10)}`;
+        const chestOpened = (()=>{ try{ return localStorage.getItem(chestKey)==='1'; }catch{ return false; }})();
+        const canOpen = si.today >= 5 && !chestOpened;
         return (
           <div className="mt-3 glass rounded-xl px-3 py-2.5">
             <div className="flex items-center justify-between mb-1.5">
@@ -134,6 +137,16 @@ export function MenuScreen({ api, lang, setLang, go, pwa }: {
                 <div className="font-mono-tech text-[6px] tracking-[0.1em] text-white/35">EN İYİ SERİ</div>
               </div>
             </div>
+            {/* Günlük sandık — 5 doğruda açılır, akıcılığı ödüllendirir */}
+            <button onClick={()=>{
+              if(!canOpen) return;
+              try{ localStorage.setItem(chestKey,'1'); }catch{}
+              audio.correct(); audio.combo();
+            }} disabled={!canOpen && !chestOpened} className={`w-full mt-2.5 rounded-xl py-2.5 flex items-center justify-center gap-2 active:scale-95 transition-all ${canOpen ? '' : chestOpened ? 'opacity-60' : 'opacity-40'}`} style={canOpen ? { background:'linear-gradient(135deg, rgba(255,209,102,0.22), rgba(255,140,0,0.18))', border:'1px solid #ffd166', boxShadow:'0 0 14px rgba(255,209,102,0.35)' } : chestOpened ? { background:'rgba(0,255,163,0.12)', border:'1px solid rgba(0,255,163,0.35)' } : { background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)' }}>
+              <span className="text-[16px]">{chestOpened ? '✅' : canOpen ? '📦' : '🔒'}</span>
+              <span className="font-mono-tech text-[9px] tracking-[0.14em]" style={{ color: canOpen ? '#ffd166' : chestOpened ? '#00ffa3' : 'rgba(255,255,255,0.35)' }}>{chestOpened ? 'SANDIK AÇILDI — YARIN YENİSİ' : canOpen ? 'GÜNLÜK SANDIK AÇ! (5✓)' : `SANDIK ${Math.max(0,5-si.today)}✓ KALDI`}</span>
+            </button>
+            {canOpen && <div className="font-mono-tech text-[7px] text-[#ffd166]/70 text-center mt-1">Aç → +50 bonus + nadir kelime</div>}
           </div>
         );
       })()}

@@ -66,7 +66,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0, runCorrect: 0, runWrong: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -567,6 +567,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.gameTime += dt * 16.667;
     s.waveAge += dt * 16.667;
     if (s.hitCard) { s.hitCard.t -= dt * 0.011; if (s.hitCard.t <= 0) s.hitCard = null; }
+    if (s.speechNudge > 0) s.speechNudge -= dt;
 
     /* ── ship: momentum + soft brake ── */
     let want = 0;
@@ -756,6 +757,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           s.score += gained;
           s.correctThisWave += 1;
           s.runCorrect += 1;
+          if (s.runCorrect % 3 === 0) { s.speechNudge = 180; s.floats.push({ id: uid(), x: VW/2, y: 168, text: '🎤 SÖYLE +80 BONUS', color: '#00ffa3', life: 1.6, vy: -0.35 }); }
 
           heatRef.current = applyResult(heatRef.current, a.word.id, true);
           statsRef.current = bumpStreak({

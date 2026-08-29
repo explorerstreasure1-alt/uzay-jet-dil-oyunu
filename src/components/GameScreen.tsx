@@ -750,10 +750,10 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
           </button>
           <button onPointerDown={doMic}
             className="glass rounded-xl w-[52px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none"
-            style={micListening ? { border: '1.4px solid #00ffa3', boxShadow: '0 0 14px rgba(0,255,163,0.5)' } : micMsg ? { border: `1px solid ${micMsg.startsWith('✓') ? '#00ffa3' : '#ff2e63'}` } : undefined}>
-            <span className="text-[15px] leading-none" style={{ filter: micListening ? 'drop-shadow(0 0 6px #00ffa3)' : undefined }}>{micListening ? '●' : '🎤'}</span>
-            <span className="font-mono-tech text-[6px] tracking-[0.08em] mt-0.5" style={{ color: micListening ? '#00ffa3' : micMsg ? (micMsg.startsWith('✓') ? '#00ffa3' : '#ff8fa8') : 'rgba(255,255,255,0.45)' }}>
-              {micListening ? 'DİNLİYOR' : micMsg ?? 'SÖYLE'}
+            style={micListening ? { border: '1.4px solid #00ffa3', boxShadow: '0 0 14px rgba(0,255,163,0.5)' } : s.speechNudge > 0 ? { border: '1.6px solid #00ffa3', boxShadow: '0 0 16px rgba(0,255,163,0.6)', animation: 'pulse 0.9s infinite' } : micMsg ? { border: `1px solid ${micMsg.startsWith('✓') ? '#00ffa3' : '#ff2e63'}` } : undefined}>
+            <span className="text-[15px] leading-none" style={{ filter: micListening || s.speechNudge > 0 ? 'drop-shadow(0 0 6px #00ffa3)' : undefined }}>{micListening ? '●' : '🎤'}</span>
+            <span className="font-mono-tech text-[6px] tracking-[0.08em] mt-0.5" style={{ color: micListening ? '#00ffa3' : s.speechNudge > 0 ? '#00ffa3' : micMsg ? (micMsg.startsWith('✓') ? '#00ffa3' : '#ff8fa8') : 'rgba(255,255,255,0.45)' }}>
+              {micListening ? 'DİNLİYOR' : s.speechNudge > 0 ? '+80' : micMsg ?? 'SÖYLE'}
             </span>
           </button>
         </div>
