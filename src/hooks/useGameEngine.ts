@@ -15,7 +15,7 @@ export const FLOOR_Y = 566;
 const SPRITE_H = 40;
 const PLATE_H = 18;
 const HIT_H = SPRITE_H + PLATE_H + 6;
-const LASER_SPEED = 28;
+const LASER_SPEED = 58;
 const COMBO_TO_OVERCHARGE = 5;
 const OVERCHARGE_MS = 9000;
 const FOCUS_MS = 2600;
@@ -459,7 +459,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const now = performance.now();
     if (now - s.lastShot < 118) return;
     s.lastShot = now;
-    s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -28 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' }];
+    s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -72 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' }];
     audio.laser();
     haptic('tap', setRef.current.haptics);
   }, []);
@@ -568,21 +568,21 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (dirHold.current !== 0) { want = dirHold.current; moveTarget.current = null; }
 
     if (want !== 0) {
-      s.shipVx += want * 2.6 * dt;
+      s.shipVx += want * 6.2 * dt;
     } else if (moveTarget.current !== null) {
       const d = moveTarget.current - s.shipX;
-      if (Math.abs(d) < 1.1) s.shipVx *= Math.pow(0.42, dt);
-      else s.shipVx += Math.max(-6.2, Math.min(6.2, d * 0.32)) * dt;
+      if (Math.abs(d) < 1.5) s.shipVx *= Math.pow(0.28, dt);
+      else s.shipVx += Math.max(-16, Math.min(16, d * 0.95)) * dt;
     }
-    s.shipVx *= Math.pow(0.82, dt);
-    s.shipVx = Math.max(-15.5, Math.min(15.5, s.shipVx));
+    s.shipVx *= Math.pow(0.68, dt);
+    s.shipVx = Math.max(-26, Math.min(26, s.shipVx));
     s.shipX = Math.max(24, Math.min(VW - 24, s.shipX + s.shipVx * dt));
 
-    /* ── wingmen: formation lag + staggered follow ── */
+    /* ── wingmen: formation — turbo ── */
     const WX_OFF = 44;
     for (const w of s.wingmen) {
       const targetX = Math.max(22, Math.min(VW - 22, s.shipX + w.side * WX_OFF));
-      const spring = (targetX - w.x) * 0.22;
+      const spring = (targetX - w.x) * 0.52;
       w.x += spring * dt;
       // subtle bob + bank
       w.y = SHIP_Y + 14 + Math.sin(s.gameTime * 0.008 + (w.side === -1 ? 0 : Math.PI)) * 3 + Math.abs(s.shipVx) * 0.22;
@@ -593,7 +593,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       const now = performance.now();
       if (now - s.lastShot >= 118) {
         s.lastShot = now;
-        s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -28 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' }];
+        s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -72 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' }];
         audio.laser();
         haptic('tap', hap);
       }
@@ -626,7 +626,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             if (best) {
               const laneMatch = Math.abs(best.drawX - w.x) < best.laneW * 0.85;
               if (laneMatch || Math.random() < 0.25) {
-                s.bullets.push({ id: uid(), x: w.x, y: w.y - 16, vy: -22, power: 1, from: 'wingman' });
+                s.bullets.push({ id: uid(), x: w.x, y: w.y - 16, vy: -46, power: 1, from: 'wingman' });
                 if (Math.random() < 0.3) audio.tick();
                 w.cooldown = 42 + Math.random() * 22; // ~700-1000ms — daha seyrek, donma önler
               } else {
