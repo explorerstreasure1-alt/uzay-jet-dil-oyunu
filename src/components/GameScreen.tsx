@@ -177,7 +177,7 @@ function Ship({ x, over, shield, vx, t }: { x: number; over: boolean; shield: bo
       )}
 
       {/* Çift egzoz alevi — çok daha karizmatik */}
-      <g style={{ filter: `drop-shadow(0 0 ${10 + speed * 14}px ${over ? '#ff2ea6' : '#00ffcc'})` }}>
+      <g style={{ filter: `drop-shadow(0 0 ${6 + speed * 6}px ${over ? '#ff2ea6' : '#00ffcc'})` }}>
         {/* sol motor */}
         <path d={`M-11,14 C-9,${18 + speed * 4} -10,${flame2} -7,${flame2 + 8} C-5,${flame2} -4,${18 + speed * 4} -2,14 Z`}
           fill={over ? '#ff2ea6' : '#00ffcc'} opacity={0.88}>
@@ -216,8 +216,8 @@ function Ship({ x, over, shield, vx, t }: { x: number; over: boolean; shield: bo
           <stop offset="100%" stopColor="#0066ff" stopOpacity="0.9" />
         </linearGradient>
       </defs>
-      {/* gövde — delta interceptor */}
-      <g style={{ filter: `drop-shadow(0 0 10px ${c1}) drop-shadow(0 0 22px ${c2})` }}>
+      {/* gövde — delta interceptor — tek gölge (mobil dostu) */}
+      <g style={{ filter: `drop-shadow(0 0 8px ${c1})` }}>
         {/* ana gövde */}
         <path d="M0,-30 L9,-11 L21,10 L15,15 L8,17 L-8,17 L-15,15 L-21,10 L-9,-11 Z" fill="#0a162e" stroke={c1} strokeWidth="1.2" />
         {/* üst kaplama — metalik */}
@@ -258,15 +258,15 @@ function Wingman({ x, y, side, t }: { x: number; y: number; side: -1 | 1; t: num
     <g transform={`translate(${x}, ${y + bob})`}>
       {/* drone gölgesi */}
       <ellipse cx="0" cy="10" rx="10" ry="2" fill="#00e5ff" opacity="0.06" />
-      {/* mini egzoz */}
-      <g style={{ filter: 'drop-shadow(0 0 5px #7af7ff)' }}>
+      {/* mini egzoz — hafif gölge */}
+      <g style={{ filter: 'drop-shadow(0 0 3px #7af7ff)' }}>
         <path d="M-3,6 C-2,9 -1,11 0,13 C1,11 2,9 3,6 Z" fill="#00ffcc" opacity="0.85">
           <animate attributeName="opacity" values="0.9;0.5;0.9" dur="0.14s" repeatCount="indefinite" />
         </path>
         <path d="M-1.5,6 C-1,8 -0.5,9 0,10 C0.5,9 1,8 1.5,6 Z" fill="#ffffff" opacity="0.9" />
       </g>
-      {/* drone gövde — küçük elmas */}
-      <g style={{ filter: 'drop-shadow(0 0 6px #00e5ff) drop-shadow(0 0 10px #0066ff)' }}>
+      {/* drone gövde — küçük elmas — tek gölge */}
+      <g style={{ filter: 'drop-shadow(0 0 5px #00e5ff)' }}>
         <path d="M0,-10 L7,-2 L5,7 L0,9 L-5,7 L-7,-2 Z" fill="#0a162e" stroke="#7af7ff" strokeWidth="1" />
         <path d="M0,-10 L4,-2 L2,5 L0,7 L-2,5 L-4,-2 Z" fill="#00e5ff" opacity="0.95" />
         <path d="M0,-10 L1.8,-4 L0,-1 L-1.8,-4 Z" fill="#ffffff" opacity="0.88" />
@@ -533,7 +533,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
     <div className="absolute inset-0 overflow-hidden" style={{ background: '#060d26' }}>
       <div ref={surface} className="absolute inset-0 touch-none"
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
-        <div className="absolute inset-0" style={{ transform: `translate(${shakeX}px, ${shakeY}px)` }}>
+        <div className="absolute inset-0" style={{ transform: `translate3d(${shakeX}px, ${shakeY}px, 0)`, willChange: shakeX || shakeY ? 'transform' : 'auto' }}>
           <Cortex s={s} />
 
           <svg className="absolute inset-0 pointer-events-none" width={VW} height={VH}>
@@ -582,12 +582,12 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               const isWing = (b as any).from === 'wingman';
               return (
                 <g key={b.id}>
+                  {/* mobilde drop-shadow kaldırıldı — GPU donması bitirir */}
                   <rect x={b.x - (isWing ? 1.5 : 2.2)} y={b.y - (isWing ? 32 : 43)} width={isWing ? 3 : 4.4} height={isWing ? 34 : 47} rx={isWing ? 1.5 : 2.2}
-                    fill={isWing ? '#7af7ff' : s.overcharged ? '#e0a6ff' : '#8be9ff'} opacity={isWing ? 0.82 : 0.9}
-                    style={{ filter: `drop-shadow(0 0 ${isWing ? 6 : 9}px ${isWing ? '#7af7ff' : s.overcharged ? '#e0a6ff' : '#00d4ff'})` }} />
+                    fill={isWing ? '#7af7ff' : s.overcharged ? '#e0a6ff' : '#8be9ff'} opacity={isWing ? 0.88 : 0.92} />
                   <rect x={b.x - 0.7} y={b.y - (isWing ? 32 : 43)} width={isWing ? 1.2 : 1.6} height={isWing ? 12 : 18} fill="#fff" opacity={0.95} />
-                  {!isWing && <rect x={b.x - 5.5} y={b.y - 18} width="11" height="2" rx="1" fill={s.overcharged ? '#ff2ea6' : '#00d4ff'} opacity="0.55" />}
-                  {isWing && <circle cx={b.x} cy={b.y - 28} r="1.2" fill="#ffffff" opacity="0.9" />}
+                  {!isWing && <rect x={b.x - 5.5} y={b.y - 18} width="11" height="2" rx="1" fill={s.overcharged ? '#ff2ea6' : '#00d4ff'} opacity={0.45} />}
+                  {isWing && <circle cx={b.x} cy={b.y - 28} r="1.1" fill="#ffffff" opacity={0.9} />}
                 </g>
               );
             })}

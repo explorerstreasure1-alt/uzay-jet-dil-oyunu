@@ -753,8 +753,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           }
           s.floats.push({ id: uid(), x: cx, y: a.y - 4, text: `+${gained}`, color: meta.core, life: 1.15, vy: -1.5 });
           s.flash = { color: meta.core, t: 0.22 + (s.frenzy ? 0.08 : 0) };
-          s.shake = Math.max(s.shake, s.frenzy ? 2.4 : s.combo >= 5 ? 1.6 : 0);
-          s.hitPause = 3.2;
+          s.shake = Math.max(s.shake, s.frenzy ? 1.4 : s.combo >= 5 ? 0.9 : 0);
+          s.hitPause = 1.8;
           s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
 
           audio.explode(a.isBoss);
@@ -812,8 +812,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
             if (absorbed) s.shield = false;
             else s.lives -= 1;
-            s.shake = 6;
-            s.flash = { color: '#ff2e63', t: 0.42 };
+          s.shake = 3.2;
+          s.flash = { color: '#ff2e63', t: 0.28 };
             heatRef.current = applyResult(heatRef.current, a.word.id, false);
             statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
             flushSoon();
@@ -852,8 +852,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         if (absorbed) s.shield = false;
         else s.lives -= 1;
         s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
-        s.shake = 7;
-        s.flash = { color: '#ff2e63', t: 0.45 };
+        s.shake = 3.8;
+        s.flash = { color: '#ff2e63', t: 0.30 };
         heatRef.current = applyResult(heatRef.current, a.word.id, false);
         statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
         flushSoon();
