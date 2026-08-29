@@ -27,7 +27,7 @@ export interface Alien {
   cloakPhase: number;
 }
 
-export interface Bullet { id: string; x: number; y: number; vy: number; power: number; from?: 'player' | 'wingman' }
+export interface Bullet { id: string; x: number; y: number; vy: number; power: number; from?: 'player' | 'wingman'; py?: number }
 
 export interface Wingman { id: string; side: -1 | 1; x: number; y: number; cooldown: number }
 

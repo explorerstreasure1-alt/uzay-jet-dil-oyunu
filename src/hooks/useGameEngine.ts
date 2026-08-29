@@ -578,14 +578,35 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.shipVx = Math.max(-26, Math.min(26, s.shipVx));
     s.shipX = Math.max(24, Math.min(VW - 24, s.shipX + s.shipVx * dt));
 
-    /* ── wingmen: formation — turbo ── */
-    const WX_OFF = 44;
+    /* ── wingmen: tam otonom avcı — senden bağımsız hedef bulup vurur ── */
+    const assigned = new Set<string>();
     for (const w of s.wingmen) {
-      const targetX = Math.max(22, Math.min(VW - 22, s.shipX + w.side * WX_OFF));
-      const spring = (targetX - w.x) * 0.52;
+      let targetX: number;
+      const decoys = s.aliens.filter(a => !a.isTarget && !a.dead && !assigned.has(a.id));
+      const pool = decoys.length ? decoys : s.aliens.filter(a => !a.isTarget && !a.dead);
+      if (pool.length) {
+        let best: typeof pool[0] | null = null;
+        let bestD = Infinity;
+        for (const a of pool) {
+          const laneCx = a.laneX + a.laneW / 2;
+          const d = Math.abs(laneCx - w.x) + a.y * 0.12;
+          if (d < bestD) { bestD = d; best = a; }
+        }
+        if (best) {
+          assigned.add(best.id);
+          targetX = best.laneX + best.laneW / 2;
+        } else {
+          targetX = s.shipX + w.side * 44;
+        }
+      } else {
+        // av yoksa hafif devriye — senden ayrı süzül
+        const patrol = Math.sin(s.gameTime * 0.0012 + (w.side === -1 ? 0 : 2.2)) * 58;
+        targetX = Math.max(22, Math.min(VW - 22, VW / 2 + patrol + w.side * 18));
+      }
+      const spring = (targetX - w.x) * 0.38;
       w.x += spring * dt;
-      // subtle bob + bank
-      w.y = SHIP_Y + 14 + Math.sin(s.gameTime * 0.008 + (w.side === -1 ? 0 : Math.PI)) * 3 + Math.abs(s.shipVx) * 0.22;
+      w.x = Math.max(14, Math.min(VW - 14, w.x));
+      w.y = SHIP_Y + 14 + Math.sin(s.gameTime * 0.008 + (w.side === -1 ? 0 : Math.PI)) * 3.5 + Math.abs(w.x - targetX) * 0.06;
     }
 
     // basılı tutunca tarama (klavye)
@@ -675,26 +696,32 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       }
     } else s.danger = 0;
 
-    /* ── bullets ── */
-    for (const b of s.bullets) b.y += b.vy * dt;
+    /* ── bullets — swept AABB (turbo mermi tünellemez) ── */
+    for (const b of s.bullets) { b.py = b.y; b.y += b.vy * dt; }
     s.bullets = s.bullets.filter(b => b.y > -30);
 
-    /* ── collision: bullet ↔ lane band ── */
+    /* ── collision: bullet ↔ lane band — geniş, affedici vuruş ── */
     const spentBullets = new Set<string>();
     const removed = new Set<string>();
     let gameEnded = false;
+    const LANE_BLEED = 8; // şerit dışına 8px taşma affı — zor vuruyor şikayeti biter
+    const TOP_PAD = 18;
+    const BOT_PAD = 14;
 
     for (const b of s.bullets) {
       if (spentBullets.has(b.id)) continue;
       for (const a of s.aliens) {
         if (a.dead || removed.has(a.id)) continue;
-        // wingmen asla ana hedefi vurmaz — sana bırakır
         if ((b.from === 'wingman') && a.isTarget) continue;
-        const inLane = b.x >= a.laneX && b.x < a.laneX + a.laneW;
+        const inLane = b.x >= a.laneX - LANE_BLEED && b.x < a.laneX + a.laneW + LANE_BLEED;
         if (!inLane) continue;
-        const top = a.y - (a.isBoss ? 10 : 0);
-        const bot = a.y + HIT_H * (a.isBoss ? 1.5 : 1);
-        if (b.y > bot || b.y < top) continue;
+        const top = a.y - (a.isBoss ? 10 : 0) - TOP_PAD;
+        const bot = a.y + HIT_H * (a.isBoss ? 1.6 : 1.25) + BOT_PAD;
+        // swept: mermi bir frame'de top-bot'u atladıysa da yakala
+        const py = (b as any).py ?? b.y;
+        const lo = Math.min(py, b.y);
+        const hi = Math.max(py, b.y);
+        if (hi < top || lo > bot) continue;
 
         spentBullets.add(b.id);
         a.hitFlash = 1;
