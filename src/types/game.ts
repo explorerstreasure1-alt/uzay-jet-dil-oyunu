@@ -27,7 +27,9 @@ export interface Alien {
   cloakPhase: number;
 }
 
-export interface Bullet { id: string; x: number; y: number; vy: number; power: number }
+export interface Bullet { id: string; x: number; y: number; vy: number; power: number; from?: 'player' | 'wingman' }
+
+export interface Wingman { id: string; side: -1 | 1; x: number; y: number; cooldown: number }
 
 export interface Explosion {
   id: string; x: number; y: number;
@@ -76,6 +78,7 @@ export interface GameState {
   /** consecutive waves cleared without a mistake */
   perfectStreak: number;
   shipX: number; shipY: number; shipVx: number;
+  wingmen: Wingman[];
   aliens: Alien[];
   bullets: Bullet[];
   explosions: Explosion[];

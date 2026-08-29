@@ -57,6 +57,10 @@ const initialState = (): GameState => ({
   lives: 3, maxLives: 3, overcharged: false, overchargeTimer: 0,
   shield: false, focusTimer: 0, perfectStreak: 0,
   shipX: VW / 2, shipY: SHIP_Y, shipVx: 0,
+  wingmen: [
+    { id: 'wL', side: -1, x: VW / 2 - 44, y: SHIP_Y + 14, cooldown: 18 },
+    { id: 'wR', side: 1, x: VW / 2 + 44, y: SHIP_Y + 14, cooldown: 42 },
+  ],
   aliens: [], bullets: [], explosions: [], floats: [],
   neurons: makeNeurons(), parallaxStars: makeStars(),
   repairStation: null, targetWord: null, targetHeat: 'ice',
@@ -455,7 +459,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const now = performance.now();
     if (now - s.lastShot < 118) return;
     s.lastShot = now;
-    s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -28 : -LASER_SPEED, power: s.overcharged ? 3 : 1 }];
+    s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -28 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' }];
     audio.laser();
     haptic('tap', setRef.current.haptics);
   }, []);
@@ -574,12 +578,22 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.shipVx = Math.max(-15.5, Math.min(15.5, s.shipVx));
     s.shipX = Math.max(24, Math.min(VW - 24, s.shipX + s.shipVx * dt));
 
+    /* ── wingmen: formation lag + staggered follow ── */
+    const WX_OFF = 44;
+    for (const w of s.wingmen) {
+      const targetX = Math.max(22, Math.min(VW - 22, s.shipX + w.side * WX_OFF));
+      const spring = (targetX - w.x) * 0.22;
+      w.x += spring * dt;
+      // subtle bob + bank
+      w.y = SHIP_Y + 14 + Math.sin(s.gameTime * 0.008 + (w.side === -1 ? 0 : Math.PI)) * 3 + Math.abs(s.shipVx) * 0.22;
+    }
+
     // basılı tutunca tarama (klavye)
     if ((keys.current.has(' ') || keys.current.has('ArrowUp') || keys.current.has('w') || keys.current.has('W')) && s.phase === 'playing') {
       const now = performance.now();
       if (now - s.lastShot >= 118) {
         s.lastShot = now;
-        s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -28 : -LASER_SPEED, power: s.overcharged ? 3 : 1 }];
+        s.bullets = [...s.bullets, { id: uid(), x: s.shipX, y: SHIP_Y - 24, vy: s.overcharged ? -28 : -LASER_SPEED, power: s.overcharged ? 3 : 1, from: 'player' }];
         audio.laser();
         haptic('tap', hap);
       }
@@ -594,6 +608,40 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 0.85);
     if (s.flash) { s.flash.t -= dt * 0.075; if (s.flash.t <= 0) s.flash = null; }
     if (s.waveBanner) { s.waveBanner.t -= dt * 0.013; if (s.waveBanner.t <= 0) s.waveBanner = null; }
+
+    /* ── wingmen auto-fire: sadece decoy, hedefe ASLA ── */
+    for (const w of s.wingmen) {
+      w.cooldown -= dt;
+      if (w.cooldown <= 0) {
+        // en yakın decoy'u bul (hedef hariç)
+        const decoys = s.aliens.filter(a => !a.isTarget && !a.dead);
+        if (decoys.length) {
+          // wingman'e en yakın şeritteki decoy
+          let best: typeof decoys[0] | null = null;
+          let bestD = Infinity;
+          for (const a of decoys) {
+            const d = Math.abs(a.drawX - w.x) + a.y * 0.15; // biraz yukarıdakilere öncelik
+            if (d < bestD) { bestD = d; best = a; }
+          }
+          if (best) {
+            const laneMatch = Math.abs(best.drawX - w.x) < best.laneW * 0.85;
+            // eğer çok uzaktaysa önce ortaya doğru süzül, ateşleme yapma
+            if (laneMatch || Math.random() < 0.35) {
+              s.bullets.push({ id: uid(), x: w.x, y: w.y - 16, vy: -22, power: 1, from: 'wingman' });
+              // wingmen sesi daha tiz ve hafif
+              if (Math.random() < 0.5) audio.tick();
+              w.cooldown = 28 + Math.random() * 18; // ~450-750ms
+            } else {
+              w.cooldown = 8; // hızla hizalan
+            }
+          } else {
+            w.cooldown = 20;
+          }
+        } else {
+          w.cooldown = 30;
+        }
+      }
+    }
 
     // hit-stop: doğru vuruşta 45ms donma (göz yormadan tatmin)
     if (s.hitPause > 0) s.hitPause = Math.max(0, s.hitPause - dt);
@@ -639,6 +687,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       if (spentBullets.has(b.id)) continue;
       for (const a of s.aliens) {
         if (a.dead || removed.has(a.id)) continue;
+        // wingmen asla ana hedefi vurmaz — sana bırakır
+        if ((b.from === 'wingman') && a.isTarget) continue;
         const inLane = b.x >= a.laneX && b.x < a.laneX + a.laneW;
         if (!inLane) continue;
         const top = a.y - (a.isBoss ? 10 : 0);
@@ -749,27 +799,35 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             if (near.length) audio.explode(false);
           }
         } else {
-          /* ─── WRONG ─── */
-          const absorbed = s.shield;
-          s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
-          if (absorbed) s.shield = false;
-          else s.lives -= 1;
-          s.shake = 6;
-          s.flash = { color: '#ff2e63', t: 0.42 };
-          heatRef.current = applyResult(heatRef.current, a.word.id, false);
-          statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
-          flushSoon();
+          /* ─── WRONG or WINGMAN CLEANUP ─── */
+          if (b.from === 'wingman') {
+            // Wingman decoyu temizler: ödül, ceza yok, combo bozulmaz
+            s.score += Math.round(35 * diff.score);
+            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 5, maxRadius: 48, opacity: 1, color: '#7af7ff', isChain: true });
+            s.floats.push({ id: uid(), x: cx, y: a.y - 2, text: '+35 DRONE', color: '#7af7ff', life: 0.9, vy: -0.9 });
+            audio.tick();
+          } else {
+            const absorbed = s.shield;
+            s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
+            if (absorbed) s.shield = false;
+            else s.lives -= 1;
+            s.shake = 6;
+            s.flash = { color: '#ff2e63', t: 0.42 };
+            heatRef.current = applyResult(heatRef.current, a.word.id, false);
+            statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
+            flushSoon();
 
-          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 6, maxRadius: 56, opacity: 1, color: '#ff2e63', isChain: false });
-          s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: false, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 0 };
-          if (absorbed) {
-            s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 74, text: 'KALKAN EMİLDİ', color: '#8be9ff', life: 1.3, vy: -0.7 });
-            audio.repair();
+            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 6, maxRadius: 56, opacity: 1, color: '#ff2e63', isChain: false });
+            s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: false, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 0 };
+            if (absorbed) {
+              s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 74, text: 'KALKAN EMİLDİ', color: '#8be9ff', life: 1.3, vy: -0.7 });
+              audio.repair();
+            }
+            audio.wrong();
+            haptic('miss', hap);
+
+            if (s.lives <= 0) { gameEnded = true; }
           }
-          audio.wrong();
-          haptic('miss', hap);
-
-          if (s.lives <= 0) { gameEnded = true; }
         }
         break;
       }

@@ -137,66 +137,151 @@ function Plates({ s, hintId, lockedId }: { s: GameState; hintId: string | null; 
   );
 }
 
-/* ══════════ ship ══════════ */
+/* ══════════ ship — karizmatik interceptor ══════════ */
 function Ship({ x, over, shield, vx, t }: { x: number; over: boolean; shield: boolean; vx: number; t: number }) {
-  const c1 = over ? '#c77dff' : '#00d4ff';
-  const c2 = over ? '#ff2e9d' : '#0066ff';
+  const c1 = over ? '#e0a6ff' : '#00e5ff';
+  const c2 = over ? '#ff2ea6' : '#0066ff';
+  const accent = over ? '#ffb3ff' : '#7af7ff';
   const speed = Math.min(1, Math.abs(vx) / 15.5);
   const dir = vx === 0 ? 0 : Math.sign(vx);
-  const flame = 20 + speed * 22 + Math.sin(t * 0.04) * 4;
+  const bank = dir * speed * 8;
+  const flame = 22 + speed * 26 + Math.sin(t * 0.05) * 5;
+  const flame2 = flame * 0.72;
   return (
-    <g transform={`translate(${x}, ${SHIP_Y})`}>
-      {/* Horizontal warp afterimages: appear when the ship accelerates left/right. */}
-      {speed > 0.08 && [1, 2, 3].map(i => (
-        <g key={i} transform={`translate(${-dir * i * (8 + speed * 9)}, ${i * 1.4})`} opacity={(0.22 - i * 0.045) * speed}
-          style={{ filter: `drop-shadow(0 0 ${7 - i}px ${c1})` }}>
-          <path d="M0,-21 L7,-4 L17,10 L10,8 L6,13 L-6,13 L-10,8 L-17,10 L-7,-4 Z" fill={c1} />
+    <g transform={`translate(${x}, ${SHIP_Y}) rotate(${bank})`}>
+      {/* speed warp ghost — daha belirgin */}
+      {speed > 0.06 && [1, 2, 3].map(i => (
+        <g key={i} transform={`translate(${-dir * i * (9 + speed * 11)}, ${i * 1.2})`} opacity={(0.18 - i * 0.04) * speed}
+          style={{ filter: `drop-shadow(0 0 ${8 - i}px ${c1})` }}>
+          <path d="M0,-30 L8,-10 L20,10 L14,14 L7,16 L-7,16 L-14,14 L-20,10 L-8,-10 Z" fill={c1} />
         </g>
       ))}
 
       {over && (
         <>
-          <circle r={36} fill="none" stroke="#c77dff" strokeWidth="1" opacity="0.5" strokeDasharray="6 5">
-            <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="3.4s" repeatCount="indefinite" />
+          <circle r={42} fill="none" stroke="#e0a6ff" strokeWidth="1.1" opacity="0.45" strokeDasharray="8 6">
+            <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="2.8s" repeatCount="indefinite" />
           </circle>
-          <circle r={26} fill="#c77dff" opacity="0.09" />
+          <circle r={30} fill="none" stroke="#ff2ea6" strokeWidth="0.8" opacity="0.35" strokeDasharray="4 8">
+            <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="4s" repeatCount="indefinite" />
+          </circle>
+          <circle r={24} fill="#e0a6ff" opacity={0.07} />
         </>
       )}
 
       {shield && (
-        <g opacity="0.86" style={{ filter: 'drop-shadow(0 0 10px #8be9ff)' }}>
-          <circle r={31 + Math.sin(t * 0.012) * 2} fill="rgba(139,233,255,0.06)" stroke="#8be9ff" strokeWidth="1.5" strokeDasharray="5 4" />
-          <circle r={21} fill="none" stroke="#ffffff" strokeWidth="0.7" opacity="0.35" />
+        <g opacity="0.9" style={{ filter: 'drop-shadow(0 0 14px #7af7ff)' }}>
+          <path d="M0,-34 L20,-16 L26,10 L0,26 L-26,10 L-20,-16 Z" fill="rgba(122,247,255,0.07)" stroke="#7af7ff" strokeWidth="1.4" strokeDasharray="6 4" />
+          <circle r={36 + Math.sin(t * 0.014) * 1.5} fill="none" stroke="#ffffff" strokeWidth="0.6" opacity="0.28" />
         </g>
       )}
 
-      {/* Main thruster flame. It grows with movement and overcharge. */}
-      <g style={{ filter: `drop-shadow(0 0 ${8 + speed * 10}px ${over ? '#ff2e9d' : '#00ffa3'})` }}>
-        <path d={`M-8,12 C-5,${18 + speed * 5} -3,${flame} 0,${flame + 9} C3,${flame} 5,${18 + speed * 5} 8,12 Z`}
-          fill={over ? '#ff2e9d' : '#00ffa3'} opacity={0.85 + speed * 0.15}>
-          <animate attributeName="opacity" values="1;0.48;1" dur="0.12s" repeatCount="indefinite" />
+      {/* Çift egzoz alevi — çok daha karizmatik */}
+      <g style={{ filter: `drop-shadow(0 0 ${10 + speed * 14}px ${over ? '#ff2ea6' : '#00ffcc'})` }}>
+        {/* sol motor */}
+        <path d={`M-11,14 C-9,${18 + speed * 4} -10,${flame2} -7,${flame2 + 8} C-5,${flame2} -4,${18 + speed * 4} -2,14 Z`}
+          fill={over ? '#ff2ea6' : '#00ffcc'} opacity={0.88}>
+          <animate attributeName="opacity" values="1;0.55;1" dur="0.11s" repeatCount="indefinite" />
         </path>
-        <path d={`M-4,13 C-2,${18 + speed * 3} -1,${flame - 2} 0,${flame + 3} C1,${flame - 2} 2,${18 + speed * 3} 4,13 Z`}
-          fill="#ffffff" opacity="0.85">
-          <animate attributeName="opacity" values="0.9;0.35;0.9" dur="0.09s" repeatCount="indefinite" />
+        <path d={`M-9,14 C-8,${16 + speed * 3} -8,${flame2 * 0.6} -7,${flame2 * 0.6 + 4} C-6,${flame2 * 0.6} -6,${16 + speed * 3} -4,14 Z`}
+          fill="#ffffff" opacity="0.92">
+          <animate attributeName="opacity" values="0.95;0.4;0.95" dur="0.08s" repeatCount="indefinite" />
         </path>
-        {speed > 0.12 && (
+        {/* sağ motor */}
+        <path d={`M2,14 C4,${18 + speed * 4} 5,${flame2} 7,${flame2 + 8} C9,${flame2} 10,${18 + speed * 4} 11,14 Z`}
+          fill={over ? '#ff2ea6' : '#00ffcc'} opacity={0.88}>
+          <animate attributeName="opacity" values="1;0.55;1" dur="0.11s" begin="0.05s" repeatCount="indefinite" />
+        </path>
+        <path d={`M4,14 C6,${16 + speed * 3} 6,${flame2 * 0.6} 7,${flame2 * 0.6 + 4} C8,${flame2 * 0.6} 8,${16 + speed * 3} 9,14 Z`}
+          fill="#ffffff" opacity="0.92">
+          <animate attributeName="opacity" values="0.95;0.4;0.95" dur="0.08s" begin="0.05s" repeatCount="indefinite" />
+        </path>
+        {/* orta afterburner çekirdeği */}
+        <path d={`M-5,16 C-3,${20 + speed * 6} -2,${flame} 0,${flame + 10} C2,${flame} 3,${20 + speed * 6} 5,16 Z`}
+          fill={over ? '#ffd1ff' : '#ffffff'} opacity={0.18 + speed * 0.12} />
+        {speed > 0.10 && (
           <>
-            <path d={`M${-dir * 9},10 C${-dir * 20},${18 + speed * 3} ${-dir * 30},${24 + speed * 10} ${-dir * 43},${27 + speed * 6}`}
-              fill="none" stroke={over ? '#c77dff' : '#7fe3ff'} strokeWidth="2.2" strokeLinecap="round" opacity={0.35 * speed} />
-            <path d={`M${-dir * 5},3 C${-dir * 18},${8 + speed * 4} ${-dir * 31},${12 + speed * 8} ${-dir * 49},${15 + speed * 8}`}
-              fill="none" stroke="#ffffff" strokeWidth="1" strokeLinecap="round" opacity={0.22 * speed} />
+            <path d={`M${-dir * 10},12 C${-dir * 22},${20 + speed * 5} ${-dir * 36},${28 + speed * 12} ${-dir * 52},${31 + speed * 8}`}
+              fill="none" stroke={over ? '#e0a6ff' : '#7af7ff'} strokeWidth="2.4" strokeLinecap="round" opacity={0.32 * speed} />
+            <path d={`M${-dir * 6},4 C${-dir * 20},${10 + speed * 5} ${-dir * 38},${16 + speed * 9} ${-dir * 58},${19 + speed * 9}`}
+              fill="none" stroke="#ffffff" strokeWidth="1" strokeLinecap="round" opacity={0.2 * speed} />
           </>
         )}
       </g>
 
-      <g style={{ filter: `drop-shadow(0 0 7px ${c1}) drop-shadow(0 0 15px ${c2})` }}>
-        <path d="M0,-21 L7,-4 L17,10 L10,8 L6,13 L-6,13 L-10,8 L-17,10 L-7,-4 Z" fill={c1} />
-        <path d="M0,-21 L4,-6 L-4,-6 Z" fill="#ffffff" opacity="0.9" />
-        <rect x="-12" y="4" width="5" height="5" fill={c2} />
-        <rect x="7" y="4" width="5" height="5" fill={c2} />
+      <defs>
+        <linearGradient id="cockpitGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7af7ff" stopOpacity="0.95" />
+          <stop offset="55%" stopColor="#00e5ff" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#0066ff" stopOpacity="0.9" />
+        </linearGradient>
+      </defs>
+      {/* gövde — delta interceptor */}
+      <g style={{ filter: `drop-shadow(0 0 10px ${c1}) drop-shadow(0 0 22px ${c2})` }}>
+        {/* ana gövde */}
+        <path d="M0,-30 L9,-11 L21,10 L15,15 L8,17 L-8,17 L-15,15 L-21,10 L-9,-11 Z" fill="#0a162e" stroke={c1} strokeWidth="1.2" />
+        {/* üst kaplama — metalik */}
+        <path d="M0,-30 L7,-12 L14,8 L8,12 L0,14 L-8,12 L-14,8 L-7,-12 Z" fill={c1} opacity="0.96" />
+        {/* kanat vurguları */}
+        <path d="M-21,10 L-28,6 L-26,12 L-15,15 Z" fill={c2} opacity="0.9" />
+        <path d="M21,10 L28,6 L26,12 L15,15 Z" fill={c2} opacity="0.9" />
+        <path d="M-14,8 L-9,-6 L-6,-4 L-11,10 Z" fill="#ffffff" opacity="0.22" />
+        <path d="M14,8 L9,-6 L6,-4 L11,10 Z" fill="#ffffff" opacity="0.22" />
+        {/* burun — keskin */}
+        <path d="M0,-30 L3,-18 L0,-14 L-3,-18 Z" fill="#ffffff" opacity="0.95" />
+        {/* kokpit — holografik cam */}
+        <ellipse cx="0" cy="-4" rx="6.5" ry="8.5" fill="#061a2e" stroke={accent} strokeWidth="1" />
+        <ellipse cx="0" cy="-4" rx="4.2" ry="5.8" fill="url(#cockpitGrad)" opacity="0.95" />
+        <ellipse cx="-1.5" cy="-6.5" rx="1.8" ry="1.2" fill="#ffffff" opacity="0.75" />
+        {/* motor nozulları */}
+        <rect x="-13" y="13" width="7" height="6" rx="1.5" fill="#061a2e" stroke={c2} strokeWidth="0.8" />
+        <rect x="6" y="13" width="7" height="6" rx="1.5" fill="#061a2e" stroke={c2} strokeWidth="0.8" />
+        <rect x="-11.5" y="14.5" width="4" height="3" rx="0.8" fill={over ? '#ff2ea6' : '#00ffcc'} opacity="0.9" />
+        <rect x="7.5" y="14.5" width="4" height="3" rx="0.8" fill={over ? '#ff2ea6' : '#00ffcc'} opacity="0.9" />
+        {/* kanat LED'leri */}
+        <circle cx="-24" cy="9" r="1.6" fill={over ? '#ff2ea6' : '#00ffcc'} opacity="0.95">
+          <animate attributeName="opacity" values="1;0.3;1" dur="0.45s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="24" cy="9" r="1.6" fill={over ? '#ff2ea6' : '#00ffcc'} opacity="0.95">
+          <animate attributeName="opacity" values="1;0.3;1" dur="0.45s" begin="0.22s" repeatCount="indefinite" />
+        </circle>
       </g>
-      <circle cx="0" cy="0" r="4" fill="#060d26" stroke={c1} strokeWidth="1.2" />
+      {/* alt karın ışığı */}
+      <ellipse cx="0" cy="10" rx="9" ry="2.2" fill={c1} opacity={0.18} style={{ filter: 'blur(2px)' }} />
+    </g>
+  );
+}
+
+function Wingman({ x, y, side, t }: { x: number; y: number; side: -1 | 1; t: number }) {
+  const bob = Math.sin(t * 0.01 + (side === -1 ? 0 : 2.1)) * 1.2;
+  return (
+    <g transform={`translate(${x}, ${y + bob})`}>
+      {/* drone gölgesi */}
+      <ellipse cx="0" cy="10" rx="10" ry="2" fill="#00e5ff" opacity="0.06" />
+      {/* mini egzoz */}
+      <g style={{ filter: 'drop-shadow(0 0 5px #7af7ff)' }}>
+        <path d="M-3,6 C-2,9 -1,11 0,13 C1,11 2,9 3,6 Z" fill="#00ffcc" opacity="0.85">
+          <animate attributeName="opacity" values="0.9;0.5;0.9" dur="0.14s" repeatCount="indefinite" />
+        </path>
+        <path d="M-1.5,6 C-1,8 -0.5,9 0,10 C0.5,9 1,8 1.5,6 Z" fill="#ffffff" opacity="0.9" />
+      </g>
+      {/* drone gövde — küçük elmas */}
+      <g style={{ filter: 'drop-shadow(0 0 6px #00e5ff) drop-shadow(0 0 10px #0066ff)' }}>
+        <path d="M0,-10 L7,-2 L5,7 L0,9 L-5,7 L-7,-2 Z" fill="#0a162e" stroke="#7af7ff" strokeWidth="1" />
+        <path d="M0,-10 L4,-2 L2,5 L0,7 L-2,5 L-4,-2 Z" fill="#00e5ff" opacity="0.95" />
+        <path d="M0,-10 L1.8,-4 L0,-1 L-1.8,-4 Z" fill="#ffffff" opacity="0.88" />
+        {/* kanatçıklar */}
+        <path d="M-7,-2 L-11,0 L-9,3 L-5,4 Z" fill="#0066ff" />
+        <path d="M7,-2 L11,0 L9,3 L5,4 Z" fill="#0066ff" />
+        <circle cx="-9.5" cy="1.5" r="1" fill="#00ffcc" opacity="0.9" />
+        <circle cx="9.5" cy="1.5" r="1" fill="#00ffcc" opacity="0.9" />
+        <circle cx="0" cy="0" r="1.8" fill="#061a2e" stroke="#7af7ff" strokeWidth="0.7" />
+        <circle cx="0" cy="0" r="0.9" fill="#ff3b5c" opacity="0.95">
+          <animate attributeName="opacity" values="1;0.35;1" dur="0.6s" repeatCount="indefinite" />
+        </circle>
+      </g>
+      {/* formation ışını — ana gemiye bağlı */}
+      <line x1={side * -14} y1={-2} x2={side * -26} y2={-6} stroke="#7af7ff" strokeWidth="0.7" opacity="0.28" strokeDasharray="3 4" />
     </g>
   );
 }
@@ -217,29 +302,52 @@ function Cortex({ s }: { s: GameState }) {
   return (
     <svg className="absolute inset-0" width={VW} height={VH}>
       <defs>
-        <radialGradient id="bgA" cx="30%" cy="16%"><stop offset="0%" stopColor="#132a6b" stopOpacity="0.9" /><stop offset="100%" stopColor="#060d26" stopOpacity="0" /></radialGradient>
-        <radialGradient id="bgB" cx="76%" cy="84%"><stop offset="0%" stopColor="#3a1160" stopOpacity="0.75" /><stop offset="100%" stopColor="#060d26" stopOpacity="0" /></radialGradient>
-        <radialGradient id="bgC" cx="50%" cy="52%"><stop offset="0%" stopColor={meta.deep} stopOpacity="0.5" /><stop offset="100%" stopColor="#060d26" stopOpacity="0" /></radialGradient>
+        <radialGradient id="bgA" cx="28%" cy="14%"><stop offset="0%" stopColor="#14307a" stopOpacity="0.95" /><stop offset="55%" stopColor="#102060" stopOpacity="0.35" /><stop offset="100%" stopColor="#060d26" stopOpacity="0" /></radialGradient>
+        <radialGradient id="bgB" cx="78%" cy="88%"><stop offset="0%" stopColor="#4a136b" stopOpacity="0.82" /><stop offset="100%" stopColor="#060d26" stopOpacity="0" /></radialGradient>
+        <radialGradient id="bgC" cx="50%" cy="48%"><stop offset="0%" stopColor={meta.deep} stopOpacity="0.62" /><stop offset="100%" stopColor="#060d26" stopOpacity="0" /></radialGradient>
+        <linearGradient id="horizon" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={meta.glow} stopOpacity="0" /><stop offset="70%" stopColor={meta.glow} stopOpacity="0.18" /><stop offset="100%" stopColor={meta.core} stopOpacity="0.32" /></linearGradient>
+        <linearGradient id="gridGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#00e5ff" stopOpacity="0.14" /><stop offset="100%" stopColor="#00e5ff" stopOpacity="0" /></linearGradient>
       </defs>
-      <rect width={VW} height={VH} fill="#060d26" />
+      <rect width={VW} height={VH} fill="#040a1e" />
       <rect width={VW} height={VH} fill="url(#bgA)" />
       <rect width={VW} height={VH} fill="url(#bgB)" />
       <rect width={VW} height={VH} fill="url(#bgC)" />
+      {/* aurora horizon — çok karizmatik */}
+      <ellipse cx={VW / 2} cy={VH + 40} rx={VW * 0.9} ry={180} fill="url(#horizon)" opacity="0.9" />
+      <ellipse cx={VW / 2} cy={VH + 22} rx={VW * 1.1} ry={10} fill={meta.core} opacity="0.18" style={{ filter: 'blur(6px)' }} />
+      {/* tron grid floor */}
+      <g opacity="0.09">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <line key={`hg-${i}`} x1="0" y1={FLOOR_Y + 18 + i * 18} x2={VW} y2={FLOOR_Y + 18 + i * 18} stroke="#00e5ff" strokeWidth="0.6" />
+        ))}
+        {Array.from({ length: 6 }).map((_, i) => {
+          const x = (i + 0.5) * (VW / 6);
+          return <line key={`vg-${i}`} x1={x} y1={FLOOR_Y + 18} x2={x + (i - 2.5) * 18} y2={VH} stroke="#00e5ff" strokeWidth="0.4" opacity="0.5" />;
+        })}
+      </g>
       {s.parallaxStars.map(p => {
         const tw = Math.sin(p.pulsePhase) * 0.35 + 0.65;
-        return <rect key={p.id} x={p.x} y={p.y} width={p.size} height={p.size}
-          fill={p.layer === 3 ? meta.core : '#cfe9ff'} opacity={p.opacity * tw * 0.5} />;
+        const isHot = p.layer === 3;
+        return (
+          <g key={p.id} opacity={p.opacity * tw * (isHot ? 0.85 : 0.5)}>
+            <rect x={p.x} y={p.y} width={p.size * (isHot ? 1.6 : 1)} height={p.size * (isHot ? 1.6 : 1)}
+              fill={isHot ? meta.core : '#cfe9ff'} style={isHot ? { filter: `drop-shadow(0 0 4px ${meta.glow})` } : undefined} />
+            {isHot && <circle cx={p.x + p.size / 2} cy={p.y + p.size / 2} r={p.size * 1.8} fill={meta.glow} opacity={0.14} />}
+          </g>
+        );
       })}
-      {links.map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.5" opacity={l.o} />)}
+      {links.map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.6" opacity={l.o * 1.2} />)}
       {s.neurons.map(n => {
         const pu = Math.sin(n.pulsePhase) * 0.5 + 0.5;
         return (
           <g key={n.id}>
-            <circle cx={n.x} cy={n.y} r={n.size * 5} fill={meta.glow} opacity={n.baseOpacity * pu * 0.18} />
-            <circle cx={n.x} cy={n.y} r={n.size} fill={meta.core} opacity={n.baseOpacity + pu * 0.28} />
+            <circle cx={n.x} cy={n.y} r={n.size * 6} fill={meta.glow} opacity={n.baseOpacity * pu * 0.22} />
+            <circle cx={n.x} cy={n.y} r={n.size * 1.2} fill={meta.core} opacity={n.baseOpacity + pu * 0.32} style={{ filter: `drop-shadow(0 0 4px ${meta.core})` }} />
           </g>
         );
       })}
+      {/* üst vignette karizması */}
+      <rect width={VW} height={90} fill="url(#gridGrad)" opacity="0.5" />
     </svg>
   );
 }
@@ -470,14 +578,19 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               );
             })}
 
-            {s.bullets.map(b => (
-              <g key={b.id}>
-                <rect x={b.x - 2.2} y={b.y - 43} width="4.4" height="47" rx="2.2" fill={s.overcharged ? '#c77dff' : '#8be9ff'} opacity="0.9"
-                  style={{ filter: `drop-shadow(0 0 9px ${s.overcharged ? '#c77dff' : '#00d4ff'})` }} />
-                <rect x={b.x - 0.8} y={b.y - 43} width="1.6" height="18" fill="#fff" opacity="0.95" />
-                <rect x={b.x - 5.5} y={b.y - 18} width="11" height="2" rx="1" fill={s.overcharged ? '#ff2e9d' : '#00d4ff'} opacity="0.55" />
-              </g>
-            ))}
+            {s.bullets.map(b => {
+              const isWing = (b as any).from === 'wingman';
+              return (
+                <g key={b.id}>
+                  <rect x={b.x - (isWing ? 1.5 : 2.2)} y={b.y - (isWing ? 32 : 43)} width={isWing ? 3 : 4.4} height={isWing ? 34 : 47} rx={isWing ? 1.5 : 2.2}
+                    fill={isWing ? '#7af7ff' : s.overcharged ? '#e0a6ff' : '#8be9ff'} opacity={isWing ? 0.82 : 0.9}
+                    style={{ filter: `drop-shadow(0 0 ${isWing ? 6 : 9}px ${isWing ? '#7af7ff' : s.overcharged ? '#e0a6ff' : '#00d4ff'})` }} />
+                  <rect x={b.x - 0.7} y={b.y - (isWing ? 32 : 43)} width={isWing ? 1.2 : 1.6} height={isWing ? 12 : 18} fill="#fff" opacity={0.95} />
+                  {!isWing && <rect x={b.x - 5.5} y={b.y - 18} width="11" height="2" rx="1" fill={s.overcharged ? '#ff2ea6' : '#00d4ff'} opacity="0.55" />}
+                  {isWing && <circle cx={b.x} cy={b.y - 28} r="1.2" fill="#ffffff" opacity="0.9" />}
+                </g>
+              );
+            })}
 
             {s.explosions.map(e => (
               <g key={e.id} opacity={e.opacity}>
@@ -496,6 +609,8 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               </g>
             )}
 
+            {/* wingmen — iki yancı drone */}
+            {s.wingmen.map(w => <Wingman key={w.id} x={w.x} y={w.y} side={w.side} t={s.gameTime} />)}
             <Ship x={s.shipX} over={s.overcharged} shield={s.shield} vx={s.shipVx} t={s.gameTime} />
           </svg>
 
