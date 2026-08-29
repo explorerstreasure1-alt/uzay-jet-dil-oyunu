@@ -7,6 +7,7 @@ import {
   LANGUAGES, LEVEL_CONFIG, CATEGORIES, HEAT_META, getWords, countWords, allWords, WORDS_PER_LANGUAGE,
 } from '../data/vocabulary';
 import { heatBreakdown, highScoreKey, reviewSummary, getWrongWords, streakInfo, getDailyChallenge, requestDailyPush, scheduleDailyPush } from '../lib/storage';
+import { NEON } from '../lib/theme';
 import { ACHIEVEMENTS, xpFor } from '../lib/achievements';
 import { audio } from '../lib/audio';
 
@@ -142,11 +143,11 @@ export function MenuScreen({ api, lang, setLang, go, pwa }: {
               if(!canOpen) return;
               try{ localStorage.setItem(chestKey,'1'); }catch{}
               audio.correct(); audio.combo();
-            }} disabled={!canOpen && !chestOpened} className={`w-full mt-2.5 rounded-xl py-2.5 flex items-center justify-center gap-2 active:scale-95 transition-all ${canOpen ? '' : chestOpened ? 'opacity-60' : 'opacity-40'}`} style={canOpen ? { background:'linear-gradient(135deg, rgba(255,209,102,0.22), rgba(255,140,0,0.18))', border:'1px solid #ffd166', boxShadow:'0 0 14px rgba(255,209,102,0.35)' } : chestOpened ? { background:'rgba(0,255,163,0.12)', border:'1px solid rgba(0,255,163,0.35)' } : { background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)' }}>
+            }} disabled={!canOpen && !chestOpened} className={`w-full mt-2.5 rounded-xl py-2.5 flex items-center justify-center gap-2 active:scale-95 transition-all ${canOpen ? '' : chestOpened ? 'opacity-60' : 'opacity-40'}`} style={canOpen ? { background:`linear-gradient(135deg, ${NEON.gold}22, rgba(255,140,0,0.18))`, border:`1px solid ${NEON.gold}`, boxShadow:`0 0 14px ${NEON.gold}55` } : chestOpened ? { background:`${NEON.aqua}1E`, border:`1px solid ${NEON.aqua}55` } : { background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)' }}>
               <span className="text-[16px]">{chestOpened ? '✅' : canOpen ? '📦' : '🔒'}</span>
-              <span className="font-mono-tech text-[9px] tracking-[0.14em]" style={{ color: canOpen ? '#ffd166' : chestOpened ? '#00ffa3' : 'rgba(255,255,255,0.35)' }}>{chestOpened ? 'SANDIK AÇILDI — YARIN YENİSİ' : canOpen ? 'GÜNLÜK SANDIK AÇ! (5✓)' : `SANDIK ${Math.max(0,5-si.today)}✓ KALDI`}</span>
+              <span className="font-mono-tech text-[9px] tracking-[0.14em]" style={{ color: canOpen ? NEON.gold : chestOpened ? NEON.aqua : 'rgba(255,255,255,0.35)' }}>{chestOpened ? 'SANDIK AÇILDI — YARIN YENİSİ' : canOpen ? 'GÜNLÜK SANDIK AÇ! (5✓)' : `SANDIK ${Math.max(0,5-si.today)}✓ KALDI`}</span>
             </button>
-            {canOpen && <div className="font-mono-tech text-[7px] text-[#ffd166]/70 text-center mt-1">Aç → +50 bonus + nadir kelime</div>}
+            {canOpen && <div className="font-mono-tech text-[7px] text-center mt-1" style={{ color: `${NEON.gold}B3` }}>Aç → +50 bonus + nadir kelime</div>}
           </div>
         );
       })()}
@@ -1135,6 +1136,7 @@ export function CampaignScreen({ api, onBack, onStart }: { api: EngineApi; onBac
   ];
   return (
     <Shell>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40" style={{ background: `radial-gradient(ellipse at bottom, ${NEON.cyan}14, transparent 65%)` }} />
       <BackBtn onClick={onBack} />
       <div className="font-orbitron text-[20px] font-black tracking-[0.14em] text-white/90 mb-1">HİKAYE SEFERİ</div>
       <div className="font-mono-tech text-[9px] text-white/35 mb-4">5 gezegen — her biri bir seviye, sırayla fethet.</div>
@@ -1172,6 +1174,7 @@ export function TeacherScreen({ api, onBack }: { api: EngineApi; onBack: ()=>voi
   };
   return (
     <Shell>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32" style={{ background: `radial-gradient(ellipse at bottom, ${NEON.purple}12, transparent 65%)` }} />
       <BackBtn onClick={onBack} />
       <div className="font-orbitron text-[20px] font-black tracking-[0.14em] text-white/90 mb-1">ÖĞRETMEN PANELİ</div>
       <div className="font-mono-tech text-[9px] text-white/35 mb-3">Sınıf kodu ile ödev ver — CSV rapor al.</div>

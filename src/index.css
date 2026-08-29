@@ -86,3 +86,16 @@ button { cursor: pointer; }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 .glass { animation: popIn 0.22s ease-out both; }
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(0,255,163,0.35); }
+  50% { transform: scale(1.03); box-shadow: 0 0 18px rgba(0,255,163,0.6); }
+}
+@keyframes floatBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .glitch, .liquid-metal { animation: none !important; }
+}
