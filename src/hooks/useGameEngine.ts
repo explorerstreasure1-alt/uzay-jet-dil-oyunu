@@ -66,7 +66,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0, runCorrect: 0, runWrong: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -160,6 +160,8 @@ export interface EngineApi {
   startRun: (lang: LangCode, level: CEFRLevel, category: CategoryId, cloze?: boolean) => void;
   startWrongRun: (lang: LangCode, level: CEFRLevel, ids: string[]) => void;
   addSpeechBonus: (pts: number) => void;
+  triggerMine: () => void;
+  toggleRepeat: () => void;
   fire: () => void;
   setMoveTarget: (x: number | null) => void;
   holdDir: (d: -1 | 0 | 1) => void;
@@ -239,14 +241,20 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (isFrenzy) lanes = Math.min(5, Math.max(4, pool.length));
 
     const getCnt = (id: string) => sessionCountsRef.current.get(id) ?? 0;
-    // en fazla 2 tekrar: limiti dolduranları havuzdan çıkar, hepsi dolduysa başa sar
-    let available = pool.filter(w => getCnt(w.id) < 2);
+    const isRepeat = (ref.current as any).repeatMode;
+    const maxRep = isRepeat ? 5 : 2;
+    // pekiştirme modunda her kelime aralıklı tekrar — limit 5, yoksa taze mod 2
+    let available = pool.filter(w => getCnt(w.id) < maxRep);
     if (available.length === 0) {
       sessionCountsRef.current.clear();
       available = pool;
     }
-    // yanlış defteri modunda da aynı kural — ama tek kelimeyse tekrarına izin ver
     if (available.length < 2 && wrongFilterRef.current) available = pool;
+    // pekiştirme modunda ice/amber öncelikli havuzu daralt
+    if (isRepeat) {
+      const need = available.filter(w => heatOf(heatRef.current[w.id]) !== 'crimson');
+      if (need.length >= 2) available = need;
+    }
 
     let target: VocabWord;
     if (isBoss) {
@@ -457,6 +465,47 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     flushSoon();
     sync();
   }, [sync, flushSoon]);
+
+  const triggerMine = useCallback(() => {
+    const s = ref.current;
+    if (s.phase !== 'playing') return;
+    const tgt = s.aliens.find(a => a.isTarget);
+    if (!tgt) return;
+    const cx = tgt.drawX, cy = tgt.y + SPRITE_H / 2;
+    // mayın patlaması: devasa, zincirleme, tüm decoy'lara sıçrar
+    s.explosions.push({ id: uid(), x: cx, y: cy, radius: 8, maxRadius: 140, opacity: 1, color: '#ffd166', isChain: false });
+    s.explosions.push({ id: uid(), x: cx, y: cy, radius: 4, maxRadius: 90, opacity: 0.95, color: '#ffffff', isChain: true });
+    // yakındaki decoy'ları da mayın dalgası silsin
+    const near = s.aliens.filter(a => !a.isTarget && Math.abs(a.drawX - cx) < 120);
+    for (const n of near) {
+      s.explosions.push({ id: uid(), x: n.drawX, y: n.y + SPRITE_H / 2, radius: 6, maxRadius: 64, opacity: 1, color: '#ff9500', isChain: true });
+    }
+    const removedIds = new Set([tgt.id, ...near.map(n => n.id)]);
+    s.aliens = s.aliens.filter(a => !removedIds.has(a.id));
+    s.score += 180 + near.length * 45;
+    s.combo += 1 + near.length;
+    s.bestCombo = Math.max(s.bestCombo, s.combo);
+    s.runCorrect += 1;
+    heatRef.current = applyResult(heatRef.current, tgt.word.id, true);
+    statsRef.current = bumpStreak({ ...statsRef.current, totalCorrect: statsRef.current.totalCorrect + 1, speechCount: (statsRef.current.speechCount ?? 0) + 1, bossesKilled: statsRef.current.bossesKilled + (tgt.isBoss ? 1 : 0) }, 1);
+    s.hitCard = { foreign: tgt.word.foreign, native: tgt.word.native, ok: true, t: 1, seen: (heatRef.current[tgt.word.id]?.seen ?? 0), category: tgt.word.category, sessionSeen: sessionCountsRef.current.get(tgt.word.id) ?? 1 };
+    s.flash = { color: '#ffd166', t: 0.55 };
+    s.shake = 9;
+    s.floats.push({ id: uid(), x: cx, y: cy - 26, text: '💥 MAYIN PATLADI!', color: '#ffd166', life: 1.5, vy: -1.1 });
+    s.floats.push({ id: uid(), x: cx, y: cy - 6, text: `🎤 +180`, color: '#00ffa3', life: 1.3, vy: -1 });
+    audio.explode(true); audio.correct(); haptic('boss', setRef.current.haptics);
+    flushSoon(); sync();
+  }, [sync, flushSoon]);
+
+  const toggleRepeat = useCallback(() => {
+    const s = ref.current;
+    if (s.phase !== 'playing') return;
+    s.repeatMode = !s.repeatMode;
+    s.floats.push({ id: uid(), x: VW/2, y: 210, text: s.repeatMode ? '🔁 PEKIŞTIRME AÇIK — her kelime aralıklı tekrar' : '🔁 PEKIŞTIRME KAPALI — taze kelime modu', color: s.repeatMode ? '#ffd166' : '#8be9ff', life: 1.8, vy: -0.4 });
+    s.waveBanner = { text: s.repeatMode ? '🔁 PEKIŞTIRME MODU' : '✦ TAZE MOD', sub: s.repeatMode ? 'BİLİNMEYENLER ARALIKLI TEKRAR' : 'YENİ KELİMELER ÖNCELİKLİ', t: 1 };
+    if (s.repeatMode) sessionCountsRef.current.clear();
+    audio.ui(); haptic('tap', setRef.current.haptics); sync();
+  }, [sync]);
 
   const fire = useCallback(() => {
     const s = ref.current;
@@ -1087,7 +1136,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   return {
     state: st, settings, stats, heat, customWords, lockedId, hintId,
-    startRun, startWrongRun, addSpeechBonus, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
+    startRun, startWrongRun, addSpeechBonus, triggerMine, toggleRepeat, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
     pause, resume, quit,
     updateSettings, addCustomWord, removeCustomWord, resetProgress,
   };

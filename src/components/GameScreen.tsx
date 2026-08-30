@@ -356,7 +356,7 @@ function Cortex({ s }: { s: GameState }) {
 }
 
 /* ══════════ HUD ══════════ */
-function Hud({ s, onPause }: { s: GameState; onPause: () => void }) {
+function Hud({ s, onPause, onRepeat }: { s: GameState; onPause: () => void; onRepeat: () => void }) {
   const meta = HEAT_META[s.targetHeat];
   const lang = LANGUAGES.find(l => l.code === s.lang)!;
   const cfg = LEVEL_CONFIG[s.level];
@@ -390,6 +390,10 @@ function Hud({ s, onPause }: { s: GameState; onPause: () => void }) {
             ))}
           </div>
         </div>
+        <button onClick={onRepeat} className="glass rounded-md px-2 h-[32px] pointer-events-auto active:scale-95 transition-transform flex flex-col items-center justify-center" style={s.repeatMode ? { border: '1px solid #ffd166', boxShadow: '0 0 10px rgba(255,209,102,0.5)' } : undefined}>
+          <span className="font-mono-tech text-[8px] leading-none" style={{ color: s.repeatMode ? '#ffd166' : 'rgba(255,255,255,0.55)' }}>{s.repeatMode ? '🔁' : '↻'}</span>
+          <span className="font-mono-tech text-[5px] tracking-[0.1em] leading-none mt-0.5" style={{ color: s.repeatMode ? '#ffd166' : 'rgba(255,255,255,0.35)' }}>{s.repeatMode ? 'PEKİŞTİR' : 'TEKRAR'}</span>
+        </button>
         <button onClick={onPause} className="glass rounded-md w-7 h-[32px] pointer-events-auto active:scale-95 transition-transform">
           <span className="font-mono-tech text-[11px] text-white/70">II</span>
         </button>
@@ -488,9 +492,9 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
     const res = await listenOnce(s.targetWord.lang, s.targetWord.foreign);
     setMicListening(false);
     if (res.ok) {
-      api.addSpeechBonus(80);
-      setMicMsg('✓ ' + Math.round(res.score * 100) + '%');
-      setTimeout(() => setMicMsg(null), 1400);
+      api.triggerMine();
+      setMicMsg('💥 ' + Math.round(res.score * 100) + '% MAYIN!');
+      setTimeout(() => setMicMsg(null), 1600);
     } else {
       setMicMsg(res.transcript ? `✕ ${res.transcript.slice(0,12)}` : '✕ duyamadım');
       setTimeout(() => setMicMsg(null), 1400);
@@ -719,7 +723,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
           style={{ background: s.flash.color, opacity: s.flash.t * 0.14 }} />
       )}
 
-      <Hud s={s} onPause={api.pause} />
+      <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} />
 
       {/* ══ prompt bar + controls ══ */}
       <div className="absolute bottom-0 left-0 right-0 z-30 px-2.5 pb-3 pt-6"

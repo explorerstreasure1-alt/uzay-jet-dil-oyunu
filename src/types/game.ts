@@ -103,6 +103,7 @@ export interface GameState {
   /** large centre read-out of the word that was just hit */
   hitCard: HitCard | null;
   speechNudge: number;
+  repeatMode: boolean;
   /** ms the current wave has been alive — drives delayed assist */
   waveAge: number;
   /** adrenalin: hedef tabana yakınken 0..1 arası tehlike seviyesi */
