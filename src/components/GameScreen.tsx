@@ -391,9 +391,9 @@ function Hud({ s, onPause, onRepeat }: { s: GameState; onPause: () => void; onRe
             ))}
           </div>
         </div>
-        <button onClick={onRepeat} className="glass rounded-md px-2 h-[32px] pointer-events-auto active:scale-95 transition-transform flex flex-col items-center justify-center" style={s.repeatMode ? { border: '1px solid #ffd166', boxShadow: '0 0 10px rgba(255,209,102,0.5)' } : undefined}>
-          <span className="font-mono-tech text-[8px] leading-none" style={{ color: s.repeatMode ? '#ffd166' : 'rgba(255,255,255,0.55)' }}>{s.repeatMode ? '🔁' : '↻'}</span>
-          <span className="font-mono-tech text-[5px] tracking-[0.1em] leading-none mt-0.5" style={{ color: s.repeatMode ? '#ffd166' : 'rgba(255,255,255,0.35)' }}>{s.repeatMode ? 'PEKİŞTİR' : 'TEKRAR'}</span>
+        <button onClick={onRepeat} className="glass rounded-md px-2.5 h-[32px] pointer-events-auto active:scale-95 transition-transform flex flex-col items-center justify-center" style={s.repeatMode ? { border: '1.4px solid #ffd166', boxShadow: '0 0 12px rgba(255,209,102,0.6)', background: 'rgba(255,209,102,0.14)' } : { border: '1px solid rgba(255,255,255,0.14)' }}>
+          <span className="text-[11px] leading-none" style={{ filter: s.repeatMode ? 'drop-shadow(0 0 5px #ffd166)' : undefined }}>{s.repeatMode ? '🔁' : '🔁'}</span>
+          <span className="font-mono-tech text-[5.5px] tracking-[0.12em] leading-none mt-0.5" style={{ color: s.repeatMode ? '#ffd166' : 'rgba(255,255,255,0.45)' }}>{s.repeatMode ? 'PEKİŞTİR' : 'TEKRAR'}</span>
         </button>
         <button onClick={onPause} className="glass rounded-md w-7 h-[32px] pointer-events-auto active:scale-95 transition-transform">
           <span className="font-mono-tech text-[11px] text-white/70">II</span>
