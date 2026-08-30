@@ -826,30 +826,42 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       arr.trail.push({ x: arr.x, y: arr.y });
       if (arr.trail.length > 22) arr.trail.shift();
       if (!arr.returning) arr.timeLeft -= dt * 16.667;
-      // SIFIRDAN, SORUNSUZ: kırmızı sınıra kadar süzül, yaklaşanı del
-      // en tehlikeli (yeri en aşağı) düşmana doğru y'de de homing
-      const _allY = s.aliens.filter(a => !a.dead);
-      if (_allY.length) {
-        let _bestY = _allY[0];
-        let _bestDist = FLOOR_Y - _bestY.y;
-        for (const _a of _allY) {
-          const d = FLOOR_Y - _a.y;
-          if (d < _bestDist) { _bestDist = d; _bestY = _a; }
+      // AKILLI FÜZE: gördüğünü kovalayıp deler — 2D homing
+      const _all = s.aliens.filter(a => !a.dead);
+      if (_all.length) {
+        let _best: typeof _all[0] | null = null;
+        let _bestD = Infinity;
+        for (const _a of _all) {
+          const dx = _a.drawX - arr.x;
+          const dy = (_a.y + 18) - arr.y;
+          const d = Math.hypot(dx, dy) + (FLOOR_Y - _a.y) * 0.18;
+          if (d < _bestD) { _bestD = d; _best = _a; }
         }
-        const ty = _bestY.y + 18;
-        arr.vy += (ty - arr.y) * 0.042 * dt;
-        arr.vy = Math.max(-54, Math.min(38, arr.vy));
+        if (_best) {
+          const tx = _best.drawX - arr.x;
+          const ty = (_best.y + 18) - arr.y;
+          arr.vx += Math.max(-5, Math.min(5, tx * 0.085)) * dt;
+          arr.vy += Math.max(-5, Math.min(5, ty * 0.085)) * dt;
+          arr.vx *= Math.pow(0.88, dt);
+          arr.vy *= Math.pow(0.88, dt);
+          const sp = Math.hypot(arr.vx, arr.vy);
+          const maxSp = 52;
+          if (sp > maxSp) { const k = maxSp / sp; arr.vx *= k; arr.vy *= k; }
+        }
+      } else {
+        arr.vx += Math.sin(s.gameTime * 0.05) * 0.6 * dt;
       }
-      arr.x += Math.sin(s.gameTime * 0.06) * 0.9 * dt;
+      arr.x += arr.vx * dt;
       arr.y += arr.vy * dt;
       arr.x = Math.max(12, Math.min(VW - 12, arr.x));
-      arr.y = Math.max(40, Math.min(FLOOR_Y + 18, arr.y));
+      arr.y = Math.max(30, Math.min(FLOOR_Y + 22, arr.y));
       // delip geçme — SORUNSUZ: yatay ışın gibi, aynı hizadaki her canavarı deler
       const hitIds: string[] = [];
       for (const a of s.aliens) {
         if (a.dead) continue;
-        const dy = Math.abs(arr.y - (a.y + 18));
-        if (dy < 26) hitIds.push(a.id);
+        const dx = arr.x - a.drawX;
+        const dy = arr.y - (a.y + 18);
+        if (Math.hypot(dx, dy) < 30) hitIds.push(a.id);
       }
       if (hitIds.length) {
         for (const hid of hitIds) {
