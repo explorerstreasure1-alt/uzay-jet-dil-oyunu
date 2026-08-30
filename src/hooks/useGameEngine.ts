@@ -527,18 +527,17 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       const sfx: any = (audio as any).sfx;
       if (ctx && sfx) {
         const t0 = ctx.currentTime;
-        // ana ıslık: 1680 -> 620, hafif vibrato (6Hz)
+        // Yondu Yaka ıslığı: tiz, keskin, titrek (dizi ıslığı)
         for (let i = 0; i < 2; i++) {
           const o = ctx.createOscillator(); const g = ctx.createGain();
           o.type = i === 0 ? 'sine' : 'triangle';
-          const base = i === 0 ? 1680 : 3360;
-          const target = i === 0 ? 620 : 1240;
+          const base = i === 0 ? 2460 : 4920;
+          const target = i === 0 ? 720 : 1440;
           o.frequency.setValueAtTime(base, t0);
-          // vibrato noktaları
-          o.frequency.setValueAtTime(base * 1.018, t0 + 0.08);
-          o.frequency.setValueAtTime(base * 0.985, t0 + 0.16);
-          o.frequency.setValueAtTime(base * 1.012, t0 + 0.24);
-          o.frequency.exponentialRampToValueAtTime(target, t0 + 0.58);
+          o.frequency.setValueAtTime(base * 1.022, t0 + 0.06);
+          o.frequency.setValueAtTime(base * 0.982, t0 + 0.12);
+          o.frequency.setValueAtTime(base * 1.015, t0 + 0.20);
+          o.frequency.exponentialRampToValueAtTime(target, t0 + 0.52);
           g.gain.setValueAtTime(i === 0 ? 0.16 : 0.055, t0);
           g.gain.linearRampToValueAtTime(i === 0 ? 0.13 : 0.045, t0 + 0.32);
           g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.62);
@@ -785,32 +784,33 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       for (const w of s.wingmen) w.cooldown = Math.max(w.cooldown, 10);
     }
 
-    // ── Canlı Ok (Usluk) — fantastik, yılan gibi kıvrılarak ne var ne yok deler
+    // ── Yondu Yaka Oku — ıslıkla kontrol, yılan gibi kıvrılarak ne var ne yok deler
     if (s.uslukArrow?.active) {
       const arr = s.uslukArrow;
       arr.trail.push({ x: arr.x, y: arr.y });
-      if (arr.trail.length > 18) arr.trail.shift();
-      // yılan kıvrılması + homing
-      const wiggle = Math.sin(s.gameTime * 0.045 + arr.y * 0.018) * 1.35;
-      arr.vx += wiggle * 0.52 * dt;
+      if (arr.trail.length > 20) arr.trail.shift();
+      // Yondu kontrolü: gemi nereye giderse ok oraya kıvrılır + yılan wiggle
+      const shipSteer = (s.shipX - arr.x) * 0.028;
+      const wiggle = Math.sin(s.gameTime * 0.052 + arr.y * 0.022) * 1.45;
+      arr.vx += (wiggle * 0.48 + shipSteer) * dt;
       const all = s.aliens.filter(a => !a.dead);
       if (all.length) {
         let best: typeof all[0] | null = null;
         let bestD = Infinity;
         for (const a of all) {
           const dy = a.y - arr.y;
-          if (dy < -12 && dy > -320) {
-            const d = Math.abs(a.drawX - arr.x) + Math.abs(dy) * 0.18;
+          if (dy < -10 && dy > -340) {
+            const d = Math.abs(a.drawX - arr.x) + Math.abs(dy) * 0.16;
             if (d < bestD) { bestD = d; best = a; }
           }
         }
         if (best) {
           const tx = best.drawX - arr.x;
-          arr.vx += Math.max(-3.6, Math.min(3.6, tx * 0.062)) * dt;
-          arr.vx *= Math.pow(0.88, dt);
+          arr.vx += Math.max(-3.8, Math.min(3.8, tx * 0.068)) * dt;
+          arr.vx *= Math.pow(0.86, dt);
         }
       } else {
-        arr.vx *= Math.pow(0.92, dt);
+        arr.vx *= Math.pow(0.90, dt);
       }
       arr.x += arr.vx * dt;
       arr.y += arr.vy * dt;

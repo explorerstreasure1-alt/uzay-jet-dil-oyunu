@@ -603,46 +603,49 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               );
             })}
 
-            {/* Canlı Ok — fantastik, yılan gibi kıvrılan gökkuşağı */}
+            {/* Yondu Yaka Oku — kırmızı, ıslıkla kontrol */}
             {s.uslukArrow?.active && (
               <g>
                 {s.uslukArrow.trail.map((p, i) => {
                   const t = i / Math.max(1, s.uslukArrow!.trail.length - 1);
-                  const cols = ['#ff3b5c', '#ff9500', '#ffd166', '#00ffa3', '#00d4ff', '#9d4edd', '#ff6bff'];
-                  const c = cols[i % cols.length];
-                  return <circle key={i} cx={p.x} cy={p.y} r={1.8 + t * 4.2} fill={c} opacity={0.10 + t * 0.38} style={{ filter: t > 0.6 ? `drop-shadow(0 0 4px ${c})` : undefined }} />;
+                  // Yondu kırmızısı + alev kuyruğu
+                  const c = t > 0.7 ? '#ff1a1a' : t > 0.4 ? '#ff3b2e' : t > 0.2 ? '#ff6a00' : '#7a0000';
+                  return <circle key={i} cx={p.x} cy={p.y} r={1.6 + t * 4.6} fill={c} opacity={0.12 + t * 0.44} style={{ filter: t > 0.65 ? `drop-shadow(0 0 5px ${c})` : undefined }} />;
                 })}
                 {s.uslukArrow.trail.length > 1 && (
                   <>
-                    <polyline points={s.uslukArrow.trail.map(p => `${p.x},${p.y}`).join(' ') + ` ${s.uslukArrow.x},${s.uslukArrow.y}`} fill="none" stroke="url(#rainbowGrad)" strokeWidth="3.2" opacity="0.62" strokeLinecap="round" strokeLinejoin="round" />
-                    <polyline points={s.uslukArrow.trail.map(p => `${p.x},${p.y}`).join(' ') + ` ${s.uslukArrow.x},${s.uslukArrow.y}`} fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.42" strokeLinecap="round" strokeLinejoin="round" />
+                    <polyline points={s.uslukArrow.trail.map(p => `${p.x},${p.y}`).join(' ') + ` ${s.uslukArrow.x},${s.uslukArrow.y}`} fill="none" stroke="#ff1a1a" strokeWidth="4.2" opacity="0.58" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 7px #ff1a1a)' }} />
+                    <polyline points={s.uslukArrow.trail.map(p => `${p.x},${p.y}`).join(' ') + ` ${s.uslukArrow.x},${s.uslukArrow.y}`} fill="none" stroke="#ff3b00" strokeWidth="2" opacity="0.52" strokeLinecap="round" strokeLinejoin="round" />
+                    <polyline points={s.uslukArrow.trail.map(p => `${p.x},${p.y}`).join(' ') + ` ${s.uslukArrow.x},${s.uslukArrow.y}`} fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.38" strokeLinecap="round" strokeLinejoin="round" />
                   </>
                 )}
-                {/* ok gövdesi — canlı, tüyleri dalgalanan */}
+                {/* Yaka oku gövdesi — Yondu kırmızısı */}
                 <g transform={`translate(${s.uslukArrow.x}, ${s.uslukArrow.y}) rotate(${Math.atan2(s.uslukArrow.vy, s.uslukArrow.vx || 0.1) * 180 / Math.PI + 90})`}>
-                  {/* dış glow */}
-                  <ellipse cx="0" cy="0" rx="7" ry="12" fill="#ff6bff" opacity="0.12" />
-                  {/* kuyruk tüyleri — canlı */}
-                  <path d="M-2.2,9 L-6,15 L-2.8,12 Z" fill="#ff3b5c" opacity="0.92">
-                    <animateTransform attributeName="transform" type="rotate" values="-2  -2,9; 2 -2,9; -2 -2,9" dur="0.18s" repeatCount="indefinite" />
+                  <ellipse cx="0" cy="0" rx="8" ry="13" fill="#ff1a1a" opacity="0.14" />
+                  {/* Yaka kanatçıkları — kırmızı */}
+                  <path d="M-2.6,10 L-7,16 L-3.2,13 Z" fill="#7a0000" opacity="0.95">
+                    <animateTransform attributeName="transform" type="rotate" values="-3 -2.6,10; 3 -2.6,10; -3 -2.6,10" dur="0.14s" repeatCount="indefinite" />
                   </path>
-                  <path d="M2.2,9 L6,15 L2.8,12 Z" fill="#00d4ff" opacity="0.92">
-                    <animateTransform attributeName="transform" type="rotate" values="2 2,9; -2 2,9; 2 2,9" dur="0.18s" repeatCount="indefinite" />
+                  <path d="M2.6,10 L7,16 L3.2,13 Z" fill="#7a0000" opacity="0.95">
+                    <animateTransform attributeName="transform" type="rotate" values="3 2.6,10; -3 2.6,10; 3 2.6,10" dur="0.14s" repeatCount="indefinite" />
                   </path>
-                  <path d="M0,10 L-1.5,14 L0,12.5 L1.5,14 Z" fill="#ffd166" opacity="0.95" />
-                  {/* gövde */}
-                  <path d="M0,-18 L4.2,7 L1.2,11 L0,8.2 L-1.2,11 L-4.2,7 Z" fill="#ffd166" stroke="#ffffff" strokeWidth="1" />
-                  <path d="M0,-18 L2,0 L0,4.5 L-2,0 Z" fill="#ffffff" opacity="0.97" />
-                  {/* oluk parıltısı */}
-                  <rect x="-0.5" y="-10" width="1" height="14" rx="0.5" fill="#fff" opacity="0.55" />
-                  {/* uç — elmas gibi */}
-                  <path d="M0,-20 L2.2,-15.5 L0,-13.2 L-2.2,-15.5 Z" fill="#ffffff" stroke="#ffd166" strokeWidth="0.7" />
-                  <circle cx="0" cy="-12" r="1.4" fill="#ff3b5c" opacity="0.95" />
+                  <path d="M0,11 L-1.4,15 L0,13.2 L1.4,15 Z" fill="#4a0000" opacity="0.95" />
+                  {/* gövde — Yondu kırmızısı, altın şerit */}
+                  <path d="M0,-20 L4.6,8 L1.3,12 L0,9.2 L-1.3,12 L-4.6,8 Z" fill="#ff1a1a" stroke="#7a0000" strokeWidth="1" />
+                  <path d="M0,-20 L2.2,1 L0,5.2 L-2.2,1 Z" fill="#ffd166" opacity="0.92" />
+                  <rect x="-0.6" y="-12" width="1.2" height="16" rx="0.6" fill="#fff" opacity="0.62" />
+                  {/* Yaka ucu — keskin elmas */}
+                  <path d="M0,-22 L2.6,-17 L0,-14.2 L-2.6,-17 Z" fill="#ffffff" stroke="#ff1a1a" strokeWidth="0.8" />
+                  <circle cx="0" cy="-13.5" r="1.6" fill="#ff1a1a" stroke="#ffffff" strokeWidth="0.5" />
+                  {/* ıslık titreşimi */}
+                  <circle cx="0" cy="-2" r="2.2" fill="#ffffff" opacity="0.14">
+                    <animate attributeName="r" values="1.8;3.2;1.8" dur="0.22s" repeatCount="indefinite" />
+                  </circle>
                 </g>
-                <circle cx={s.uslukArrow.x} cy={s.uslukArrow.y} r="11" fill="none" stroke="#ff6bff" strokeWidth="1.1" opacity="0.32" strokeDasharray="3 3">
-                  <animateTransform attributeName="transform" type="rotate" from={`0 ${s.uslukArrow.x} ${s.uslukArrow.y}`} to={`360 ${s.uslukArrow.x} ${s.uslukArrow.y}`} dur="0.55s" repeatCount="indefinite" />
+                <circle cx={s.uslukArrow.x} cy={s.uslukArrow.y} r="12" fill="none" stroke="#ff1a1a" strokeWidth="1.2" opacity="0.38" strokeDasharray="4 3">
+                  <animateTransform attributeName="transform" type="rotate" from={`0 ${s.uslukArrow.x} ${s.uslukArrow.y}`} to={`360 ${s.uslukArrow.x} ${s.uslukArrow.y}`} dur="0.48s" repeatCount="indefinite" />
                 </circle>
-                <circle cx={s.uslukArrow.x} cy={s.uslukArrow.y} r="5" fill="#ffffff" opacity="0.18" />
+                <circle cx={s.uslukArrow.x} cy={s.uslukArrow.y} r="5.5" fill="#ff1a1a" opacity="0.20" />
               </g>
             )}
             {s.explosions.map(e => (
