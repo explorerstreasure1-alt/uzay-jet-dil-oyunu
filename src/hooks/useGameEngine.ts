@@ -848,7 +848,13 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           arr.vx *= Math.pow(0.86, dt);
         }
       } else {
-        arr.vx *= Math.pow(0.90, dt);
+        // boşta harb alanında devriye — tam ortada, yukarıda dolan (götünde değil)
+        const patrolX = VW / 2 + Math.sin(s.gameTime * 0.012) * 140;
+        const patrolY = 180 + Math.sin(s.gameTime * 0.008) * 38;
+        arr.vx += (patrolX - arr.x) * 0.018 * dt;
+        arr.vy += (patrolY - arr.y) * 0.018 * dt;
+        arr.vx *= Math.pow(0.92, dt);
+        arr.vy *= Math.pow(0.92, dt);
       }
       arr.x += arr.vx * dt;
       arr.y += arr.vy * dt;
