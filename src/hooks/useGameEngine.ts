@@ -826,47 +826,16 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       arr.trail.push({ x: arr.x, y: arr.y });
       if (arr.trail.length > 22) arr.trail.shift();
       if (!arr.returning) arr.timeLeft -= dt * 16.667;
-      // Yaka bağımsız harb devriyesi — gemiyi takip etmez, yılan gibi dolanır
-      const wiggle = Math.sin(s.gameTime * 0.058 + arr.y * 0.028) * 1.85;
-      arr.vx += wiggle * 0.62 * dt;
-      if (uslukHeldRef.current && arr.y > 140 && !arr.returning) arr.vy = Math.max(arr.vy, -18);
-      const all = s.aliens.filter(a => !a.dead);
-      if (all.length) {
-        let best: typeof all[0] | null = null;
-        let bestD = Infinity;
-        for (const a of all) {
-          const dy = a.y - arr.y;
-          if (dy < -8 && dy > -380) {
-            const danger = FLOOR_Y - a.y;
-            const d = Math.abs(a.drawX - arr.x) * 0.22 + danger * 0.52 + Math.abs(dy) * 0.04;
-            if (d < bestD) { bestD = d; best = a; }
-          }
-        }
-        if (best) {
-          const tx = best.drawX - arr.x;
-          arr.vx += Math.max(-3.8, Math.min(3.8, tx * 0.068)) * dt;
-          arr.vx *= Math.pow(0.86, dt);
-        }
-      } else {
-        // boşta harb devriyesi — ekranın her yerinde, tam ortada dolan
-        const patrolX = VW / 2 + Math.sin(s.gameTime * 0.011) * 165;
-        const patrolY = 190 + Math.sin(s.gameTime * 0.007) * 52;
-        arr.vx += (patrolX - arr.x) * 0.026 * dt;
-        arr.vy += (patrolY - arr.y) * 0.026 * dt;
-        arr.vx *= Math.pow(0.90, dt);
-        arr.vy *= Math.pow(0.90, dt);
-      }
-      arr.x += arr.vx * dt;
+      // SIFIRDAN, SORUNSUZ: düz yukarı süzül + hafif yılan, her hizadaki düşmanı deler
+      arr.x += Math.sin(s.gameTime * 0.06) * 0.9 * dt;
       arr.y += arr.vy * dt;
-      arr.x = Math.max(10, Math.min(VW - 10, arr.x));
-      // delip geçme — mesafe bazlı, bağımsız avcı
+      arr.x = Math.max(12, Math.min(VW - 12, arr.x));
+      // delip geçme — SORUNSUZ: yatay ışın gibi, aynı hizadaki her canavarı deler
       const hitIds: string[] = [];
       for (const a of s.aliens) {
         if (a.dead) continue;
-        const dx = arr.x - a.drawX;
-        const dy = arr.y - (a.y + 18);
-        const dist = Math.hypot(dx, dy);
-        if (dist < 34) hitIds.push(a.id);
+        const dy = Math.abs(arr.y - (a.y + 18));
+        if (dy < 26) hitIds.push(a.id);
       }
       if (hitIds.length) {
         for (const hid of hitIds) {
