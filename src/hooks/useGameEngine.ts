@@ -826,11 +826,10 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       arr.trail.push({ x: arr.x, y: arr.y });
       if (arr.trail.length > 22) arr.trail.shift();
       if (!arr.returning) arr.timeLeft -= dt * 16.667;
-      // Yondu kontrolü: gemi nereye giderse ok oraya kıvrılır + yılan wiggle + basılı tut hover
-      const shipSteer = (s.shipX - arr.x) * (uslukHeldRef.current ? 0.062 : 0.028);
-      const wiggle = Math.sin(s.gameTime * 0.052 + arr.y * 0.022) * 1.45;
-      arr.vx += (wiggle * 0.48 + shipSteer) * dt;
-      if (uslukHeldRef.current && arr.y > 120 && !arr.returning) arr.vy = Math.max(arr.vy, -22);
+      // Yaka bağımsız harb devriyesi — gemiyi takip etmez, yılan gibi dolanır
+      const wiggle = Math.sin(s.gameTime * 0.058 + arr.y * 0.028) * 1.85;
+      arr.vx += wiggle * 0.62 * dt;
+      if (uslukHeldRef.current && arr.y > 140 && !arr.returning) arr.vy = Math.max(arr.vy, -18);
       const all = s.aliens.filter(a => !a.dead);
       if (all.length) {
         let best: typeof all[0] | null = null;
@@ -854,13 +853,14 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       arr.x += arr.vx * dt;
       arr.y += arr.vy * dt;
       arr.x = Math.max(10, Math.min(VW - 10, arr.x));
-      // delip geçme — her zaman (Yaka gidiş ve dönüşte deler, yaklaşanı önce)
+      // delip geçme — mesafe bazlı, bağımsız avcı
       const hitIds: string[] = [];
       for (const a of s.aliens) {
         if (a.dead) continue;
-        const inX = arr.x >= a.laneX - 10 && arr.x < a.laneX + a.laneW + 10;
-        const inY = arr.y >= a.y - 18 && arr.y <= a.y + HIT_H + 18;
-        if (inX && inY) hitIds.push(a.id);
+        const dx = arr.x - a.drawX;
+        const dy = arr.y - (a.y + 18);
+        const dist = Math.hypot(dx, dy);
+        if (dist < 34) hitIds.push(a.id);
       }
       if (hitIds.length) {
         for (const hid of hitIds) {
