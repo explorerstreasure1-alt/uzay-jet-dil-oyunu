@@ -66,7 +66,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0, runCorrect: 0, runWrong: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, uslukCharge: 55, uslukArrow: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, uslukCharge: 88, uslukArrow: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -163,6 +163,7 @@ export interface EngineApi {
   triggerMine: () => void;
   toggleRepeat: () => void;
   fireUsluk: () => boolean;
+  setUslukHeld: (v: boolean) => void;
   fire: () => void;
   setMoveTarget: (x: number | null) => void;
   holdDir: (d: -1 | 0 | 1) => void;
@@ -204,6 +205,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   /** Koşu boyunca her hedefin kaç kez sorulduğu — en fazla 2 tekrar, sonra taze kelimeye geç. */
   const sessionCountsRef = useRef<Map<string, number>>(new Map());
   const frameTick = useRef(0);
+  const uslukHeldRef = useRef(false);
 
   /* ── debounced persistence (keeps localStorage out of the hot path) ── */
   const flushT = useRef<number | null>(null);
@@ -512,12 +514,15 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const s = ref.current;
     if (s.phase !== 'playing') return false;
     if (s.uslukArrow?.active) return false;
-    if (s.uslukCharge < 100) {
-      s.floats.push({ id: uid(), x: VW/2, y: 300, text: `⏳ USLUK DOLUYOR %${Math.floor(s.uslukCharge)} — ${Math.ceil((100 - s.uslukCharge)/13)}sn`, color: '#ffd166', life: 1.1, vy: -0.4 });
+    if (s.uslukCharge < 22) {
+      s.floats.push({ id: uid(), x: VW/2, y: 300, text: `⏳ USLUK DOLUYOR %${Math.floor(s.uslukCharge)} — ${Math.ceil((100 - s.uslukCharge)/18)}sn`, color: '#ffd166', life: 1.1, vy: -0.4 });
       audio.tick(); sync(); return false;
     }
-    s.uslukCharge = 0;
-    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -38, active: true, trail: [] };
+    // 22% üstünde her basışta ateşler — güç şarja göre
+    const power = Math.min(100, s.uslukCharge);
+    s.uslukCharge = Math.max(0, s.uslukCharge - 72);
+    const vy = -34 - (power / 100) * 10; // doluysa daha hızlı
+    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy, active: true, trail: [] };
     s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK UYANDI — USLUK!', color: '#ff6bff', life: 1.6, vy: -0.55 });
     s.flash = { color: '#ff6bff', t: 0.36 };
     // fantastik usluk ıslığı — nefesli, titrek, çift ton (dizi ıslığı gibi)
@@ -562,6 +567,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     } catch {}
     haptic('boss', setRef.current.haptics); sync(); return true;
   }, [sync]);
+
+  const setUslukHeld = useCallback((v: boolean) => { uslukHeldRef.current = v; }, []);
 
   const fire = useCallback(() => {
     const s = ref.current;
@@ -673,10 +680,32 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.waveAge += dt * 16.667;
     if (s.hitCard) { s.hitCard.t -= dt * 0.011; if (s.hitCard.t <= 0) s.hitCard = null; }
     if (s.speechNudge > 0) s.speechNudge -= dt;
-    // Usluk şarjı — combo hızlandırır, ~7sn'de dolu
+    // Usluk şarjı — combo hızlandırır, ~7sn'de dolu; basılı tutarken dolunca otomatik fırlar
     if (!s.uslukArrow?.active) {
       const gain = 0.22 * dt + (s.combo >= 3 ? 0.14 * dt : 0) + (s.frenzy ? 0.12 * dt : 0);
       s.uslukCharge = Math.min(100, s.uslukCharge + gain);
+      if (uslukHeldRef.current && s.uslukCharge >= 100) {
+    s.uslukCharge = 0;
+    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -38, active: true, trail: [], returning: false, orbitT: 0 };
+        s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 YAKA OKU FIRLADI!', color: '#ff1a1a', life: 1.4, vy: -0.5 });
+        s.flash = { color: '#ff1a1a', t: 0.30 };
+        audio.combo();
+        try {
+          const ctx: any = (audio as any).ctx; const sfx: any = (audio as any).sfx;
+          if (ctx && sfx) {
+            const t0 = ctx.currentTime;
+            for (let i = 0; i < 2; i++) {
+              const o = ctx.createOscillator(); const g = ctx.createGain();
+              o.type = i === 0 ? 'sine' : 'triangle';
+              const base = i === 0 ? 2460 : 4920; const target = i === 0 ? 720 : 1440;
+              o.frequency.setValueAtTime(base, t0); o.frequency.setValueAtTime(base*1.022, t0+0.06); o.frequency.setValueAtTime(base*0.982, t0+0.12); o.frequency.exponentialRampToValueAtTime(target, t0+0.52);
+              g.gain.setValueAtTime(i===0?0.16:0.055, t0); g.gain.linearRampToValueAtTime(i===0?0.13:0.045, t0+0.32); g.gain.exponentialRampToValueAtTime(0.0001, t0+0.62);
+              o.connect(g); g.connect(sfx); o.start(t0+i*0.015); o.stop(t0+0.64);
+            }
+          }
+        } catch {}
+        haptic('boss', hap);
+      }
     }
 
     /* ── ship: momentum + soft brake ── */
@@ -789,10 +818,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       const arr = s.uslukArrow;
       arr.trail.push({ x: arr.x, y: arr.y });
       if (arr.trail.length > 20) arr.trail.shift();
-      // Yondu kontrolü: gemi nereye giderse ok oraya kıvrılır + yılan wiggle
-      const shipSteer = (s.shipX - arr.x) * 0.028;
+      // Yondu kontrolü: gemi nereye giderse ok oraya kıvrılır + yılan wiggle + basılı tut hover
+      const shipSteer = (s.shipX - arr.x) * (uslukHeldRef.current ? 0.062 : 0.028);
       const wiggle = Math.sin(s.gameTime * 0.052 + arr.y * 0.022) * 1.45;
       arr.vx += (wiggle * 0.48 + shipSteer) * dt;
+      if (uslukHeldRef.current && arr.y > 120) arr.vy = Math.max(arr.vy, -22);
       const all = s.aliens.filter(a => !a.dead);
       if (all.length) {
         let best: typeof all[0] | null = null;
@@ -815,41 +845,70 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       arr.x += arr.vx * dt;
       arr.y += arr.vy * dt;
       arr.x = Math.max(10, Math.min(VW - 10, arr.x));
-      // delip geçme — şerit toleranslı
-      const hitIds: string[] = [];
-      for (const a of s.aliens) {
-        if (a.dead) continue;
-        const inX = arr.x >= a.laneX - 6 && arr.x < a.laneX + a.laneW + 6;
-        const inY = arr.y >= a.y - 14 && arr.y <= a.y + HIT_H + 14;
-        if (inX && inY) hitIds.push(a.id);
-      }
-      if (hitIds.length) {
-        for (const hid of hitIds) {
-          const a = s.aliens.find(x => x.id === hid);
-          if (!a) continue;
-          const isT = a.isTarget;
-          const cx = a.drawX, cy = a.y + SPRITE_H / 2;
-          const cols = ['#ff3b5c', '#ff9500', '#ffd166', '#00ffa3', '#00d4ff', '#9d4edd'];
-          const col = cols[Math.floor(Math.random() * cols.length)];
-          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 7, maxRadius: a.isBoss ? 116 : 74, opacity: 1, color: isT ? '#ffd166' : col, isChain: false });
-          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 3, maxRadius: 38, opacity: 0.92, color: '#ffffff', isChain: true });
-          if (isT) {
-            s.score += 180; s.combo += 1; s.bestCombo = Math.max(s.bestCombo, s.combo); s.runCorrect += 1;
-            heatRef.current = applyResult(heatRef.current, a.word.id, true);
-            statsRef.current = bumpStreak({ ...statsRef.current, totalCorrect: statsRef.current.totalCorrect + 1, bossesKilled: statsRef.current.bossesKilled + (a.isBoss ? 1 : 0) }, 1);
-            s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
-            s.flash = { color: '#ffd166', t: 0.38 };
-          } else {
-            s.score += 46; s.floats.push({ id: uid(), x: cx, y: a.y - 2, text: '+46 OK', color: col, life: 0.9, vy: -0.9 });
-          }
-          audio.tick();
+      // delip geçme — sadece gidişte, dönüşte değil
+      if (!arr.returning) {
+        const hitIds: string[] = [];
+        for (const a of s.aliens) {
+          if (a.dead) continue;
+          const inX = arr.x >= a.laneX - 6 && arr.x < a.laneX + a.laneW + 6;
+          const inY = arr.y >= a.y - 14 && arr.y <= a.y + HIT_H + 14;
+          if (inX && inY) hitIds.push(a.id);
         }
-        s.aliens = s.aliens.filter(a => !hitIds.includes(a.id));
-        s.shake = Math.max(s.shake, 2.4);
-      }
-      if (arr.y < -42 || (s.aliens.length === 0 && arr.y < 80)) {
-        s.uslukArrow = null;
-        s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 USLUK SÖNDÜ', color: '#ff6bff', life: 1.1, vy: -0.4 });
+        if (hitIds.length) {
+          for (const hid of hitIds) {
+            const a = s.aliens.find(x => x.id === hid);
+            if (!a) continue;
+            const isT = a.isTarget;
+            const cx = a.drawX, cy = a.y + SPRITE_H / 2;
+            const cols = ['#ff3b5c', '#ff9500', '#ffd166', '#00ffa3', '#00d4ff', '#9d4edd'];
+            const col = cols[Math.floor(Math.random() * cols.length)];
+            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 7, maxRadius: a.isBoss ? 116 : 74, opacity: 1, color: isT ? '#ffd166' : col, isChain: false });
+            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 3, maxRadius: 38, opacity: 0.92, color: '#ffffff', isChain: true });
+            if (isT) {
+              s.score += 180; s.combo += 1; s.bestCombo = Math.max(s.bestCombo, s.combo); s.runCorrect += 1;
+              heatRef.current = applyResult(heatRef.current, a.word.id, true);
+              statsRef.current = bumpStreak({ ...statsRef.current, totalCorrect: statsRef.current.totalCorrect + 1, bossesKilled: statsRef.current.bossesKilled + (a.isBoss ? 1 : 0) }, 1);
+              s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
+              s.flash = { color: '#ffd166', t: 0.38 };
+            } else {
+              s.score += 46; s.floats.push({ id: uid(), x: cx, y: a.y - 2, text: '+46 OK', color: col, life: 0.9, vy: -0.9 });
+            }
+            audio.tick();
+          }
+          s.aliens = s.aliens.filter(a => !hitIds.includes(a.id));
+          s.shake = Math.max(s.shake, 2.4);
+        }
+        // gidiş bitti mi? tüm düşmanlar temizlendiyse veya tepeye vardıysa geri dön
+        if (arr.y < -42 || s.aliens.filter(a => !a.dead).length === 0) {
+          arr.returning = true;
+          arr.vy = 18;
+          s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 GERİ DÖNÜYOR…', color: '#ff1a1a', life: 1, vy: -0.4 });
+        }
+      } else {
+        // dönüş — gemiye doğru süzül, yörüngede takıl
+        const dx = s.shipX - arr.x;
+        const dy = (SHIP_Y - 12) - arr.y;
+        arr.vx += dx * 0.045 * dt;
+        arr.vy += dy * 0.045 * dt;
+        arr.vx *= Math.pow(0.88, dt);
+        arr.vy *= Math.pow(0.88, dt);
+        const dist = Math.hypot(dx, dy);
+        if (dist < 18) {
+          arr.orbitT += dt * 0.22;
+          if (arr.orbitT > 140) {
+            s.uslukArrow = null;
+            s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 40, text: '🏹 YANINA TAKILDI', color: '#ff1a1a', life: 1.2, vy: -0.5 });
+            s.shield = true;
+            audio.repair();
+          } else {
+            const ang = arr.orbitT * 0.18;
+            arr.x = s.shipX + Math.cos(ang) * 22;
+            arr.y = SHIP_Y - 10 + Math.sin(ang) * 9;
+            arr.vx = -Math.sin(ang) * 4.2;
+            arr.vy = Math.cos(ang) * 2.1;
+          }
+        }
+        if (arr.y > VH + 40) { s.uslukArrow = null; }
       }
     }
 
@@ -1266,7 +1325,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   return {
     state: st, settings, stats, heat, customWords, lockedId, hintId,
-    startRun, startWrongRun, addSpeechBonus, triggerMine, toggleRepeat, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
+    startRun, startWrongRun, addSpeechBonus, triggerMine, toggleRepeat, fireUsluk, setUslukHeld, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
     pause, resume, quit,
     updateSettings, addCustomWord, removeCustomWord, resetProgress,
   };

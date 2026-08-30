@@ -814,9 +814,12 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
         {/* USLUK — Canlı Ok özel güç (basılı tut) */}
         <div className="mb-2 flex items-center gap-2">
           <button
-            onPointerDown={e => { e.stopPropagation(); try{ if(e.pointerId!=null) (e.currentTarget as any).setPointerCapture?.(e.pointerId); }catch{} api.fireUsluk(); }}
-            onPointerUp={e => { e.stopPropagation(); try{ if(e.pointerId!=null) (e.currentTarget as any).releasePointerCapture?.(e.pointerId);}catch{}}}
-            onTouchStart={e => { e.stopPropagation(); api.fireUsluk(); }}
+            onPointerDown={e => { e.stopPropagation(); try{ if(e.pointerId!=null) (e.currentTarget as any).setPointerCapture?.(e.pointerId); }catch{} api.setUslukHeld(true); api.fireUsluk(); }}
+            onPointerUp={e => { e.stopPropagation(); try{ if(e.pointerId!=null) (e.currentTarget as any).releasePointerCapture?.(e.pointerId);}catch{} api.setUslukHeld(false); }}
+            onPointerCancel={e => { api.setUslukHeld(false); }}
+            onPointerLeave={e => { api.setUslukHeld(false); }}
+            onTouchStart={e => { e.stopPropagation(); api.setUslukHeld(true); api.fireUsluk(); }}
+            onTouchEnd={e => { e.stopPropagation(); api.setUslukHeld(false); }}
             onClick={e => { e.stopPropagation(); api.fireUsluk(); }}
             className="flex-1 rounded-xl h-[48px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all select-none overflow-hidden pointer-events-auto"
             style={s.uslukCharge >= 100
