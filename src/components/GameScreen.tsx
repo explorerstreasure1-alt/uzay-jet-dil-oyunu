@@ -814,14 +814,16 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
         {/* USLUK — Canlı Ok özel güç (basılı tut) */}
         <div className="mb-2 flex items-center gap-2">
           <button
-            onPointerDown={e => { try{ if(e.pointerId!=null) (e.currentTarget as any).setPointerCapture?.(e.pointerId); }catch{} api.fireUsluk(); }}
-            onPointerUp={e => { try{ if(e.pointerId!=null) (e.currentTarget as any).releasePointerCapture?.(e.pointerId);}catch{}}}
-            className="flex-1 rounded-xl h-[44px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all touch-none select-none overflow-hidden"
+            onPointerDown={e => { e.stopPropagation(); try{ if(e.pointerId!=null) (e.currentTarget as any).setPointerCapture?.(e.pointerId); }catch{} api.fireUsluk(); }}
+            onPointerUp={e => { e.stopPropagation(); try{ if(e.pointerId!=null) (e.currentTarget as any).releasePointerCapture?.(e.pointerId);}catch{}}}
+            onTouchStart={e => { e.stopPropagation(); api.fireUsluk(); }}
+            onClick={e => { e.stopPropagation(); api.fireUsluk(); }}
+            className="flex-1 rounded-xl h-[48px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all select-none overflow-hidden pointer-events-auto"
             style={s.uslukCharge >= 100
-              ? { background: 'linear-gradient(135deg, rgba(255,107,255,0.32), rgba(0,212,255,0.24))', border: '1.5px solid #ff6bff', boxShadow: '0 0 18px rgba(255,107,255,0.55)', animation: s.uslukArrow?.active ? undefined : 'pulse 0.85s infinite' }
+              ? { background: 'linear-gradient(135deg, rgba(255,107,255,0.32), rgba(0,212,255,0.24))', border: '1.5px solid #ff6bff', boxShadow: '0 0 18px rgba(255,107,255,0.55)', animation: s.uslukArrow?.active ? undefined : 'pulse 0.85s infinite', touchAction: 'manipulation' } as any
               : s.uslukArrow?.active
-                ? { background: 'rgba(255,107,255,0.18)', border: '1px solid #ff6bff', boxShadow: '0 0 12px rgba(255,107,255,0.35)' }
-                : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                ? { background: 'rgba(255,107,255,0.18)', border: '1px solid #ff6bff', boxShadow: '0 0 12px rgba(255,107,255,0.35)', touchAction: 'manipulation' } as any
+                : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', touchAction: 'manipulation' } as any}>
             <span className="text-[16px] leading-none" style={{ filter: s.uslukCharge >= 100 ? 'drop-shadow(0 0 6px #ff6bff)' : undefined }}>{s.uslukArrow?.active ? '🏹' : '🏹'}</span>
             <span className="font-orbitron text-[11px] font-black tracking-[0.18em]" style={{ color: s.uslukCharge >= 100 ? '#ffd6ff' : s.uslukArrow?.active ? '#ffb3ff' : 'rgba(255,255,255,0.45)', textShadow: s.uslukCharge >= 100 ? '0 0 8px #ff6bff' : 'none' }}>
               {s.uslukArrow?.active ? 'CANLI OK UÇUYOR…' : s.uslukCharge >= 100 ? 'USLUK — BASILI TUT!' : `USLUK ${Math.floor(s.uslukCharge)}%`}
