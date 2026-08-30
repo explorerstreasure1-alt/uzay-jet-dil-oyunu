@@ -66,7 +66,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0, runCorrect: 0, runWrong: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, uslukCharge: 0, uslukArrow: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, uslukCharge: 55, uslukArrow: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -510,12 +510,16 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   const fireUsluk = useCallback(() => {
     const s = ref.current;
-    if (s.phase !== 'playing' || s.uslukCharge < 100) return false;
+    if (s.phase !== 'playing') return false;
     if (s.uslukArrow?.active) return false;
+    if (s.uslukCharge < 100) {
+      s.floats.push({ id: uid(), x: VW/2, y: 300, text: `⏳ USLUK DOLUYOR %${Math.floor(s.uslukCharge)} — ${Math.ceil((100 - s.uslukCharge)/13)}sn`, color: '#ffd166', life: 1.1, vy: -0.4 });
+      audio.tick(); sync(); return false;
+    }
     s.uslukCharge = 0;
-    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -56, active: true, trail: [] };
-    s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK UYANDI — USLUK!', color: '#ff6bff', life: 1.5, vy: -0.55 });
-    s.flash = { color: '#ff6bff', t: 0.32 };
+    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -38, active: true, trail: [] };
+    s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK UYANDI — USLUK!', color: '#ff6bff', life: 1.6, vy: -0.55 });
+    s.flash = { color: '#ff6bff', t: 0.36 };
     // fantastik usluk ıslığı — nefesli, titrek, çift ton (dizi ıslığı gibi)
     audio.combo(); audio.correct();
     try {
