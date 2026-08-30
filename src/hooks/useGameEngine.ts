@@ -854,41 +854,41 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       arr.x += arr.vx * dt;
       arr.y += arr.vy * dt;
       arr.x = Math.max(10, Math.min(VW - 10, arr.x));
-      // delip geçme — sadece gidişte, dönüşte değil
-      if (!arr.returning) {
-        const hitIds: string[] = [];
-        for (const a of s.aliens) {
-          if (a.dead) continue;
-          const inX = arr.x >= a.laneX - 6 && arr.x < a.laneX + a.laneW + 6;
-          const inY = arr.y >= a.y - 14 && arr.y <= a.y + HIT_H + 14;
-          if (inX && inY) hitIds.push(a.id);
-        }
-        if (hitIds.length) {
-          for (const hid of hitIds) {
-            const a = s.aliens.find(x => x.id === hid);
-            if (!a) continue;
-            const isT = a.isTarget;
-            const cx = a.drawX, cy = a.y + SPRITE_H / 2;
-            const cols = ['#ff3b5c', '#ff9500', '#ffd166', '#00ffa3', '#00d4ff', '#9d4edd'];
-            const col = cols[Math.floor(Math.random() * cols.length)];
-            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 7, maxRadius: a.isBoss ? 116 : 74, opacity: 1, color: isT ? '#ffd166' : col, isChain: false });
-            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 3, maxRadius: 38, opacity: 0.92, color: '#ffffff', isChain: true });
-            if (isT) {
-              s.score += 180; s.combo += 1; s.bestCombo = Math.max(s.bestCombo, s.combo); s.runCorrect += 1;
-              heatRef.current = applyResult(heatRef.current, a.word.id, true);
-              statsRef.current = bumpStreak({ ...statsRef.current, totalCorrect: statsRef.current.totalCorrect + 1, bossesKilled: statsRef.current.bossesKilled + (a.isBoss ? 1 : 0) }, 1);
-              s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
-              s.flash = { color: '#ffd166', t: 0.38 };
-            } else {
-              s.score += 46; s.floats.push({ id: uid(), x: cx, y: a.y - 2, text: '+46 OK', color: col, life: 0.9, vy: -0.9 });
-            }
-            audio.tick();
+      // delip geçme — her zaman (Yaka gidiş ve dönüşte deler, yaklaşanı önce)
+      const hitIds: string[] = [];
+      for (const a of s.aliens) {
+        if (a.dead) continue;
+        const inX = arr.x >= a.laneX - 10 && arr.x < a.laneX + a.laneW + 10;
+        const inY = arr.y >= a.y - 18 && arr.y <= a.y + HIT_H + 18;
+        if (inX && inY) hitIds.push(a.id);
+      }
+      if (hitIds.length) {
+        for (const hid of hitIds) {
+          const a = s.aliens.find(x => x.id === hid);
+          if (!a) continue;
+          const isT = a.isTarget;
+          const cx = a.drawX, cy = a.y + SPRITE_H / 2;
+          const cols = ['#ff3b5c', '#ff9500', '#ffd166', '#00ffa3', '#00d4ff', '#9d4edd'];
+          const col = cols[Math.floor(Math.random() * cols.length)];
+          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 7, maxRadius: a.isBoss ? 116 : 74, opacity: 1, color: isT ? '#ffd166' : col, isChain: false });
+          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 3, maxRadius: 38, opacity: 0.92, color: '#ffffff', isChain: true });
+          if (isT) {
+            s.score += 180; s.combo += 1; s.bestCombo = Math.max(s.bestCombo, s.combo); s.runCorrect += 1;
+            heatRef.current = applyResult(heatRef.current, a.word.id, true);
+            statsRef.current = bumpStreak({ ...statsRef.current, totalCorrect: statsRef.current.totalCorrect + 1, bossesKilled: statsRef.current.bossesKilled + (a.isBoss ? 1 : 0) }, 1);
+            s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
+            s.flash = { color: '#ffd166', t: 0.38 };
+          } else {
+            s.score += 46; s.floats.push({ id: uid(), x: cx, y: a.y - 2, text: '+46 OK', color: col, life: 0.9, vy: -0.9 });
           }
-          s.aliens = s.aliens.filter(a => !hitIds.includes(a.id));
-          s.shake = Math.max(s.shake, 2.4);
+          audio.tick();
         }
+        s.aliens = s.aliens.filter(a => !hitIds.includes(a.id));
+        s.shake = Math.max(s.shake, 2.4);
+      }
+      if (!arr.returning) {
         // süre doldu mu? yoksa etrafta dolanmaya devam — kaybolma yok
-        if (!arr.returning && arr.timeLeft <= 0) {
+        if (arr.timeLeft <= 0) {
           arr.returning = true;
           arr.vy = 28;
           s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 SÜRE DOLDU — DÖNÜYOR!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
