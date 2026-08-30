@@ -513,18 +513,48 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.phase !== 'playing' || s.uslukCharge < 100) return false;
     if (s.uslukArrow?.active) return false;
     s.uslukCharge = 0;
-    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -68, active: true, trail: [] };
-    s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK — USLUK ÇALDI!', color: '#ff6bff', life: 1.4, vy: -0.5 });
-    s.flash = { color: '#ff6bff', t: 0.28 };
-    // usluk ıslığı: tiz sweep
+    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -56, active: true, trail: [] };
+    s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK UYANDI — USLUK!', color: '#ff6bff', life: 1.5, vy: -0.55 });
+    s.flash = { color: '#ff6bff', t: 0.32 };
+    // fantastik usluk ıslığı — nefesli, titrek, çift ton (dizi ıslığı gibi)
     audio.combo(); audio.correct();
     try {
       const ctx: any = (audio as any).ctx;
-      if (ctx) {
-        const o = ctx.createOscillator(); const g = ctx.createGain();
-        o.type = 'sine'; o.frequency.setValueAtTime(1800, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.45);
-        g.gain.setValueAtTime(0.14, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
-        o.connect(g); g.connect((audio as any).sfx ?? ctx.destination); o.start(); o.stop(ctx.currentTime + 0.52);
+      const sfx: any = (audio as any).sfx;
+      if (ctx && sfx) {
+        const t0 = ctx.currentTime;
+        // ana ıslık: 1680 -> 620, hafif vibrato (6Hz)
+        for (let i = 0; i < 2; i++) {
+          const o = ctx.createOscillator(); const g = ctx.createGain();
+          o.type = i === 0 ? 'sine' : 'triangle';
+          const base = i === 0 ? 1680 : 3360;
+          const target = i === 0 ? 620 : 1240;
+          o.frequency.setValueAtTime(base, t0);
+          // vibrato noktaları
+          o.frequency.setValueAtTime(base * 1.018, t0 + 0.08);
+          o.frequency.setValueAtTime(base * 0.985, t0 + 0.16);
+          o.frequency.setValueAtTime(base * 1.012, t0 + 0.24);
+          o.frequency.exponentialRampToValueAtTime(target, t0 + 0.58);
+          g.gain.setValueAtTime(i === 0 ? 0.16 : 0.055, t0);
+          g.gain.linearRampToValueAtTime(i === 0 ? 0.13 : 0.045, t0 + 0.32);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.62);
+          // hafif nefes için bandpass gürültü
+          if (i === 0) {
+            const buf: any = (audio as any).noiseBuf;
+            if (buf) {
+              const src = ctx.createBufferSource(); src.buffer = buf;
+              const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.9;
+              const ng = ctx.createGain(); ng.gain.setValueAtTime(0.028, t0); ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.38);
+              src.connect(bp); bp.connect(ng); ng.connect(sfx); src.start(t0); src.stop(t0 + 0.40);
+            }
+          }
+          o.connect(g); g.connect(sfx); o.start(t0 + i * 0.015); o.stop(t0 + 0.64);
+        }
+        // yankı kuyruğu
+        const echo = ctx.createOscillator(); const eg = ctx.createGain();
+        echo.type = 'sine'; echo.frequency.setValueAtTime(620, t0 + 0.58); echo.frequency.linearRampToValueAtTime(520, t0 + 0.85);
+        eg.gain.setValueAtTime(0.06, t0 + 0.58); eg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.92);
+        echo.connect(eg); eg.connect(sfx); echo.start(t0 + 0.58); echo.stop(t0 + 0.95);
       }
     } catch {}
     haptic('boss', setRef.current.haptics); sync(); return true;
@@ -751,28 +781,32 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       for (const w of s.wingmen) w.cooldown = Math.max(w.cooldown, 10);
     }
 
-    // ── Canlı Ok (Usluk) — basılı tutunca gökkuşağı iz bırakarak tüm düşmanların içinden geçer
+    // ── Canlı Ok (Usluk) — fantastik, yılan gibi kıvrılarak ne var ne yok deler
     if (s.uslukArrow?.active) {
       const arr = s.uslukArrow;
       arr.trail.push({ x: arr.x, y: arr.y });
-      if (arr.trail.length > 14) arr.trail.shift();
-      // homing: önündeki en yakın düşmana yönel
+      if (arr.trail.length > 18) arr.trail.shift();
+      // yılan kıvrılması + homing
+      const wiggle = Math.sin(s.gameTime * 0.045 + arr.y * 0.018) * 1.35;
+      arr.vx += wiggle * 0.52 * dt;
       const all = s.aliens.filter(a => !a.dead);
       if (all.length) {
         let best: typeof all[0] | null = null;
         let bestD = Infinity;
         for (const a of all) {
           const dy = a.y - arr.y;
-          if (dy < -14 && dy > -280) {
-            const d = Math.abs(a.drawX - arr.x) + Math.abs(dy) * 0.22;
+          if (dy < -12 && dy > -320) {
+            const d = Math.abs(a.drawX - arr.x) + Math.abs(dy) * 0.18;
             if (d < bestD) { bestD = d; best = a; }
           }
         }
         if (best) {
           const tx = best.drawX - arr.x;
-          arr.vx += Math.max(-3.2, Math.min(3.2, tx * 0.055)) * dt;
-          arr.vx *= Math.pow(0.90, dt);
+          arr.vx += Math.max(-3.6, Math.min(3.6, tx * 0.062)) * dt;
+          arr.vx *= Math.pow(0.88, dt);
         }
+      } else {
+        arr.vx *= Math.pow(0.92, dt);
       }
       arr.x += arr.vx * dt;
       arr.y += arr.vy * dt;
