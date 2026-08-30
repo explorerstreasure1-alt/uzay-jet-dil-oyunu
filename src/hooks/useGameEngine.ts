@@ -836,9 +836,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         let bestD = Infinity;
         for (const a of all) {
           const dy = a.y - arr.y;
-          if (dy < -10 && dy > -360) {
-            const danger = FLOOR_Y - a.y; // küçük = yakında, çok tehlikeli
-            const d = Math.abs(a.drawX - arr.x) * 0.32 + danger * 0.38 + Math.abs(dy) * 0.06;
+          if (dy < -8 && dy > -380) {
+            const danger = FLOOR_Y - a.y;
+            const d = Math.abs(a.drawX - arr.x) * 0.22 + danger * 0.52 + Math.abs(dy) * 0.04;
             if (d < bestD) { bestD = d; best = a; }
           }
         }
@@ -848,13 +848,13 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           arr.vx *= Math.pow(0.86, dt);
         }
       } else {
-        // boşta harb alanında devriye — tam ortada, yukarıda dolan (götünde değil)
-        const patrolX = VW / 2 + Math.sin(s.gameTime * 0.012) * 140;
-        const patrolY = 180 + Math.sin(s.gameTime * 0.008) * 38;
-        arr.vx += (patrolX - arr.x) * 0.018 * dt;
-        arr.vy += (patrolY - arr.y) * 0.018 * dt;
-        arr.vx *= Math.pow(0.92, dt);
-        arr.vy *= Math.pow(0.92, dt);
+        // boşta harb devriyesi — ekranın her yerinde, tam ortada dolan
+        const patrolX = VW / 2 + Math.sin(s.gameTime * 0.011) * 165;
+        const patrolY = 190 + Math.sin(s.gameTime * 0.007) * 52;
+        arr.vx += (patrolX - arr.x) * 0.026 * dt;
+        arr.vy += (patrolY - arr.y) * 0.026 * dt;
+        arr.vx *= Math.pow(0.90, dt);
+        arr.vy *= Math.pow(0.90, dt);
       }
       arr.x += arr.vx * dt;
       arr.y += arr.vy * dt;
