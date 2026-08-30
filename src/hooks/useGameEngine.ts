@@ -10,8 +10,8 @@ import { audio, haptic } from '../lib/audio';
 
 export const VW = 400;
 export const VH = 760;
-export const SHIP_Y = 622;
-export const FLOOR_Y = 566;
+export const SHIP_Y = 542;
+export const FLOOR_Y = 488;
 const SPRITE_H = 40;
 const PLATE_H = 18;
 const HIT_H = SPRITE_H + PLATE_H + 6;
