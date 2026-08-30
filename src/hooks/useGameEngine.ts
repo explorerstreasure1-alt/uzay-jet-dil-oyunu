@@ -826,10 +826,24 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       arr.trail.push({ x: arr.x, y: arr.y });
       if (arr.trail.length > 22) arr.trail.shift();
       if (!arr.returning) arr.timeLeft -= dt * 16.667;
-      // SIFIRDAN, SORUNSUZ: düz yukarı süzül + hafif yılan, her hizadaki düşmanı deler
+      // SIFIRDAN, SORUNSUZ: kırmızı sınıra kadar süzül, yaklaşanı del
+      // en tehlikeli (yeri en aşağı) düşmana doğru y'de de homing
+      const _allY = s.aliens.filter(a => !a.dead);
+      if (_allY.length) {
+        let _bestY = _allY[0];
+        let _bestDist = FLOOR_Y - _bestY.y;
+        for (const _a of _allY) {
+          const d = FLOOR_Y - _a.y;
+          if (d < _bestDist) { _bestDist = d; _bestY = _a; }
+        }
+        const ty = _bestY.y + 18;
+        arr.vy += (ty - arr.y) * 0.042 * dt;
+        arr.vy = Math.max(-54, Math.min(38, arr.vy));
+      }
       arr.x += Math.sin(s.gameTime * 0.06) * 0.9 * dt;
       arr.y += arr.vy * dt;
       arr.x = Math.max(12, Math.min(VW - 12, arr.x));
+      arr.y = Math.max(40, Math.min(FLOOR_Y + 18, arr.y));
       // delip geçme — SORUNSUZ: yatay ışın gibi, aynı hizadaki her canavarı deler
       const hitIds: string[] = [];
       for (const a of s.aliens) {
@@ -862,15 +876,10 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         s.shake = Math.max(s.shake, 2.4);
       }
       if (!arr.returning) {
-        // harb alanında dolan — tepeye kaçma, 80-320 bandında kal
-        if (!arr.returning) {
-          if (arr.y < 80) { arr.y = 80; arr.vy = Math.abs(arr.vy) * 0.32 + 2; arr.vx += (Math.random() - 0.5) * 5; }
-          if (arr.y > 340) { arr.y = 340; arr.vy = -Math.abs(arr.vy) * 0.32 - 2; }
-          if (arr.timeLeft <= 0) {
-            arr.returning = true;
-            arr.vy = 28;
-            s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 SÜRE DOLDU — DÖNÜYOR!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
-          }
+        if ((arr as any).timeLeft != null && (arr as any).timeLeft <= 0) {
+          arr.returning = true;
+          arr.vy = 28;
+          s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 SÜRE DOLDU — DÖNÜYOR!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
         }
       } else {
         // dönüş — hızlıca gemiye, kısa yörünge sonra takıl
