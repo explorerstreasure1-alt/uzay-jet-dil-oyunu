@@ -773,6 +773,19 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
       )}
 
       <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} />
+      {/* Yaka geri sayım — sağda */}
+      {s.uslukArrow?.active && (
+        <div className="absolute right-1.5 top-[140px] z-30 pointer-events-none">
+          <div className="glass rounded-xl px-2.5 py-2 text-center" style={{ border: '1px solid #ff1a1a', boxShadow: '0 0 12px rgba(255,26,26,0.42)' }}>
+            <div className="font-mono-tech text-[6px] tracking-[0.22em] text-[#ff6bff]">YAKA</div>
+            <div className="font-orbitron text-[18px] font-black leading-none" style={{ color: '#ff1a1a', textShadow: '0 0 8px #ff1a1a' }}>{Math.ceil(s.uslukArrow.timeLeft / 1000)}s</div>
+            <div className="w-[52px] h-[4px] rounded-full bg-white/10 overflow-hidden mt-1">
+              <div className="h-full rounded-full" style={{ width: `${(s.uslukArrow.timeLeft / 30000) * 100}%`, background: 'linear-gradient(90deg, #ff1a1a, #ff6bff)', boxShadow: '0 0 6px #ff1a1a' }} />
+            </div>
+            <div className="font-mono-tech text-[5px] tracking-[0.1em] text-white/35 mt-1">{s.uslukArrow.returning ? 'DÖNÜYOR' : 'DELİYOR'}</div>
+          </div>
+        </div>
+      )}
 
       {/* ══ prompt bar + controls ══ */}
       <div className="absolute bottom-0 left-0 right-0 z-30 px-2.5 pb-3 pt-6"

@@ -529,7 +529,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const power = Math.min(100, s.uslukCharge);
     s.uslukCharge = Math.max(0, s.uslukCharge - 72);
     const vy = -34 - (power / 100) * 10;
-    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy, active: true, trail: [], returning: false, orbitT: 0, timeLeft: 7000 };
+    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy, active: true, trail: [], returning: false, orbitT: 0, timeLeft: 30000 };
     s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK UYANDI — USLUK!', color: '#ff6bff', life: 1.6, vy: -0.55 });
     s.flash = { color: '#ff6bff', t: 0.36 };
     // fantastik usluk ıslığı — nefesli, titrek, çift ton (dizi ıslığı gibi)
@@ -693,7 +693,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       s.uslukCharge = Math.min(100, s.uslukCharge + gain);
       if (uslukHeldRef.current && s.uslukCharge >= 100) {
         s.uslukCharge = 0;
-        s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -48, active: true, trail: [], returning: false, orbitT: 0, timeLeft: 7000 };
+        s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -48, active: true, trail: [], returning: false, orbitT: 0, timeLeft: 30000 };
         s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 YAKA OKU FIRLADI!', color: '#ff1a1a', life: 1.4, vy: -0.5 });
         s.flash = { color: '#ff1a1a', t: 0.30 };
         audio.combo();
