@@ -682,11 +682,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.speechNudge > 0) s.speechNudge -= dt;
     // Usluk şarjı — combo hızlandırır, ~7sn'de dolu; basılı tutarken dolunca otomatik fırlar
     if (!s.uslukArrow?.active) {
-      const gain = 0.22 * dt + (s.combo >= 3 ? 0.14 * dt : 0) + (s.frenzy ? 0.12 * dt : 0);
+      const gain = 0.26 * dt + (s.combo >= 3 ? 0.16 * dt : 0) + (s.frenzy ? 0.14 * dt : 0);
       s.uslukCharge = Math.min(100, s.uslukCharge + gain);
       if (uslukHeldRef.current && s.uslukCharge >= 100) {
-    s.uslukCharge = 0;
-    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -38, active: true, trail: [], returning: false, orbitT: 0 };
+        s.uslukCharge = 0;
+        s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -48, active: true, trail: [], returning: false, orbitT: 0 };
         s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 YAKA OKU FIRLADI!', color: '#ff1a1a', life: 1.4, vy: -0.5 });
         s.flash = { color: '#ff1a1a', t: 0.30 };
         audio.combo();
@@ -829,8 +829,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         let bestD = Infinity;
         for (const a of all) {
           const dy = a.y - arr.y;
-          if (dy < -10 && dy > -340) {
-            const d = Math.abs(a.drawX - arr.x) + Math.abs(dy) * 0.16;
+          if (dy < -10 && dy > -360) {
+            const danger = FLOOR_Y - a.y; // küçük = yakında, çok tehlikeli
+            const d = Math.abs(a.drawX - arr.x) * 0.32 + danger * 0.38 + Math.abs(dy) * 0.06;
             if (d < bestD) { bestD = d; best = a; }
           }
         }
@@ -878,34 +879,34 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           s.aliens = s.aliens.filter(a => !hitIds.includes(a.id));
           s.shake = Math.max(s.shake, 2.4);
         }
-        // gidiş bitti mi? tüm düşmanlar temizlendiyse veya tepeye vardıysa geri dön
+        // hızlı temizle: en yakındakini deler delmez geri dön
         if (arr.y < -42 || s.aliens.filter(a => !a.dead).length === 0) {
           arr.returning = true;
-          arr.vy = 18;
-          s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 GERİ DÖNÜYOR…', color: '#ff1a1a', life: 1, vy: -0.4 });
+          arr.vy = 32;
+          s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 HIZLI DÖNÜŞ!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
         }
       } else {
-        // dönüş — gemiye doğru süzül, yörüngede takıl
+        // dönüş — hızlıca gemiye, kısa yörünge sonra takıl
         const dx = s.shipX - arr.x;
         const dy = (SHIP_Y - 12) - arr.y;
-        arr.vx += dx * 0.045 * dt;
-        arr.vy += dy * 0.045 * dt;
-        arr.vx *= Math.pow(0.88, dt);
-        arr.vy *= Math.pow(0.88, dt);
+        arr.vx += dx * 0.072 * dt;
+        arr.vy += dy * 0.072 * dt;
+        arr.vx *= Math.pow(0.84, dt);
+        arr.vy *= Math.pow(0.84, dt);
         const dist = Math.hypot(dx, dy);
-        if (dist < 18) {
-          arr.orbitT += dt * 0.22;
-          if (arr.orbitT > 140) {
+        if (dist < 20) {
+          arr.orbitT += dt * 0.32;
+          if (arr.orbitT > 48) {
             s.uslukArrow = null;
-            s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 40, text: '🏹 YANINA TAKILDI', color: '#ff1a1a', life: 1.2, vy: -0.5 });
+            s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 40, text: '🏹 YANINA TAKILDI', color: '#ff1a1a', life: 1.1, vy: -0.5 });
             s.shield = true;
             audio.repair();
           } else {
-            const ang = arr.orbitT * 0.18;
-            arr.x = s.shipX + Math.cos(ang) * 22;
-            arr.y = SHIP_Y - 10 + Math.sin(ang) * 9;
-            arr.vx = -Math.sin(ang) * 4.2;
-            arr.vy = Math.cos(ang) * 2.1;
+            const ang = arr.orbitT * 0.26;
+            arr.x = s.shipX + Math.cos(ang) * 20;
+            arr.y = SHIP_Y - 10 + Math.sin(ang) * 8;
+            arr.vx = -Math.sin(ang) * 5.2;
+            arr.vy = Math.cos(ang) * 2.6;
           }
         }
         if (arr.y > VH + 40) { s.uslukArrow = null; }
