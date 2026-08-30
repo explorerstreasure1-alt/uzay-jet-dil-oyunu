@@ -513,16 +513,23 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   const fireUsluk = useCallback(() => {
     const s = ref.current;
     if (s.phase !== 'playing') return false;
-    if (s.uslukArrow?.active) return false;
+    // Geri çağırma: ok havadaysa aynı tuşla geri çağır
+    if (s.uslukArrow?.active) {
+      if (!s.uslukArrow.returning) {
+        s.uslukArrow.returning = true;
+        s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 GERİ ÇAĞRILDI — USLUK!', color: '#ff1a1a', life: 1, vy: -0.4 });
+        audio.tick(); sync();
+      }
+      return true;
+    }
     if (s.uslukCharge < 22) {
       s.floats.push({ id: uid(), x: VW/2, y: 300, text: `⏳ USLUK DOLUYOR %${Math.floor(s.uslukCharge)} — ${Math.ceil((100 - s.uslukCharge)/18)}sn`, color: '#ffd166', life: 1.1, vy: -0.4 });
       audio.tick(); sync(); return false;
     }
-    // 22% üstünde her basışta ateşler — güç şarja göre
     const power = Math.min(100, s.uslukCharge);
     s.uslukCharge = Math.max(0, s.uslukCharge - 72);
-    const vy = -34 - (power / 100) * 10; // doluysa daha hızlı
-    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy, active: true, trail: [] };
+    const vy = -34 - (power / 100) * 10;
+    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy, active: true, trail: [], returning: false, orbitT: 0, timeLeft: 7000 };
     s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK UYANDI — USLUK!', color: '#ff6bff', life: 1.6, vy: -0.55 });
     s.flash = { color: '#ff6bff', t: 0.36 };
     // fantastik usluk ıslığı — nefesli, titrek, çift ton (dizi ıslığı gibi)
@@ -686,7 +693,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       s.uslukCharge = Math.min(100, s.uslukCharge + gain);
       if (uslukHeldRef.current && s.uslukCharge >= 100) {
         s.uslukCharge = 0;
-        s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -48, active: true, trail: [], returning: false, orbitT: 0 };
+        s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -48, active: true, trail: [], returning: false, orbitT: 0, timeLeft: 7000 };
         s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 YAKA OKU FIRLADI!', color: '#ff1a1a', life: 1.4, vy: -0.5 });
         s.flash = { color: '#ff1a1a', t: 0.30 };
         audio.combo();
@@ -813,16 +820,17 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       for (const w of s.wingmen) w.cooldown = Math.max(w.cooldown, 10);
     }
 
-    // ── Yondu Yaka Oku — ıslıkla kontrol, yılan gibi kıvrılarak ne var ne yok deler
+    // ── Yondu Yaka Oku — 7sn boyunca etrafta dolanır, sonra geri döner (veya uslukla çağrılır)
     if (s.uslukArrow?.active) {
       const arr = s.uslukArrow;
       arr.trail.push({ x: arr.x, y: arr.y });
-      if (arr.trail.length > 20) arr.trail.shift();
+      if (arr.trail.length > 22) arr.trail.shift();
+      if (!arr.returning) arr.timeLeft -= dt * 16.667;
       // Yondu kontrolü: gemi nereye giderse ok oraya kıvrılır + yılan wiggle + basılı tut hover
       const shipSteer = (s.shipX - arr.x) * (uslukHeldRef.current ? 0.062 : 0.028);
       const wiggle = Math.sin(s.gameTime * 0.052 + arr.y * 0.022) * 1.45;
       arr.vx += (wiggle * 0.48 + shipSteer) * dt;
-      if (uslukHeldRef.current && arr.y > 120) arr.vy = Math.max(arr.vy, -22);
+      if (uslukHeldRef.current && arr.y > 120 && !arr.returning) arr.vy = Math.max(arr.vy, -22);
       const all = s.aliens.filter(a => !a.dead);
       if (all.length) {
         let best: typeof all[0] | null = null;
@@ -879,12 +887,14 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           s.aliens = s.aliens.filter(a => !hitIds.includes(a.id));
           s.shake = Math.max(s.shake, 2.4);
         }
-        // hızlı temizle: en yakındakini deler delmez geri dön
-        if (arr.y < -42 || s.aliens.filter(a => !a.dead).length === 0) {
+        // süre doldu mu? yoksa etrafta dolanmaya devam — kaybolma yok
+        if (!arr.returning && arr.timeLeft <= 0) {
           arr.returning = true;
-          arr.vy = 32;
-          s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 HIZLI DÖNÜŞ!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
+          arr.vy = 28;
+          s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 SÜRE DOLDU — DÖNÜYOR!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
         }
+        // tepeye vardıysa geri sekme — kaybolmadan yansıt
+        if (!arr.returning && arr.y < -36) { arr.y = -36; arr.vy = Math.abs(arr.vy) * 0.42; arr.vx += (Math.random() - 0.5) * 4; }
       } else {
         // dönüş — hızlıca gemiye, kısa yörünge sonra takıl
         const dx = s.shipX - arr.x;
