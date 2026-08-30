@@ -887,14 +887,16 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         s.shake = Math.max(s.shake, 2.4);
       }
       if (!arr.returning) {
-        // süre doldu mu? yoksa etrafta dolanmaya devam — kaybolma yok
-        if (arr.timeLeft <= 0) {
-          arr.returning = true;
-          arr.vy = 28;
-          s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 SÜRE DOLDU — DÖNÜYOR!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
+        // harb alanında dolan — tepeye kaçma, 80-320 bandında kal
+        if (!arr.returning) {
+          if (arr.y < 80) { arr.y = 80; arr.vy = Math.abs(arr.vy) * 0.32 + 2; arr.vx += (Math.random() - 0.5) * 5; }
+          if (arr.y > 340) { arr.y = 340; arr.vy = -Math.abs(arr.vy) * 0.32 - 2; }
+          if (arr.timeLeft <= 0) {
+            arr.returning = true;
+            arr.vy = 28;
+            s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 SÜRE DOLDU — DÖNÜYOR!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
+          }
         }
-        // tepeye vardıysa geri sekme — kaybolmadan yansıt
-        if (!arr.returning && arr.y < -36) { arr.y = -36; arr.vy = Math.abs(arr.vy) * 0.42; arr.vx += (Math.random() - 0.5) * 4; }
       } else {
         // dönüş — hızlıca gemiye, kısa yörünge sonra takıl
         const dx = s.shipX - arr.x;
