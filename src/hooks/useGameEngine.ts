@@ -66,7 +66,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0, runCorrect: 0, runWrong: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, uslukCharge: 0, uslukArrow: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -162,6 +162,7 @@ export interface EngineApi {
   addSpeechBonus: (pts: number) => void;
   triggerMine: () => void;
   toggleRepeat: () => void;
+  fireUsluk: () => boolean;
   fire: () => void;
   setMoveTarget: (x: number | null) => void;
   holdDir: (d: -1 | 0 | 1) => void;
@@ -507,6 +508,28 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.ui(); haptic('tap', setRef.current.haptics); sync();
   }, [sync]);
 
+  const fireUsluk = useCallback(() => {
+    const s = ref.current;
+    if (s.phase !== 'playing' || s.uslukCharge < 100) return false;
+    if (s.uslukArrow?.active) return false;
+    s.uslukCharge = 0;
+    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -68, active: true, trail: [] };
+    s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK — USLUK ÇALDI!', color: '#ff6bff', life: 1.4, vy: -0.5 });
+    s.flash = { color: '#ff6bff', t: 0.28 };
+    // usluk ıslığı: tiz sweep
+    audio.combo(); audio.correct();
+    try {
+      const ctx: any = (audio as any).ctx;
+      if (ctx) {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(1800, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.45);
+        g.gain.setValueAtTime(0.14, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
+        o.connect(g); g.connect((audio as any).sfx ?? ctx.destination); o.start(); o.stop(ctx.currentTime + 0.52);
+      }
+    } catch {}
+    haptic('boss', setRef.current.haptics); sync(); return true;
+  }, [sync]);
+
   const fire = useCallback(() => {
     const s = ref.current;
     if (s.phase !== 'playing') return;
@@ -617,6 +640,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.waveAge += dt * 16.667;
     if (s.hitCard) { s.hitCard.t -= dt * 0.011; if (s.hitCard.t <= 0) s.hitCard = null; }
     if (s.speechNudge > 0) s.speechNudge -= dt;
+    // Usluk şarjı — combo hızlandırır, ~7sn'de dolu
+    if (!s.uslukArrow?.active) {
+      const gain = 0.22 * dt + (s.combo >= 3 ? 0.14 * dt : 0) + (s.frenzy ? 0.12 * dt : 0);
+      s.uslukCharge = Math.min(100, s.uslukCharge + gain);
+    }
 
     /* ── ship: momentum + soft brake ── */
     let want = 0;
@@ -721,6 +749,70 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       }
     } else {
       for (const w of s.wingmen) w.cooldown = Math.max(w.cooldown, 10);
+    }
+
+    // ── Canlı Ok (Usluk) — basılı tutunca gökkuşağı iz bırakarak tüm düşmanların içinden geçer
+    if (s.uslukArrow?.active) {
+      const arr = s.uslukArrow;
+      arr.trail.push({ x: arr.x, y: arr.y });
+      if (arr.trail.length > 14) arr.trail.shift();
+      // homing: önündeki en yakın düşmana yönel
+      const all = s.aliens.filter(a => !a.dead);
+      if (all.length) {
+        let best: typeof all[0] | null = null;
+        let bestD = Infinity;
+        for (const a of all) {
+          const dy = a.y - arr.y;
+          if (dy < -14 && dy > -280) {
+            const d = Math.abs(a.drawX - arr.x) + Math.abs(dy) * 0.22;
+            if (d < bestD) { bestD = d; best = a; }
+          }
+        }
+        if (best) {
+          const tx = best.drawX - arr.x;
+          arr.vx += Math.max(-3.2, Math.min(3.2, tx * 0.055)) * dt;
+          arr.vx *= Math.pow(0.90, dt);
+        }
+      }
+      arr.x += arr.vx * dt;
+      arr.y += arr.vy * dt;
+      arr.x = Math.max(10, Math.min(VW - 10, arr.x));
+      // delip geçme — şerit toleranslı
+      const hitIds: string[] = [];
+      for (const a of s.aliens) {
+        if (a.dead) continue;
+        const inX = arr.x >= a.laneX - 6 && arr.x < a.laneX + a.laneW + 6;
+        const inY = arr.y >= a.y - 14 && arr.y <= a.y + HIT_H + 14;
+        if (inX && inY) hitIds.push(a.id);
+      }
+      if (hitIds.length) {
+        for (const hid of hitIds) {
+          const a = s.aliens.find(x => x.id === hid);
+          if (!a) continue;
+          const isT = a.isTarget;
+          const cx = a.drawX, cy = a.y + SPRITE_H / 2;
+          const cols = ['#ff3b5c', '#ff9500', '#ffd166', '#00ffa3', '#00d4ff', '#9d4edd'];
+          const col = cols[Math.floor(Math.random() * cols.length)];
+          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 7, maxRadius: a.isBoss ? 116 : 74, opacity: 1, color: isT ? '#ffd166' : col, isChain: false });
+          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 3, maxRadius: 38, opacity: 0.92, color: '#ffffff', isChain: true });
+          if (isT) {
+            s.score += 180; s.combo += 1; s.bestCombo = Math.max(s.bestCombo, s.combo); s.runCorrect += 1;
+            heatRef.current = applyResult(heatRef.current, a.word.id, true);
+            statsRef.current = bumpStreak({ ...statsRef.current, totalCorrect: statsRef.current.totalCorrect + 1, bossesKilled: statsRef.current.bossesKilled + (a.isBoss ? 1 : 0) }, 1);
+            s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
+            s.flash = { color: '#ffd166', t: 0.38 };
+          } else {
+            s.score += 46; s.floats.push({ id: uid(), x: cx, y: a.y - 2, text: '+46 OK', color: col, life: 0.9, vy: -0.9 });
+          }
+          audio.tick();
+        }
+        s.aliens = s.aliens.filter(a => !hitIds.includes(a.id));
+        s.shake = Math.max(s.shake, 2.4);
+      }
+      if (arr.y < -42 || (s.aliens.length === 0 && arr.y < 80)) {
+        s.uslukArrow = null;
+        s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 USLUK SÖNDÜ', color: '#ff6bff', life: 1.1, vy: -0.4 });
+      }
     }
 
     // hit-stop: doğru vuruşta 45ms donma (göz yormadan tatmin)

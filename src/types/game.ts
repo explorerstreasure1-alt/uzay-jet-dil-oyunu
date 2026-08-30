@@ -104,6 +104,8 @@ export interface GameState {
   hitCard: HitCard | null;
   speechNudge: number;
   repeatMode: boolean;
+  uslukCharge: number;
+  uslukArrow: { x: number; y: number; vx: number; vy: number; active: boolean; trail: { x: number; y: number }[] } | null;
   /** ms the current wave has been alive — drives delayed assist */
   waveAge: number;
   /** adrenalin: hedef tabana yakınken 0..1 arası tehlike seviyesi */
