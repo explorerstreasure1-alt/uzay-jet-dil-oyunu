@@ -148,6 +148,33 @@ export function MenuScreen({ api, lang, setLang, go, pwa }: {
               <span className="font-mono-tech text-[9px] tracking-[0.14em]" style={{ color: canOpen ? NEON.gold : chestOpened ? NEON.aqua : 'rgba(255,255,255,0.35)' }}>{chestOpened ? 'SANDIK AÇILDI — YARIN YENİSİ' : canOpen ? 'GÜNLÜK SANDIK AÇ! (5✓)' : `SANDIK ${Math.max(0,5-si.today)}✓ KALDI`}</span>
             </button>
             {canOpen && <div className="font-mono-tech text-[7px] text-center mt-1" style={{ color: `${NEON.gold}B3` }}>Aç → +50 bonus + nadir kelime</div>}
+            {/* Haftalık ilerleme — nereye gittiğini gör */}
+            {(() => {
+              const seen = Object.keys(api.heat).length;
+              const total = 4500;
+              const pctW = Math.min(100, (seen / total) * 100);
+              const weeklyGoal = 50;
+              const weekly = seen % weeklyGoal;
+              const weeklyPct = (weekly / weeklyGoal) * 100;
+              return (
+                <div className="mt-2.5 glass rounded-xl px-3 py-2.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono-tech text-[7px] tracking-[0.2em] text-white/35">HAFTALIK İLERLEME</span>
+                    <span className="font-mono-tech text-[7px] text-white/40">{seen}/{total} · {pctW.toFixed(1)}%</span>
+                  </div>
+                  <div className="h-[6px] rounded-full bg-white/10 overflow-hidden mb-1.5">
+                    <div className="h-full rounded-full" style={{ width: `${pctW}%`, background: `linear-gradient(90deg, ${NEON.cyan}, ${NEON.purple})`, boxShadow: `0 0 6px ${NEON.cyan}` }} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono-tech text-[6px] text-white/30">Bu hafta {weekly}/{weeklyGoal}</span>
+                    <span className="font-mono-tech text-[6px] text-white/30">{weeklyGoal - weekly} kaldı → sandık</span>
+                  </div>
+                  <div className="h-[4px] rounded-full bg-white/8 overflow-hidden mt-1">
+                    <div className="h-full rounded-full" style={{ width: `${weeklyPct}%`, background: NEON.gold }} />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         );
       })()}

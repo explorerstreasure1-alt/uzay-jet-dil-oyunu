@@ -138,7 +138,7 @@ function Plates({ s, hintId, lockedId }: { s: GameState; hintId: string | null; 
 }
 
 /* ══════════ ship — karizmatik interceptor ══════════ */
-function Ship({ x, over, shield, vx, t }: { x: number; over: boolean; shield: boolean; vx: number; t: number }) {
+function Ship({ x, over, shield, vx, t, reduceMotion }: { x: number; over: boolean; shield: boolean; vx: number; t: number; reduceMotion?: boolean }) {
   const c1 = over ? '#e0a6ff' : '#00e5ff';
   const c2 = over ? '#ff2ea6' : '#0066ff';
   const accent = over ? '#ffb3ff' : '#7af7ff';
@@ -157,7 +157,7 @@ function Ship({ x, over, shield, vx, t }: { x: number; over: boolean; shield: bo
         </g>
       ))}
 
-      {over && (
+      {over && !reduceMotion && (
         <>
           <circle r={42} fill="none" stroke="#e0a6ff" strokeWidth="1.1" opacity="0.45" strokeDasharray="8 6">
             <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="2.8s" repeatCount="indefinite" />
@@ -165,9 +165,10 @@ function Ship({ x, over, shield, vx, t }: { x: number; over: boolean; shield: bo
           <circle r={30} fill="none" stroke="#ff2ea6" strokeWidth="0.8" opacity="0.35" strokeDasharray="4 8">
             <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="4s" repeatCount="indefinite" />
           </circle>
-          <circle r={24} fill="#e0a6ff" opacity={0.07} />
+          <circle r={24} fill="#e0a6ff" opacity="0.07" />
         </>
       )}
+      {over && reduceMotion && <circle r={28} fill="none" stroke="#e0a6ff" strokeWidth="1" opacity="0.25" />}
 
       {shield && (
         <g opacity="0.9" style={{ filter: 'drop-shadow(0 0 14px #7af7ff)' }}>
@@ -252,16 +253,16 @@ function Ship({ x, over, shield, vx, t }: { x: number; over: boolean; shield: bo
   );
 }
 
-function Wingman({ x, y, side, t }: { x: number; y: number; side: -1 | 1; t: number }) {
-  const bob = Math.sin(t * 0.01 + (side === -1 ? 0 : 2.1)) * 1.2;
+function Wingman({ x, y, side, t, reduceMotion }: { x: number; y: number; side: -1 | 1; t: number; reduceMotion?: boolean }) {
+  const bob = reduceMotion ? 0 : Math.sin(t * 0.01 + (side === -1 ? 0 : 2.1)) * 1.2;
   return (
     <g transform={`translate(${x}, ${y + bob})`}>
       {/* drone gölgesi */}
-      <ellipse cx="0" cy="10" rx="10" ry="2" fill="#00e5ff" opacity="0.06" />
+      <ellipse cx="0" cy="10" rx="10" ry="2" fill="#00e5ff" opacity={reduceMotion ? 0.03 : 0.06} />
       {/* mini egzoz — hafif gölge */}
-      <g style={{ filter: 'drop-shadow(0 0 3px #7af7ff)' }}>
+      <g style={{ filter: reduceMotion ? undefined : 'drop-shadow(0 0 3px #7af7ff)' }}>
         <path d="M-3,6 C-2,9 -1,11 0,13 C1,11 2,9 3,6 Z" fill="#00ffcc" opacity="0.85">
-          <animate attributeName="opacity" values="0.9;0.5;0.9" dur="0.14s" repeatCount="indefinite" />
+          {!reduceMotion && <animate attributeName="opacity" values="0.9;0.5;0.9" dur="0.14s" repeatCount="indefinite" />}
         </path>
         <path d="M-1.5,6 C-1,8 -0.5,9 0,10 C0.5,9 1,8 1.5,6 Z" fill="#ffffff" opacity="0.9" />
       </g>
@@ -276,12 +277,12 @@ function Wingman({ x, y, side, t }: { x: number; y: number; side: -1 | 1; t: num
         <circle cx="-9.5" cy="1.5" r="1" fill="#00ffcc" opacity="0.9" />
         <circle cx="9.5" cy="1.5" r="1" fill="#00ffcc" opacity="0.9" />
         <circle cx="0" cy="0" r="1.8" fill="#061a2e" stroke="#7af7ff" strokeWidth="0.7" />
-        <circle cx="0" cy="0" r="0.9" fill="#ff3b5c" opacity="0.95">
-          <animate attributeName="opacity" values="1;0.35;1" dur="0.6s" repeatCount="indefinite" />
+        <circle cx="0" cy="0" r="0.9" fill="#ff3b5c" opacity={reduceMotion ? 0.7 : 0.95}>
+          {!reduceMotion && <animate attributeName="opacity" values="1;0.35;1" dur="0.6s" repeatCount="indefinite" />}
         </circle>
       </g>
       {/* formation ışını — ana gemiye bağlı */}
-      <line x1={side * -14} y1={-2} x2={side * -26} y2={-6} stroke="#7af7ff" strokeWidth="0.7" opacity="0.28" strokeDasharray="3 4" />
+      <line x1={side * -14} y1={-2} x2={side * -26} y2={-6} stroke="#7af7ff" strokeWidth="0.7" opacity={reduceMotion ? 0.14 : 0.28} strokeDasharray="3 4" />
     </g>
   );
 }
@@ -617,8 +618,8 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
             )}
 
             {/* wingmen — iki yancı drone */}
-            {s.wingmen.map(w => <Wingman key={w.id} x={w.x} y={w.y} side={w.side} t={s.gameTime} />)}
-            <Ship x={s.shipX} over={s.overcharged} shield={s.shield} vx={s.shipVx} t={s.gameTime} />
+            {s.wingmen.map(w => <Wingman key={w.id} x={w.x} y={w.y} side={w.side} t={s.gameTime} reduceMotion={api.settings.reduceMotion} />)}
+            <Ship x={s.shipX} over={s.overcharged} shield={s.shield} vx={s.shipVx} t={s.gameTime} reduceMotion={api.settings.reduceMotion} />
           </svg>
 
           <Plates s={s} hintId={api.hintId} lockedId={api.lockedId} />
