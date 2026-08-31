@@ -742,15 +742,14 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               border: `1.3px solid ${onTarget ? '#00ff9d' : meta.core}`,
               boxShadow: `0 0 12px ${onTarget ? 'rgba(0,255,157,0.4)' : `${meta.glow}44`}`,
             }}>
-            <div className="font-mono-tech text-[7px] tracking-[0.26em] text-white/38">{s.isCloze ? 'CÜMLE — BOŞLUĞU DOLDUR' : 'BUNU VUR'}</div>
+            <div className="font-mono-tech text-[7px] tracking-[0.26em] text-white/38">BUNU VUR</div>
             <div className="font-orbitron font-black leading-tight truncate"
               style={{
-                fontSize: s.isCloze ? 13 : (s.targetWord?.native.length ?? 0) > 22 ? 13 : (s.targetWord?.native.length ?? 0) > 15 ? 15 : 18,
+                fontSize: (s.targetWord?.native.length ?? 0) > 22 ? 13 : (s.targetWord?.native.length ?? 0) > 15 ? 15 : 18,
                 color: '#ffffff', textShadow: `0 0 9px ${onTarget ? '#00ff9d' : meta.glow}`,
               }}>
-              {s.isCloze ? (s.cloze?.native ?? s.targetWord?.native ?? '—') : (s.targetWord?.native ?? '—')}
+              {s.targetWord?.native ?? '—'}
             </div>
-            {s.isCloze && s.cloze?.foreign && <div className="font-mono-tech text-[9px] text-white/45 truncate mt-0.5">{s.cloze.foreign}</div>}
           </div>
           <button onPointerDown={api.replay}
             className="glass rounded-xl w-[52px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none">

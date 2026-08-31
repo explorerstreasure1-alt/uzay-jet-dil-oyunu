@@ -341,7 +341,6 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack }: {
 }) {
   const [lv, setLv] = useState<CEFRLevel>('A1');
   const [cat, setCat] = useState<CategoryId>('all');
-  const [cloze, setCloze] = useState(false);
   const words = useMemo(() => getWords(lang, lv, cat, api.customWords), [lang, lv, cat, api.customWords]);
   const bd = useMemo(() => heatBreakdown(getWords(lang, lv, 'all', api.customWords), api.heat), [lang, lv, api.heat, api.customWords]);
   const rs = useMemo(() => reviewSummary(words, api.heat), [words, api.heat]);
@@ -397,14 +396,6 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack }: {
         })}
       </div>
 
-      <button onClick={() => { setCloze(!cloze); audio.ui(); }} className="w-full glass rounded-lg px-3 py-2.5 mb-3 flex items-center justify-between active:scale-95 transition-all">
-        <div>
-          <div className="font-mono-tech text-[9px] tracking-[0.12em] text-white/80">CÜMLE MODU (CLOZE)</div>
-          <div className="font-mono-tech text-[7px] text-white/30">Boşluğu doldur — bağlamda öğren</div>
-        </div>
-        <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${cloze ? 'bg-[#00d4ff]' : 'bg-white/10'}`}><div className={`w-4 h-4 rounded-full bg-white transition-transform ${cloze ? 'translate-x-5' : ''}`} /></div>
-      </button>
-
       <div className="glass rounded-xl px-3 py-2.5 mb-3">
         <div className="flex justify-between items-center mb-2">
           <span className="font-mono-tech text-[8px] tracking-[0.24em] text-white/35">SEÇİLİ HAVUZ</span>
@@ -448,10 +439,10 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack }: {
         </div>
       )}
 
-      <button disabled={words.length < 4} onClick={() => onStart(lang, lv, cat, cloze)}
+      <button disabled={words.length < 4} onClick={() => onStart(lang, lv, cat, false)}
         className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform disabled:opacity-35"
-        style={{ background: cloze ? 'linear-gradient(135deg, rgba(199,125,255,0.32), rgba(0,212,255,0.18))' : 'linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,102,255,0.16))', border: `1px solid ${cloze ? '#c77dff' : '#00d4ff'}`, boxShadow: `0 0 20px ${cloze ? 'rgba(199,125,255,0.4)' : 'rgba(0,212,255,0.4)'}` }}>
-        <span className="font-orbitron text-[15px] font-black tracking-[0.28em] text-[#e6faff]">{cloze ? 'CÜMLE MODU — BAŞLAT' : 'SAVAŞA GİR'}</span>
+        style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,102,255,0.16))', border: `1px solid #00d4ff`, boxShadow: `0 0 20px rgba(0,212,255,0.4)` }}>
+        <span className="font-orbitron text-[15px] font-black tracking-[0.28em] text-[#e6faff]">SAVAŞA GİR</span>
       </button>
     </Shell>
   );

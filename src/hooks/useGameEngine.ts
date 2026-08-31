@@ -241,7 +241,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (isFrenzy) lanes = Math.min(5, Math.max(4, pool.length));
 
     const getCnt = (id: string) => sessionCountsRef.current.get(id) ?? 0;
-    const isRepeat = (ref.current as any).repeatMode;
+    const isRepeat = s.repeatMode;
     const maxRep = isRepeat ? 5 : 2;
     // pekiştirme modunda her kelime aralıklı tekrar — limit 5, yoksa taze mod 2
     let available = pool.filter(w => getCnt(w.id) < maxRep);
@@ -250,8 +250,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       available = pool;
     }
     if (available.length < 2 && wrongFilterRef.current) available = pool;
-    // pekiştirme modunda ice/amber öncelikli havuzu daralt
-    if (isRepeat) {
+    // pekiştirme modunda ice/amber öncelikli havuzu daralt — yanlış defterinde daraltma yapma
+    if (isRepeat && !wrongFilterRef.current) {
       const need = available.filter(w => heatOf(heatRef.current[w.id]) !== 'crimson');
       if (need.length >= 2) available = need;
     }
@@ -340,21 +340,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
     const autoBanner = banner ?? (isFrenzy ? '⚡ FRENZY' : `DALGA ${wave}`);
     const autoSub = sub ?? (isFrenzy ? 'TÜM ŞERİTLER HIZLI — HİÇ DURMA' : '');
+    // cloze (.... ile başlayan boşluk doldurma) tamamen kaldırıldı
     let clozeData: GameState['cloze'] = null;
-    // Otomatik akıcılık: cümle modu kapalı olsa bile her 4. dalga cümle dalgası — bağlamda öğrenme
-    const autoCloze = !clozeModeRef.current && wave % 4 === 0 && wave >= 4 && !isBoss && !isFrenzy;
-    let isCloze = clozeModeRef.current || autoCloze;
-    if (isCloze) {
-      const isVerb = target.category === 'verb';
-      let foreignBlank: string, nativeBlank: string;
-      if (s.lang === 'en') { foreignBlank = isVerb ? 'I want to ___' : 'Where is ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
-      else if (s.lang === 'es') { foreignBlank = isVerb ? 'Quiero ___' : '¿Dónde está ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
-      else if (s.lang === 'it') { foreignBlank = isVerb ? 'Voglio ___' : 'Dov\'è ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
-      else { foreignBlank = isVerb ? 'Я хочу ___' : 'Где ___?'; nativeBlank = isVerb ? `___ ${target.native}` : `___ nerede?`; }
-      clozeData = { foreign: foreignBlank, native: nativeBlank };
-    }
-    const bannerText = autoCloze ? '💬 CÜMLE DALGASI' : autoBanner;
-    const bannerSubText = autoCloze ? 'Bağlamda öğren — boşluğu doldur' : autoSub;
+    let isCloze = false;
+    const bannerText = autoBanner;
+    const bannerSubText = autoSub;
     ref.current = {
       ...s,
       wave,
@@ -503,7 +493,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.repeatMode = !s.repeatMode;
     s.floats.push({ id: uid(), x: VW/2, y: 210, text: s.repeatMode ? '🔁 PEKIŞTIRME AÇIK — her kelime aralıklı tekrar' : '🔁 PEKIŞTIRME KAPALI — taze kelime modu', color: s.repeatMode ? '#ffd166' : '#8be9ff', life: 1.8, vy: -0.4 });
     s.waveBanner = { text: s.repeatMode ? '🔁 PEKIŞTIRME MODU' : '✦ TAZE MOD', sub: s.repeatMode ? 'BİLİNMEYENLER ARALIKLI TEKRAR' : 'YENİ KELİMELER ÖNCELİKLİ', t: 1 };
-    if (s.repeatMode) sessionCountsRef.current.clear();
+    // her toggle'da havuzu sıfırla — aksi halde maxRep 2↔5 geçişinde kelimeler takılı kalıyordu
+    sessionCountsRef.current.clear();
     audio.ui(); haptic('tap', setRef.current.haptics); sync();
   }, [sync]);
 
