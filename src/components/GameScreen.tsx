@@ -494,8 +494,10 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
   const doMic = useCallback(async () => {
     if (!speechSupported() || !s.targetWord || micListening) return;
     setMicListening(true); setMicMsg(null);
+    api.setMicSlow(true);
     const res = await listenOnce(s.targetWord.lang, s.targetWord.foreign);
     setMicListening(false);
+    api.setMicSlow(false);
     if (res.ok) {
       api.triggerMine();
       setMicMsg('💥 ' + Math.round(res.score * 100) + '% MAYIN!');
@@ -733,6 +735,17 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
       )}
 
       <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} />
+      {s.micSlowTimer > 0 && (
+        <>
+          <div className="absolute inset-0 pointer-events-none z-24" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,255,163,0.08) 0%, transparent 62%)', opacity: 0.7 }} />
+          <div className="absolute top-[56px] left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+            <div className="glass rounded-full px-3 py-1 flex items-center gap-1.5" style={{ border: '1px solid #00ffa3', boxShadow: '0 0 10px rgba(0,255,163,0.35)', background: 'rgba(0,255,163,0.10)' }}>
+              <span className="w-2 h-2 rounded-full bg-[#00ffa3] animate-pulse" style={{ boxShadow: '0 0 6px #00ffa3' }} />
+              <span className="font-mono-tech text-[7px] tracking-[0.14em] text-[#00ffa3]">🎤 YAVAŞ MOD — {Math.ceil(s.micSlowTimer/1000)}s</span>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ══ prompt bar + controls ══ */}
       <div className="absolute bottom-0 left-0 right-0 z-30 px-2.5 pb-3 pt-6"

@@ -66,7 +66,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0, runCorrect: 0, runWrong: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, micSlowTimer: 0, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -161,6 +161,7 @@ export interface EngineApi {
   startWrongRun: (lang: LangCode, level: CEFRLevel, ids: string[]) => void;
   continueRun: () => boolean;
   hasSavedRun: () => any | null;
+  setMicSlow: (active: boolean) => void;
   addSpeechBonus: (pts: number) => void;
   triggerMine: () => void;
   toggleRepeat: () => void;
@@ -588,6 +589,20 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.ui(); haptic('tap', setRef.current.haptics); sync();
   }, [sync]);
 
+  const setMicSlow = useCallback((active: boolean) => {
+    const s = ref.current;
+    if (s.phase !== 'playing') return;
+    if (active) {
+      s.micSlowTimer = 9500;
+      s.floats.push({ id: uid(), x: VW/2, y: 185, text: '🎤 YAVAŞ MOD — telaffuz için zaman', color: '#00ffa3', life: 1.4, vy: -0.35 });
+      s.waveBanner = { text: '🎤 DİNLİYOR', sub: 'canavarlar yavaşladı — telaffuz et', t: 0.9 };
+    } else {
+      // hızlıca normale dön — aniden hızlanmasın diye kısa kuyruk
+      s.micSlowTimer = Math.min(s.micSlowTimer, 700);
+    }
+    sync();
+  }, [sync]);
+
   const fire = useCallback(() => {
     const s = ref.current;
     if (s.phase !== 'playing') return;
@@ -765,6 +780,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       if (s.overchargeTimer <= 0) { s.overcharged = false; s.overchargeTimer = 0; }
     }
     if (s.focusTimer > 0) s.focusTimer = Math.max(0, s.focusTimer - dt * 16.667);
+    if (s.micSlowTimer > 0) s.micSlowTimer = Math.max(0, s.micSlowTimer - dt * 16.667);
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 0.85);
     if (s.flash) { s.flash.t -= dt * 0.075; if (s.flash.t <= 0) s.flash = null; }
     if (s.waveBanner) { s.waveBanner.t -= dt * 0.013; if (s.waveBanner.t <= 0) s.waveBanner = null; }
@@ -810,9 +826,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.hitPause > 0) s.hitPause = Math.max(0, s.hitPause - dt);
     /* ── aliens descend; sway is cosmetic only ── */
     const focusSlow = s.focusTimer > 0 ? 0.46 : 1;
+    const micSlow = s.micSlowTimer > 0 ? 0.28 : 1;
+    const slow = Math.min(focusSlow, micSlow);
     const freeze = s.hitPause > 0 ? 0 : 1;
     for (const a of s.aliens) {
-      a.y += a.vy * dt * focusSlow * freeze;
+      a.y += a.vy * dt * slow * freeze;
       a.glowPhase += 0.045 * dt * freeze;
       a.cloakPhase += (a.variant === 'phantom' ? 0.09 : 0.015) * dt * freeze;
       if (s.frenzy) a.glowPhase += 0.02 * dt * freeze;
@@ -1224,7 +1242,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   return {
     state: st, settings, stats, heat, customWords, lockedId, hintId,
-    startRun, startWrongRun, continueRun, hasSavedRun, addSpeechBonus, triggerMine, toggleRepeat, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
+    startRun, startWrongRun, continueRun, hasSavedRun, addSpeechBonus, triggerMine, toggleRepeat, setMicSlow, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
     pause, resume, quit,
     updateSettings, addCustomWord, removeCustomWord, resetProgress,
   };

@@ -104,6 +104,8 @@ export interface GameState {
   hitCard: HitCard | null;
   speechNudge: number;
   repeatMode: boolean;
+  /** mikrofon dinlerken canavarları yavaşlat — telafuz bitene kadar */
+  micSlowTimer: number;
   /** ms the current wave has been alive — drives delayed assist */
   waveAge: number;
   /** adrenalin: hedef tabana yakınken 0..1 arası tehlike seviyesi */

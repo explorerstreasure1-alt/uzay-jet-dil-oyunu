@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'word-invaders-pwa-v7';
+const CACHE_VERSION = 'word-invaders-pwa-v8';
 const APP_SHELL = [
   '/',
   '/index.html',
