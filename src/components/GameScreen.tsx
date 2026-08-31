@@ -603,51 +603,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               );
             })}
 
-            {/* Yondu Yaka Oku — kırmızı, ıslıkla kontrol */}
-            {s.uslukArrow?.active && (
-              <g>
-                {s.uslukArrow.trail.map((p, i) => {
-                  const t = i / Math.max(1, s.uslukArrow!.trail.length - 1);
-                  // Yondu kırmızısı + alev kuyruğu
-                  const c = t > 0.7 ? '#ff1a1a' : t > 0.4 ? '#ff3b2e' : t > 0.2 ? '#ff6a00' : '#7a0000';
-                  return <circle key={i} cx={p.x} cy={p.y} r={1.6 + t * 4.6} fill={c} opacity={0.12 + t * 0.44} style={{ filter: t > 0.65 ? `drop-shadow(0 0 5px ${c})` : undefined }} />;
-                })}
-                {s.uslukArrow.trail.length > 1 && (
-                  <>
-                    <polyline points={s.uslukArrow.trail.map(p => `${p.x},${p.y}`).join(' ') + ` ${s.uslukArrow.x},${s.uslukArrow.y}`} fill="none" stroke="#ff1a1a" strokeWidth="4.2" opacity="0.58" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 7px #ff1a1a)' }} />
-                    <polyline points={s.uslukArrow.trail.map(p => `${p.x},${p.y}`).join(' ') + ` ${s.uslukArrow.x},${s.uslukArrow.y}`} fill="none" stroke="#ff3b00" strokeWidth="2" opacity="0.52" strokeLinecap="round" strokeLinejoin="round" />
-                    <polyline points={s.uslukArrow.trail.map(p => `${p.x},${p.y}`).join(' ') + ` ${s.uslukArrow.x},${s.uslukArrow.y}`} fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.38" strokeLinecap="round" strokeLinejoin="round" />
-                  </>
-                )}
-                {/* Yaka oku gövdesi — Yondu kırmızısı */}
-                <g transform={`translate(${s.uslukArrow.x}, ${s.uslukArrow.y}) rotate(${Math.atan2(s.uslukArrow.vy, s.uslukArrow.vx || 0.1) * 180 / Math.PI + 90})`}>
-                  <ellipse cx="0" cy="0" rx="8" ry="13" fill="#ff1a1a" opacity="0.14" />
-                  {/* Yaka kanatçıkları — kırmızı */}
-                  <path d="M-2.6,10 L-7,16 L-3.2,13 Z" fill="#7a0000" opacity="0.95">
-                    <animateTransform attributeName="transform" type="rotate" values="-3 -2.6,10; 3 -2.6,10; -3 -2.6,10" dur="0.14s" repeatCount="indefinite" />
-                  </path>
-                  <path d="M2.6,10 L7,16 L3.2,13 Z" fill="#7a0000" opacity="0.95">
-                    <animateTransform attributeName="transform" type="rotate" values="3 2.6,10; -3 2.6,10; 3 2.6,10" dur="0.14s" repeatCount="indefinite" />
-                  </path>
-                  <path d="M0,11 L-1.4,15 L0,13.2 L1.4,15 Z" fill="#4a0000" opacity="0.95" />
-                  {/* gövde — Yondu kırmızısı, altın şerit */}
-                  <path d="M0,-20 L4.6,8 L1.3,12 L0,9.2 L-1.3,12 L-4.6,8 Z" fill="#ff1a1a" stroke="#7a0000" strokeWidth="1" />
-                  <path d="M0,-20 L2.2,1 L0,5.2 L-2.2,1 Z" fill="#ffd166" opacity="0.92" />
-                  <rect x="-0.6" y="-12" width="1.2" height="16" rx="0.6" fill="#fff" opacity="0.62" />
-                  {/* Yaka ucu — keskin elmas */}
-                  <path d="M0,-22 L2.6,-17 L0,-14.2 L-2.6,-17 Z" fill="#ffffff" stroke="#ff1a1a" strokeWidth="0.8" />
-                  <circle cx="0" cy="-13.5" r="1.6" fill="#ff1a1a" stroke="#ffffff" strokeWidth="0.5" />
-                  {/* ıslık titreşimi */}
-                  <circle cx="0" cy="-2" r="2.2" fill="#ffffff" opacity="0.14">
-                    <animate attributeName="r" values="1.8;3.2;1.8" dur="0.22s" repeatCount="indefinite" />
-                  </circle>
-                </g>
-                <circle cx={s.uslukArrow.x} cy={s.uslukArrow.y} r="12" fill="none" stroke="#ff1a1a" strokeWidth="1.2" opacity="0.38" strokeDasharray="4 3">
-                  <animateTransform attributeName="transform" type="rotate" from={`0 ${s.uslukArrow.x} ${s.uslukArrow.y}`} to={`360 ${s.uslukArrow.x} ${s.uslukArrow.y}`} dur="0.48s" repeatCount="indefinite" />
-                </circle>
-                <circle cx={s.uslukArrow.x} cy={s.uslukArrow.y} r="5.5" fill="#ff1a1a" opacity="0.20" />
-              </g>
-            )}
+
             {s.explosions.map(e => (
               <g key={e.id} opacity={e.opacity}>
                 <circle cx={e.x} cy={e.y} r={e.radius} fill="none" stroke={e.color} strokeWidth="2" />
@@ -773,19 +729,6 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
       )}
 
       <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} />
-      {/* Yaka geri sayım — sağda */}
-      {s.uslukArrow?.active && (
-        <div className="absolute right-1.5 top-[140px] z-30 pointer-events-none">
-          <div className="glass rounded-xl px-2.5 py-2 text-center" style={{ border: '1px solid #ff1a1a', boxShadow: '0 0 12px rgba(255,26,26,0.42)' }}>
-            <div className="font-mono-tech text-[6px] tracking-[0.22em] text-[#ff6bff]">YAKA</div>
-            <div className="font-orbitron text-[18px] font-black leading-none" style={{ color: '#ff1a1a', textShadow: '0 0 8px #ff1a1a' }}>{Math.ceil(s.uslukArrow.timeLeft / 1000)}s</div>
-            <div className="w-[52px] h-[4px] rounded-full bg-white/10 overflow-hidden mt-1">
-              <div className="h-full rounded-full" style={{ width: `${(s.uslukArrow.timeLeft / 30000) * 100}%`, background: 'linear-gradient(90deg, #ff1a1a, #ff6bff)', boxShadow: '0 0 6px #ff1a1a' }} />
-            </div>
-            <div className="font-mono-tech text-[5px] tracking-[0.1em] text-white/35 mt-1">{s.uslukArrow.returning ? 'DÖNÜYOR' : 'DELİYOR'}</div>
-          </div>
-        </div>
-      )}
 
       {/* ══ prompt bar + controls ══ */}
       <div className="absolute bottom-0 left-0 right-0 z-30 px-2.5 pb-3 pt-6"
@@ -824,47 +767,14 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
           </button>
         </div>
 
-        {/* USLUK — Canlı Ok özel güç (basılı tut) */}
-        <div className="mb-2 flex items-center gap-2">
-          <button
-            onPointerDown={e => { e.stopPropagation(); try{ if(e.pointerId!=null) (e.currentTarget as any).setPointerCapture?.(e.pointerId); }catch{} api.setUslukHeld(true); api.fireUsluk(); }}
-            onPointerUp={e => { e.stopPropagation(); try{ if(e.pointerId!=null) (e.currentTarget as any).releasePointerCapture?.(e.pointerId);}catch{} api.setUslukHeld(false); }}
-            onPointerCancel={e => { api.setUslukHeld(false); }}
-            onPointerLeave={e => { api.setUslukHeld(false); }}
-            onTouchStart={e => { e.stopPropagation(); api.setUslukHeld(true); api.fireUsluk(); }}
-            onTouchEnd={e => { e.stopPropagation(); api.setUslukHeld(false); }}
-            onClick={e => { e.stopPropagation(); api.fireUsluk(); }}
-            className="flex-1 rounded-xl h-[48px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all select-none overflow-hidden pointer-events-auto"
-            style={s.uslukCharge >= 100
-              ? { background: 'linear-gradient(135deg, rgba(255,107,255,0.32), rgba(0,212,255,0.24))', border: '1.5px solid #ff6bff', boxShadow: '0 0 18px rgba(255,107,255,0.55)', animation: s.uslukArrow?.active ? undefined : 'pulse 0.85s infinite', touchAction: 'manipulation' } as any
-              : s.uslukArrow?.active
-                ? { background: 'rgba(255,107,255,0.18)', border: '1px solid #ff6bff', boxShadow: '0 0 12px rgba(255,107,255,0.35)', touchAction: 'manipulation' } as any
-                : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', touchAction: 'manipulation' } as any}>
-            <span className="text-[16px] leading-none" style={{ filter: s.uslukCharge >= 100 ? 'drop-shadow(0 0 6px #ff6bff)' : undefined }}>{s.uslukArrow?.active ? '🏹' : '🏹'}</span>
-            <span className="font-orbitron text-[11px] font-black tracking-[0.18em]" style={{ color: s.uslukCharge >= 100 ? '#ffd6ff' : s.uslukArrow?.active ? '#ffb3ff' : 'rgba(255,255,255,0.45)', textShadow: s.uslukCharge >= 100 ? '0 0 8px #ff6bff' : 'none' }}>
-              {s.uslukArrow?.active ? 'CANLI OK UÇUYOR…' : s.uslukCharge >= 100 ? 'USLUK — BASILI TUT!' : `USLUK ${Math.floor(s.uslukCharge)}%`}
-            </span>
-            <span className="font-mono-tech text-[7px] tracking-[0.12em] ml-1" style={{ color: s.uslukCharge >= 100 ? '#ff6bff' : 'rgba(255,255,255,0.35)' }}>{s.uslukCharge >= 100 ? '● DOLU' : '◌ DOLUYOR'}</span>
-          </button>
-          <div className="w-[68px] glass rounded-xl h-[44px] flex flex-col items-center justify-center overflow-hidden">
-            <div className="font-mono-tech text-[6px] tracking-[0.14em] text-white/35">ÖZEL GÜÇ</div>
-            <div className="w-[54px] h-[5px] rounded-full bg-white/10 overflow-hidden mt-1">
-              <div className="h-full rounded-full transition-all" style={{ width: `${Math.floor(s.uslukCharge)}%`, background: s.uslukCharge >= 100 ? 'linear-gradient(90deg, #ff6bff, #00d4ff)' : s.uslukArrow?.active ? '#ff6bff' : 'linear-gradient(90deg, #ff6bff88, #00d4ff88)', boxShadow: s.uslukCharge >= 100 ? '0 0 8px #ff6bff' : 'none' }} />
-            </div>
-            <div className="font-mono-tech text-[5px] text-white/30 mt-0.5">{s.uslukCharge >= 100 ? 'HAZIR' : 'DOLUYOR'}</div>
-          </div>
-        </div>
+
         {/* lane-snap steering + fire */}
         <div className="flex items-center gap-2">
           <button
             onPointerDown={holdLeftDown} onPointerUp={endHold} onPointerCancel={endHold} onPointerLeave={endHold} onClick={() => api.stepLane(-1)}
             className="glass rounded-xl h-[60px] w-[68px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none select-none"
             style={guideLeft ? { border: '1.4px solid #00ff9d', boxShadow: '0 0 18px rgba(0,255,157,0.5)' } : undefined}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="3"
-              strokeLinecap="round" strokeLinejoin="round" style={{ filter: `drop-shadow(0 0 5px ${guideLeft ? '#00ff9d' : '#00d4ff'})` }}>
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-            <span className="font-mono-tech text-[6.5px] tracking-[0.14em] mt-0.5" style={{ color: guideLeft ? '#00ff9d' : 'rgba(255,255,255,0.4)' }}>
+            <span className="font-mono-tech text-[8px] tracking-[0.14em]" style={{ color: guideLeft ? '#00ff9d' : 'rgba(255,255,255,0.55)', fontWeight: 700 }}>
               {guideLeft ? 'HEDEF' : 'ŞERİT'}
             </span>
           </button>
@@ -894,11 +804,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
             onPointerDown={holdRightDown} onPointerUp={endHold} onPointerCancel={endHold} onPointerLeave={endHold} onClick={() => api.stepLane(1)}
             className="glass rounded-xl h-[60px] w-[68px] flex flex-col items-center justify-center active:scale-95 transition-transform touch-none select-none"
             style={guideRight ? { border: '1.4px solid #00ff9d', boxShadow: '0 0 18px rgba(0,255,157,0.5)' } : undefined}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="3"
-              strokeLinecap="round" strokeLinejoin="round" style={{ filter: `drop-shadow(0 0 5px ${guideRight ? '#00ff9d' : '#00d4ff'})` }}>
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-            <span className="font-mono-tech text-[6.5px] tracking-[0.14em] mt-0.5" style={{ color: guideRight ? '#00ff9d' : 'rgba(255,255,255,0.4)' }}>
+            <span className="font-mono-tech text-[8px] tracking-[0.14em]" style={{ color: guideRight ? '#00ff9d' : 'rgba(255,255,255,0.55)', fontWeight: 700 }}>
               {guideRight ? 'HEDEF' : 'ŞERİT'}
             </span>
           </button>

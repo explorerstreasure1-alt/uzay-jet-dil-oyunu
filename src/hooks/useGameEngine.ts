@@ -66,7 +66,7 @@ const initialState = (): GameState => ({
   repairStation: null, targetWord: null, targetHeat: 'ice',
   bossWave: false, gameTime: 0, lastShot: 0, shake: 0, flash: null,
   vignette: 0, correctThisWave: 0, wrongThisWave: 0, runCorrect: 0, runWrong: 0,
-  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, uslukCharge: 88, uslukArrow: null, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
+  waveBanner: null, masteredThisLevel: [], hitCard: null, speechNudge: 0, repeatMode: false, waveAge: 0, danger: 0, frenzy: false, hitPause: 0, cloze: null, isCloze: false,
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -162,8 +162,6 @@ export interface EngineApi {
   addSpeechBonus: (pts: number) => void;
   triggerMine: () => void;
   toggleRepeat: () => void;
-  fireUsluk: () => boolean;
-  setUslukHeld: (v: boolean) => void;
   fire: () => void;
   setMoveTarget: (x: number | null) => void;
   holdDir: (d: -1 | 0 | 1) => void;
@@ -205,7 +203,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   /** Koşu boyunca her hedefin kaç kez sorulduğu — en fazla 2 tekrar, sonra taze kelimeye geç. */
   const sessionCountsRef = useRef<Map<string, number>>(new Map());
   const frameTick = useRef(0);
-  const uslukHeldRef = useRef(false);
 
   /* ── debounced persistence (keeps localStorage out of the hot path) ── */
   const flushT = useRef<number | null>(null);
@@ -510,73 +507,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.ui(); haptic('tap', setRef.current.haptics); sync();
   }, [sync]);
 
-  const fireUsluk = useCallback(() => {
-    const s = ref.current;
-    if (s.phase !== 'playing') return false;
-    // Geri çağırma: ok havadaysa aynı tuşla geri çağır
-    if (s.uslukArrow?.active) {
-      if (!s.uslukArrow.returning) {
-        s.uslukArrow.returning = true;
-        s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 GERİ ÇAĞRILDI — USLUK!', color: '#ff1a1a', life: 1, vy: -0.4 });
-        audio.tick(); sync();
-      }
-      return true;
-    }
-    if (s.uslukCharge < 22) {
-      s.floats.push({ id: uid(), x: VW/2, y: 300, text: `⏳ USLUK DOLUYOR %${Math.floor(s.uslukCharge)} — ${Math.ceil((100 - s.uslukCharge)/18)}sn`, color: '#ffd166', life: 1.1, vy: -0.4 });
-      audio.tick(); sync(); return false;
-    }
-    const power = Math.min(100, s.uslukCharge);
-    s.uslukCharge = Math.max(0, s.uslukCharge - 72);
-    const vy = -34 - (power / 100) * 10;
-    s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy, active: true, trail: [], returning: false, orbitT: 0, timeLeft: 30000 };
-    s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 CANLI OK UYANDI — USLUK!', color: '#ff6bff', life: 1.6, vy: -0.55 });
-    s.flash = { color: '#ff6bff', t: 0.36 };
-    // fantastik usluk ıslığı — nefesli, titrek, çift ton (dizi ıslığı gibi)
-    audio.combo(); audio.correct();
-    try {
-      const ctx: any = (audio as any).ctx;
-      const sfx: any = (audio as any).sfx;
-      if (ctx && sfx) {
-        const t0 = ctx.currentTime;
-        // Yondu Yaka ıslığı: tiz, keskin, titrek (dizi ıslığı)
-        for (let i = 0; i < 2; i++) {
-          const o = ctx.createOscillator(); const g = ctx.createGain();
-          o.type = i === 0 ? 'sine' : 'triangle';
-          const base = i === 0 ? 2460 : 4920;
-          const target = i === 0 ? 720 : 1440;
-          o.frequency.setValueAtTime(base, t0);
-          o.frequency.setValueAtTime(base * 1.022, t0 + 0.06);
-          o.frequency.setValueAtTime(base * 0.982, t0 + 0.12);
-          o.frequency.setValueAtTime(base * 1.015, t0 + 0.20);
-          o.frequency.exponentialRampToValueAtTime(target, t0 + 0.52);
-          g.gain.setValueAtTime(i === 0 ? 0.16 : 0.055, t0);
-          g.gain.linearRampToValueAtTime(i === 0 ? 0.13 : 0.045, t0 + 0.32);
-          g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.62);
-          // hafif nefes için bandpass gürültü
-          if (i === 0) {
-            const buf: any = (audio as any).noiseBuf;
-            if (buf) {
-              const src = ctx.createBufferSource(); src.buffer = buf;
-              const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.9;
-              const ng = ctx.createGain(); ng.gain.setValueAtTime(0.028, t0); ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.38);
-              src.connect(bp); bp.connect(ng); ng.connect(sfx); src.start(t0); src.stop(t0 + 0.40);
-            }
-          }
-          o.connect(g); g.connect(sfx); o.start(t0 + i * 0.015); o.stop(t0 + 0.64);
-        }
-        // yankı kuyruğu
-        const echo = ctx.createOscillator(); const eg = ctx.createGain();
-        echo.type = 'sine'; echo.frequency.setValueAtTime(620, t0 + 0.58); echo.frequency.linearRampToValueAtTime(520, t0 + 0.85);
-        eg.gain.setValueAtTime(0.06, t0 + 0.58); eg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.92);
-        echo.connect(eg); eg.connect(sfx); echo.start(t0 + 0.58); echo.stop(t0 + 0.95);
-      }
-    } catch {}
-    haptic('boss', setRef.current.haptics); sync(); return true;
-  }, [sync]);
-
-  const setUslukHeld = useCallback((v: boolean) => { uslukHeldRef.current = v; }, []);
-
   const fire = useCallback(() => {
     const s = ref.current;
     if (s.phase !== 'playing') return;
@@ -687,33 +617,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.waveAge += dt * 16.667;
     if (s.hitCard) { s.hitCard.t -= dt * 0.011; if (s.hitCard.t <= 0) s.hitCard = null; }
     if (s.speechNudge > 0) s.speechNudge -= dt;
-    // Usluk şarjı — combo hızlandırır, ~7sn'de dolu; basılı tutarken dolunca otomatik fırlar
-    if (!s.uslukArrow?.active) {
-      const gain = 0.26 * dt + (s.combo >= 3 ? 0.16 * dt : 0) + (s.frenzy ? 0.14 * dt : 0);
-      s.uslukCharge = Math.min(100, s.uslukCharge + gain);
-      if (uslukHeldRef.current && s.uslukCharge >= 100) {
-        s.uslukCharge = 0;
-        s.uslukArrow = { x: s.shipX, y: SHIP_Y - 28, vx: 0, vy: -48, active: true, trail: [], returning: false, orbitT: 0, timeLeft: 30000 };
-        s.floats.push({ id: uid(), x: VW/2, y: 300, text: '🏹 YAKA OKU FIRLADI!', color: '#ff1a1a', life: 1.4, vy: -0.5 });
-        s.flash = { color: '#ff1a1a', t: 0.30 };
-        audio.combo();
-        try {
-          const ctx: any = (audio as any).ctx; const sfx: any = (audio as any).sfx;
-          if (ctx && sfx) {
-            const t0 = ctx.currentTime;
-            for (let i = 0; i < 2; i++) {
-              const o = ctx.createOscillator(); const g = ctx.createGain();
-              o.type = i === 0 ? 'sine' : 'triangle';
-              const base = i === 0 ? 2460 : 4920; const target = i === 0 ? 720 : 1440;
-              o.frequency.setValueAtTime(base, t0); o.frequency.setValueAtTime(base*1.022, t0+0.06); o.frequency.setValueAtTime(base*0.982, t0+0.12); o.frequency.exponentialRampToValueAtTime(target, t0+0.52);
-              g.gain.setValueAtTime(i===0?0.16:0.055, t0); g.gain.linearRampToValueAtTime(i===0?0.13:0.045, t0+0.32); g.gain.exponentialRampToValueAtTime(0.0001, t0+0.62);
-              o.connect(g); g.connect(sfx); o.start(t0+i*0.015); o.stop(t0+0.64);
-            }
-          }
-        } catch {}
-        haptic('boss', hap);
-      }
-    }
 
     /* ── ship: momentum + soft brake ── */
     let want = 0;
@@ -820,106 +723,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       for (const w of s.wingmen) w.cooldown = Math.max(w.cooldown, 10);
     }
 
-    // ── Yondu Yaka Oku — 7sn boyunca etrafta dolanır, sonra geri döner (veya uslukla çağrılır)
-    if (s.uslukArrow?.active) {
-      const arr = s.uslukArrow;
-      arr.trail.push({ x: arr.x, y: arr.y });
-      if (arr.trail.length > 22) arr.trail.shift();
-      if (!arr.returning) arr.timeLeft -= dt * 16.667;
-      // AKILLI FÜZE: gördüğünü kovalayıp deler — 2D homing
-      const _all = s.aliens.filter(a => !a.dead);
-      if (_all.length) {
-        let _best: typeof _all[0] | null = null;
-        let _bestD = Infinity;
-        for (const _a of _all) {
-          const dx = _a.drawX - arr.x;
-          const dy = (_a.y + 18) - arr.y;
-          const d = Math.hypot(dx, dy) + (FLOOR_Y - _a.y) * 0.18;
-          if (d < _bestD) { _bestD = d; _best = _a; }
-        }
-        if (_best) {
-          const tx = _best.drawX - arr.x;
-          const ty = (_best.y + 18) - arr.y;
-          arr.vx += Math.max(-5, Math.min(5, tx * 0.085)) * dt;
-          arr.vy += Math.max(-5, Math.min(5, ty * 0.085)) * dt;
-          arr.vx *= Math.pow(0.88, dt);
-          arr.vy *= Math.pow(0.88, dt);
-          const sp = Math.hypot(arr.vx, arr.vy);
-          const maxSp = 52;
-          if (sp > maxSp) { const k = maxSp / sp; arr.vx *= k; arr.vy *= k; }
-        }
-      } else {
-        arr.vx += Math.sin(s.gameTime * 0.05) * 0.6 * dt;
-      }
-      arr.x += arr.vx * dt;
-      arr.y += arr.vy * dt;
-      arr.x = Math.max(12, Math.min(VW - 12, arr.x));
-      arr.y = Math.max(30, Math.min(FLOOR_Y + 22, arr.y));
-      // delip geçme — SORUNSUZ: yatay ışın gibi, aynı hizadaki her canavarı deler
-      const hitIds: string[] = [];
-      for (const a of s.aliens) {
-        if (a.dead) continue;
-        const dx = arr.x - a.drawX;
-        const dy = arr.y - (a.y + 18);
-        if (Math.hypot(dx, dy) < 30) hitIds.push(a.id);
-      }
-      if (hitIds.length) {
-        for (const hid of hitIds) {
-          const a = s.aliens.find(x => x.id === hid);
-          if (!a) continue;
-          const isT = a.isTarget;
-          const cx = a.drawX, cy = a.y + SPRITE_H / 2;
-          const cols = ['#ff3b5c', '#ff9500', '#ffd166', '#00ffa3', '#00d4ff', '#9d4edd'];
-          const col = cols[Math.floor(Math.random() * cols.length)];
-          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 7, maxRadius: a.isBoss ? 116 : 74, opacity: 1, color: isT ? '#ffd166' : col, isChain: false });
-          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 3, maxRadius: 38, opacity: 0.92, color: '#ffffff', isChain: true });
-          if (isT) {
-            s.score += 180; s.combo += 1; s.bestCombo = Math.max(s.bestCombo, s.combo); s.runCorrect += 1;
-            heatRef.current = applyResult(heatRef.current, a.word.id, true);
-            statsRef.current = bumpStreak({ ...statsRef.current, totalCorrect: statsRef.current.totalCorrect + 1, bossesKilled: statsRef.current.bossesKilled + (a.isBoss ? 1 : 0) }, 1);
-            s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
-            s.flash = { color: '#ffd166', t: 0.38 };
-          } else {
-            s.score += 46; s.floats.push({ id: uid(), x: cx, y: a.y - 2, text: '+46 OK', color: col, life: 0.9, vy: -0.9 });
-          }
-          audio.tick();
-        }
-        s.aliens = s.aliens.filter(a => !hitIds.includes(a.id));
-        s.shake = Math.max(s.shake, 2.4);
-      }
-      if (!arr.returning) {
-        if ((arr as any).timeLeft != null && (arr as any).timeLeft <= 0) {
-          arr.returning = true;
-          arr.vy = 28;
-          s.floats.push({ id: uid(), x: VW / 2, y: 200, text: '🏹 SÜRE DOLDU — DÖNÜYOR!', color: '#ff1a1a', life: 0.9, vy: -0.5 });
-        }
-      } else {
-        // dönüş — hızlıca gemiye, kısa yörünge sonra takıl
-        const dx = s.shipX - arr.x;
-        const dy = (SHIP_Y - 12) - arr.y;
-        arr.vx += dx * 0.072 * dt;
-        arr.vy += dy * 0.072 * dt;
-        arr.vx *= Math.pow(0.84, dt);
-        arr.vy *= Math.pow(0.84, dt);
-        const dist = Math.hypot(dx, dy);
-        if (dist < 20) {
-          arr.orbitT += dt * 0.32;
-          if (arr.orbitT > 48) {
-            s.uslukArrow = null;
-            s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 40, text: '🏹 YANINA TAKILDI', color: '#ff1a1a', life: 1.1, vy: -0.5 });
-            s.shield = true;
-            audio.repair();
-          } else {
-            const ang = arr.orbitT * 0.26;
-            arr.x = s.shipX + Math.cos(ang) * 20;
-            arr.y = SHIP_Y - 10 + Math.sin(ang) * 8;
-            arr.vx = -Math.sin(ang) * 5.2;
-            arr.vy = Math.cos(ang) * 2.6;
-          }
-        }
-        if (arr.y > VH + 40) { s.uslukArrow = null; }
-      }
-    }
+
 
     // hit-stop: doğru vuruşta 45ms donma (göz yormadan tatmin)
     if (s.hitPause > 0) s.hitPause = Math.max(0, s.hitPause - dt);
@@ -1334,7 +1138,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   return {
     state: st, settings, stats, heat, customWords, lockedId, hintId,
-    startRun, startWrongRun, addSpeechBonus, triggerMine, toggleRepeat, fireUsluk, setUslukHeld, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
+    startRun, startWrongRun, addSpeechBonus, triggerMine, toggleRepeat, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
     pause, resume, quit,
     updateSettings, addCustomWord, removeCustomWord, resetProgress,
   };
