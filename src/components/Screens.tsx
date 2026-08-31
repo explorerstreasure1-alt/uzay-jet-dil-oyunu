@@ -50,10 +50,11 @@ function BackBtn({ onClick }: { onClick: () => void }) {
 }
 
 /* ══════════════════ MENU ══════════════════ */
-export function MenuScreen({ api, lang, setLang, go, pwa }: {
+export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
   api: EngineApi; lang: LangCode; setLang: (l: LangCode) => void;
   go: (v: 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily') => void;
   pwa?: { canInstall: boolean; isInstalled: boolean; isIos: boolean; install: () => Promise<string> };
+  onContinue?: () => void;
 }) {
   const counts = useMemo(() => countWords(lang, api.customWords), [lang, api.customWords]);
   const accent = LANGUAGES.find(l => l.code === lang)!.accent;
@@ -222,6 +223,23 @@ export function MenuScreen({ api, lang, setLang, go, pwa }: {
           <span className="font-mono-tech text-[10px] tracking-[0.16em] text-[#ffd166]">⚡ GÜNLÜK MEYDAN OKUMA</span>
           {(() => { const si = streakInfo(api.stats); return si.today >= 10 ? <span className="font-mono-tech text-[8px] px-1.5 py-0.5 rounded" style={{background:'#00ffa3', color:'#061a12'}}>✓</span> : <span className="font-mono-tech text-[8px] text-white/40">{si.today}/10</span>; })()}
         </button>
+        {(() => {
+          const saved = api.hasSavedRun?.();
+          if (!saved) return null;
+          return (
+            <button onClick={() => { audio.ui(); onContinue?.(); }}
+              className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,209,102,0.28), rgba(255,140,0,0.18))',
+                border: '1px solid #ffd166',
+                boxShadow: '0 0 22px rgba(255,209,102,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
+              }}>
+              <span className="font-orbitron text-[13px] font-black tracking-[0.2em] text-[#fff8e6]"
+                style={{ textShadow: '0 0 10px #ffd166' }}>▶ KALDIĞIN YERDEN DEVAM</span>
+              <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55 block mt-0.5">{saved.lang?.toUpperCase()} {saved.level} · DALGA {saved.wave} · {saved.score?.toString().padStart(6,'0')}</span>
+            </button>
+          );
+        })()}
         <button onClick={() => { audio.unlock(); audio.ui(); go('setup'); }}
           className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform"
           style={{

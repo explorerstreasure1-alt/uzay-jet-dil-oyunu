@@ -159,6 +159,8 @@ export interface EngineApi {
   replay: () => void;
   startRun: (lang: LangCode, level: CEFRLevel, category: CategoryId, cloze?: boolean) => void;
   startWrongRun: (lang: LangCode, level: CEFRLevel, ids: string[]) => void;
+  continueRun: () => boolean;
+  hasSavedRun: () => any | null;
   addSpeechBonus: (pts: number) => void;
   triggerMine: () => void;
   toggleRepeat: () => void;
@@ -203,6 +205,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   /** Koşu boyunca her hedefin kaç kez sorulduğu — en fazla 2 tekrar, sonra taze kelimeye geç. */
   const sessionCountsRef = useRef<Map<string, number>>(new Map());
   const frameTick = useRef(0);
+  /** Kelime serisi kuyruğu — seri bitmeden aynı kelime tekrar gelmez, kaldığın yerden devam */
+  const seriesQueueRef = useRef<VocabWord[]>([]);
+  const seriesKeyRef = useRef<string>("");
 
   /* ── debounced persistence (keeps localStorage out of the hot path) ── */
   const flushT = useRef<number | null>(null);
@@ -219,6 +224,26 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   }, [flushNow]);
   useEffect(() => () => { if (flushT.current !== null) window.clearTimeout(flushT.current); }, []);
 
+  /* ── run persistence — kaldığın yerden devam ── */
+  const saveRun = useCallback(() => {
+    try {
+      const s = ref.current;
+      if (s.phase !== 'playing') return;
+      store.saveRun({
+        lang: s.lang, level: s.level, category: s.category,
+        wave: s.wave, wavesCleared: s.wavesCleared, score: s.score, lives: s.lives, maxLives: s.maxLives,
+        combo: s.combo, bestCombo: s.bestCombo, runCorrect: s.runCorrect, runWrong: s.runWrong, vignette: s.vignette,
+        seriesQueue: seriesQueueRef.current.map(w => w.id),
+        seriesKey: seriesKeyRef.current,
+        sessionCounts: Array.from(sessionCountsRef.current.entries()),
+        ts: Date.now(),
+      });
+    } catch {}
+  }, []);
+  const saveRunSoon = useCallback(() => {
+    window.setTimeout(saveRun, 120);
+  }, [saveRun]);
+
   /* ── wave construction — taze kelime öncelikli, en fazla 2 tekrar, havuz bitince başa sar ── */
   const spawnWave = useCallback((wave: number, banner?: string, sub?: string) => {
     const s = ref.current;
@@ -232,6 +257,20 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       }
     }
     if (pool.length < 2) return;
+
+    // seri kuyruğu — havuz değiştiyse veya boşsa yeniden doldur, kaldığın yerden devam
+    const poolKey = `${s.lang}-${s.level}-${s.category}-${pool.length}`;
+    if (seriesKeyRef.current !== poolKey || seriesQueueRef.current.length === 0) {
+      seriesQueueRef.current = [...pool].sort(() => Math.random() - 0.5);
+      seriesKeyRef.current = poolKey;
+    }
+    const pickInOrder = (candidates: VocabWord[]): VocabWord => {
+      for (const q of seriesQueueRef.current) {
+        const found = candidates.find(c => c.id === q.id);
+        if (found) return found;
+      }
+      return candidates[0];
+    };
 
     const cfg = LEVEL_CONFIG[s.level];
     const diff = DIFF[setRef.current.difficulty];
@@ -247,6 +286,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     let available = pool.filter(w => getCnt(w.id) < maxRep);
     if (available.length === 0) {
       sessionCountsRef.current.clear();
+      seriesQueueRef.current = [];
       available = pool;
     }
     if (available.length < 2 && wrongFilterRef.current) available = pool;
@@ -261,7 +301,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       const pickBoss = (src: VocabWord[]) => {
         const never = src.filter(w => !heatRef.current[w.id] || heatRef.current[w.id].seen === 0);
         const tier = never.length ? never : src.filter(w => getCnt(w.id) === 0).length ? src.filter(w => getCnt(w.id) === 0) : src;
-        return tier[Math.floor(Math.random() * tier.length)];
+        return pickInOrder(tier);
       };
       const dueCrimson = available.filter(w => heatOf(heatRef.current[w.id]) === 'crimson' && isDue(heatRef.current[w.id]));
       const dueAny = available.filter(w => isDue(heatRef.current[w.id]));
@@ -275,7 +315,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       else if (amber.length) src = amber;
       else if (ice.length) src = ice;
       else src = available;
-      target = pickBoss(src) ?? available[Math.floor(Math.random() * available.length)];
+      target = pickBoss(src) ?? pickInOrder(available);
     } else {
       const neverSeen = available.filter(w => !heatRef.current[w.id] || heatRef.current[w.id].seen === 0);
       let candidateSet: VocabWord[];
@@ -284,8 +324,10 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         const notYet = available.filter(w => getCnt(w.id) === 0);
         candidateSet = notYet.length ? notYet : available;
       }
-      target = candidateSet[Math.floor(Math.random() * candidateSet.length)];
+      target = pickInOrder(candidateSet);
     }
+    // seçilen hedefi kuyruktan çıkar — seri bitmeden aynı kelime tekrar gelmez
+    seriesQueueRef.current = seriesQueueRef.current.filter(w => w.id !== target.id);
 
     // tazelik öncelikli decoy seçimi: aynı havuzdan, en az görülenden başla, kategori çeşitliliği korunsun
     const decoyNeed = lanes - 1;
@@ -371,7 +413,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     /* Hear-then-find: speaking the target teaches pronunciation before the hunt. */
     if (setRef.current.echo) audio.speak(target.foreign, s.lang, isBoss ? 520 : isFrenzy ? 340 : 260);
     sync();
-  }, [sync]);
+    saveRunSoon();
+  }, [sync, saveRunSoon]);
 
   /* ── controls ── */
   const startRun = useCallback((lang: LangCode, level: CEFRLevel, category: CategoryId, cloze = false) => {
@@ -395,11 +438,14 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     };
     moveTarget.current = null; dirHold.current = 0;
     sessionCountsRef.current.clear();
+    seriesQueueRef.current = [];
+    seriesKeyRef.current = "";
     wrongFilterRef.current = null;
     spawnWave(1, cloze ? 'CÜMLE MODU' : 'HAZIR OL', cloze ? 'Boşluğu doldur' : LEVEL_CONFIG[level].label);
     audio.startMusic('ice');
     flushSoon();
-  }, [spawnWave, flushSoon]);
+    saveRunSoon();
+  }, [spawnWave, flushSoon, saveRunSoon]);
 
   const startWrongRun = useCallback((lang: LangCode, level: CEFRLevel, ids: string[]) => {
     const diff = DIFF[setRef.current.difficulty];
@@ -428,10 +474,54 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     };
     moveTarget.current = null; dirHold.current = 0;
     sessionCountsRef.current.clear();
+    seriesQueueRef.current = [];
+    seriesKeyRef.current = "";
     spawnWave(1, 'YANLIŞ DEFTERİ', `${ids.length} kelime · tekrar modu`);
     audio.startMusic('ice');
     flushSoon();
-  }, [spawnWave, flushSoon]);
+    saveRunSoon();
+  }, [spawnWave, flushSoon, saveRunSoon]);
+
+  const hasSavedRun = useCallback(() => {
+    try { return store.loadRun(); } catch { return null; }
+  }, []);
+  const continueRun = useCallback(() => {
+    const saved: any = store.loadRun();
+    if (!saved || !saved.lang || !saved.level) return false;
+    const diff = DIFF[setRef.current.difficulty];
+    const vig = { A1: 0, A2: 0.12, B1: 0.24, B2: 0.36, C1: 0.5 }[saved.level as CEFRLevel] ?? 0;
+    audio.unlock();
+    audio.setMusicEnabled(setRef.current.music);
+    audio.setSfxEnabled(setRef.current.sfx);
+    audio.setBgmVolume(setRef.current.bgmVolume ?? 0);
+    audio.ttsOn = setRef.current.tts;
+    audio.setRate(setRef.current.ttsRate ?? 1);
+    try {
+      if (saved.sessionCounts) sessionCountsRef.current = new Map(saved.sessionCounts);
+      if (saved.seriesQueue && saved.seriesKey) {
+        const pool = getWords(saved.lang as LangCode, saved.level as CEFRLevel, saved.category as CategoryId, customRef.current);
+        const map = new Map(pool.map(w => [w.id, w]));
+        seriesQueueRef.current = (saved.seriesQueue as string[]).map((id: string) => map.get(id)).filter(Boolean) as VocabWord[];
+        seriesKeyRef.current = saved.seriesKey;
+      } else { seriesQueueRef.current = []; seriesKeyRef.current = ""; }
+    } catch {}
+    ref.current = {
+      ...initialState(),
+      phase: 'playing', lang: saved.lang as LangCode, level: saved.level as CEFRLevel, category: saved.category as CategoryId,
+      lives: saved.lives ?? diff.lives, maxLives: saved.maxLives ?? diff.lives, vignette: saved.vignette ?? vig,
+      score: saved.score ?? 0, wave: saved.wave ?? 1, wavesCleared: saved.wavesCleared ?? 0,
+      combo: saved.combo ?? 0, bestCombo: saved.bestCombo ?? 0, runCorrect: saved.runCorrect ?? 0, runWrong: saved.runWrong ?? 0,
+      neurons: ref.current.neurons, parallaxStars: ref.current.parallaxStars, gameTime: ref.current.gameTime,
+    };
+    moveTarget.current = null; dirHold.current = 0;
+    wrongFilterRef.current = null;
+    clozeModeRef.current = false;
+    spawnWave(saved.wave ?? 1, 'DEVAM', `DALGA ${saved.wave ?? 1} — KALDIĞIN YERDEN`);
+    audio.startMusic('ice');
+    sync();
+    saveRunSoon();
+    return true;
+  }, [spawnWave, saveRunSoon, sync]);
 
   const addSpeechBonus = useCallback((pts: number) => {
     const s = ref.current;
@@ -544,19 +634,19 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (ref.current.phase !== 'playing') return;
     ref.current = { ...ref.current, phase: 'paused' };
     audio.stopMusic(); audio.stopSpeech(); sync();
-  }, [sync]);
+    saveRun();
+  }, [sync, saveRun]);
   const resume = useCallback(() => {
     if (ref.current.phase !== 'paused') return;
     ref.current = { ...ref.current, phase: 'playing' };
     audio.startMusic(ref.current.targetHeat); sync();
   }, [sync]);
   const quit = useCallback(() => {
+    // kaldığın yerden devam için kaydet, sıfırlama — devam için kuyruk ve sayımlar korunur
+    saveRun();
     ref.current = { ...ref.current, phase: 'menu' };
-    wrongFilterRef.current = null;
-    clozeModeRef.current = false;
-    sessionCountsRef.current.clear();
     audio.stopMusic(); audio.stopSpeech(); flushNow(); sync();
-  }, [sync, flushNow]);
+  }, [sync, flushNow, saveRun]);
 
   const updateSettings = useCallback((patch: Partial<Settings>) => {
     setSettings(prev => {
@@ -1058,6 +1148,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.aliens = []; s.bullets = [];
     audio.stopMusic();
     if (kind === 'levelComplete') { audio.levelUp(); haptic('level', setRef.current.haptics); }
+    // seri bitti — kayıtlı devamı temizle, yeni seri baştan
+    try { store.clearRun(); } catch {}
+    seriesQueueRef.current = [];
+    seriesKeyRef.current = "";
+    sessionCountsRef.current.clear();
     flushNow();
     sync();
     endCb.current(kind);
@@ -1129,7 +1224,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   return {
     state: st, settings, stats, heat, customWords, lockedId, hintId,
-    startRun, startWrongRun, addSpeechBonus, triggerMine, toggleRepeat, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
+    startRun, startWrongRun, continueRun, hasSavedRun, addSpeechBonus, triggerMine, toggleRepeat, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
     pause, resume, quit,
     updateSettings, addCustomWord, removeCustomWord, resetProgress,
   };

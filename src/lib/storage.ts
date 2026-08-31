@@ -6,6 +6,7 @@ const K = {
   custom: 'wi_custom_v1',
   settings: 'wi_settings_v1',
   stats: 'wi_stats_v1',
+  run: 'wi_run_v1',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -38,6 +39,10 @@ export const store = {
 
   loadCustom: (): VocabWord[] => read<VocabWord[]>(K.custom, []),
   saveCustom: (c: VocabWord[]) => write(K.custom, c),
+
+  loadRun: (): any => read<any>(K.run, null),
+  saveRun: (r: any) => write(K.run, r),
+  clearRun: () => { try { localStorage.removeItem(K.run); } catch {} },
 
   loadSettings: (): Settings => {
     const raw = read<Partial<Settings>>(K.settings, {});
