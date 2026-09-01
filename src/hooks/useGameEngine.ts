@@ -159,8 +159,9 @@ export interface EngineApi {
   replay: () => void;
   startRun: (lang: LangCode, level: CEFRLevel, category: CategoryId, cloze?: boolean) => void;
   startWrongRun: (lang: LangCode, level: CEFRLevel, ids: string[]) => void;
-  continueRun: () => boolean;
-  hasSavedRun: () => any | null;
+  continueRun: (lang?: LangCode) => boolean;
+  hasSavedRun: (lang?: LangCode) => any | null;
+  getAllSavedRuns: () => Record<string, any>;
   setMicSlow: (active: boolean) => void;
   addSpeechBonus: (pts: number) => void;
   triggerMine: () => void;
@@ -230,7 +231,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     try {
       const s = ref.current;
       if (s.phase !== 'playing') return;
-      store.saveRun({
+      const payload = {
         lang: s.lang, level: s.level, category: s.category,
         wave: s.wave, wavesCleared: s.wavesCleared, score: s.score, lives: s.lives, maxLives: s.maxLives,
         combo: s.combo, bestCombo: s.bestCombo, runCorrect: s.runCorrect, runWrong: s.runWrong, vignette: s.vignette,
@@ -238,7 +239,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         seriesKey: seriesKeyRef.current,
         sessionCounts: Array.from(sessionCountsRef.current.entries()),
         ts: Date.now(),
-      });
+      };
+      store.saveRun(payload, s.lang as LangCode);
     } catch {}
   }, []);
   const saveRunSoon = useCallback(() => {
@@ -483,11 +485,14 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     saveRunSoon();
   }, [spawnWave, flushSoon, saveRunSoon]);
 
-  const hasSavedRun = useCallback(() => {
-    try { return store.loadRun(); } catch { return null; }
+  const hasSavedRun = useCallback((lang?: LangCode) => {
+    try { return store.loadRun(lang); } catch { return null; }
   }, []);
-  const continueRun = useCallback(() => {
-    const saved: any = store.loadRun();
+  const getAllSavedRuns = useCallback(() => {
+    try { return store.loadAllRuns(); } catch { return {}; }
+  }, []);
+  const continueRun = useCallback((lang?: LangCode) => {
+    const saved: any = lang ? store.loadRun(lang) : store.loadRun();
     if (!saved || !saved.lang || !saved.level) return false;
     const diff = DIFF[setRef.current.difficulty];
     const vig = { A1: 0, A2: 0.12, B1: 0.24, B2: 0.36, C1: 0.5 }[saved.level as CEFRLevel] ?? 0;
@@ -696,6 +701,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const blank: RunStats = { highScores: {}, totalCorrect: 0, totalWrong: 0, wavesTotal: 0, bossesKilled: 0, sessionsPlayed: 0, streak: 0, bestStreak: 0, lastStreakDate: null, todayCount: 0, todayDate: null };
     heatRef.current = {}; statsRef.current = blank;
     store.saveHeat({}); store.saveStats(blank);
+    try { store.clearRun(); } catch {}
+    seriesQueueRef.current = []; seriesKeyRef.current = ""; sessionCountsRef.current.clear();
     setHeat({}); setStats(blank);
   }, []);
 
@@ -1166,8 +1173,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.aliens = []; s.bullets = [];
     audio.stopMusic();
     if (kind === 'levelComplete') { audio.levelUp(); haptic('level', setRef.current.haptics); }
-    // seri bitti — kayıtlı devamı temizle, yeni seri baştan
-    try { store.clearRun(); } catch {}
+    // seri bitti — sadece o dilin devamını temizle, diğer diller korunur
+    try { store.clearRun(s.lang as LangCode); } catch {}
     seriesQueueRef.current = [];
     seriesKeyRef.current = "";
     sessionCountsRef.current.clear();
@@ -1242,7 +1249,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   return {
     state: st, settings, stats, heat, customWords, lockedId, hintId,
-    startRun, startWrongRun, continueRun, hasSavedRun, addSpeechBonus, triggerMine, toggleRepeat, setMicSlow, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
+    startRun, startWrongRun, continueRun, hasSavedRun, getAllSavedRuns, addSpeechBonus, triggerMine, toggleRepeat, setMicSlow, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
     pause, resume, quit,
     updateSettings, addCustomWord, removeCustomWord, resetProgress,
   };

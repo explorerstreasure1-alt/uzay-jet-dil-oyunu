@@ -33,6 +33,7 @@ export const DEFAULT_STATS: RunStats = {
   achievements: [], frenzyCleared: 0, wrongBookRuns: 0, dailyRuns: 0, speechCount: 0,
 };
 
+const runKey = (lang: LangCode) => `${K.run}_${lang}`;
 export const store = {
   loadHeat: (): HeatMap => read<HeatMap>(K.heat, {}),
   saveHeat: (h: HeatMap) => write(K.heat, h),
@@ -40,9 +41,47 @@ export const store = {
   loadCustom: (): VocabWord[] => read<VocabWord[]>(K.custom, []),
   saveCustom: (c: VocabWord[]) => write(K.custom, c),
 
-  loadRun: (): any => read<any>(K.run, null),
-  saveRun: (r: any) => write(K.run, r),
-  clearRun: () => { try { localStorage.removeItem(K.run); } catch {} },
+  // her dil için ayrı devam kaydı — geriye uyumlu: eski tek kayıt varsa ilgili dile taşı
+  loadRun: (lang?: LangCode): any => {
+    if (lang) {
+      const per = read<any>(runKey(lang), null);
+      if (per) return per;
+      const legacy = read<any>(K.run, null);
+      if (legacy && legacy.lang === lang) return legacy;
+      return null;
+    }
+    // lang verilmezse: en yeni kayıtlı dili döndür (UI için)
+    for (const l of (['en','es','it','ru'] as LangCode[])) {
+      const r = read<any>(runKey(l), null);
+      if (r) return r;
+    }
+    return read<any>(K.run, null);
+  },
+  saveRun: (r: any, lang?: LangCode) => {
+    const key = lang ? runKey(lang as LangCode) : (r?.lang ? runKey(r.lang as LangCode) : K.run);
+    write(key, r);
+    // eski tek anahtarı temizle (migration)
+    if (key !== K.run) try { localStorage.removeItem(K.run); } catch {}
+  },
+  clearRun: (lang?: LangCode) => {
+    try {
+      if (lang) localStorage.removeItem(runKey(lang));
+      else {
+        for (const l of (['en','es','it','ru'] as LangCode[])) localStorage.removeItem(runKey(l));
+        localStorage.removeItem(K.run);
+      }
+    } catch {}
+  },
+  loadAllRuns: (): Record<string, any> => {
+    const out: Record<string, any> = {};
+    for (const l of (['en','es','it','ru'] as LangCode[])) {
+      const r = read<any>(runKey(l), null);
+      if (r) out[l] = r;
+    }
+    const legacy = read<any>(K.run, null);
+    if (legacy && !out[legacy.lang]) out[legacy.lang] = legacy;
+    return out;
+  },
 
   loadSettings: (): Settings => {
     const raw = read<Partial<Settings>>(K.settings, {});

@@ -111,7 +111,7 @@ export default function App() {
         {root === 'menu' && (
           <>
             <MenuBackdrop />
-            {view === 'menu' && <MenuScreen api={api} lang={uiLang} setLang={setUiLang} go={setView} pwa={pwa} onContinue={() => { if (api.continueRun()) { const s = api.state; setRun({ lang: s.lang, level: s.level, category: s.category }); setRoot('playing'); } }} />}
+            {view === 'menu' && <MenuScreen api={api} lang={uiLang} setLang={setUiLang} go={setView} pwa={pwa} onContinue={(l) => { const ok = (l ? (api as any).continueRun(l) : api.continueRun()); if (ok) { const s = api.state; setRun({ lang: s.lang, level: s.level, category: s.category }); setRoot('playing'); } }} />}
             {view === 'setup' && <SetupScreen api={api} lang={uiLang} setLang={setUiLang} onStart={start} onBack={() => setView('menu')} />}
             {view === 'deck' && <DeckScreen api={api} onBack={() => setView('menu')} />}
             {view === 'wrongbook' && <WrongBookScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}

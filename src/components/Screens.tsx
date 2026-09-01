@@ -54,7 +54,7 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
   api: EngineApi; lang: LangCode; setLang: (l: LangCode) => void;
   go: (v: 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily') => void;
   pwa?: { canInstall: boolean; isInstalled: boolean; isIos: boolean; install: () => Promise<string> };
-  onContinue?: () => void;
+  onContinue?: (lang?: LangCode) => void;
 }) {
   const counts = useMemo(() => countWords(lang, api.customWords), [lang, api.customWords]);
   const accent = LANGUAGES.find(l => l.code === lang)!.accent;
@@ -224,20 +224,34 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
           {(() => { const si = streakInfo(api.stats); return si.today >= 10 ? <span className="font-mono-tech text-[8px] px-1.5 py-0.5 rounded" style={{background:'#00ffa3', color:'#061a12'}}>✓</span> : <span className="font-mono-tech text-[8px] text-white/40">{si.today}/10</span>; })()}
         </button>
         {(() => {
-          const saved = api.hasSavedRun?.();
-          if (!saved) return null;
+          const all = (api as any).getAllSavedRuns?.() ?? {};
+          const entries = Object.entries(all) as [string, any][];
+          if (!entries.length) return null;
+          // önce seçili dili en üste al
+          entries.sort((a,b) => (a[0]===lang ? -1 : b[0]===lang ? 1 : 0));
           return (
-            <button onClick={() => { audio.ui(); onContinue?.(); }}
-              className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,209,102,0.28), rgba(255,140,0,0.18))',
-                border: '1px solid #ffd166',
-                boxShadow: '0 0 22px rgba(255,209,102,0.42), inset 0 1px 0 rgba(255,255,255,0.18)',
-              }}>
-              <span className="font-orbitron text-[13px] font-black tracking-[0.2em] text-[#fff8e6]"
-                style={{ textShadow: '0 0 10px #ffd166' }}>▶ KALDIĞIN YERDEN DEVAM</span>
-              <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55 block mt-0.5">{saved.lang?.toUpperCase()} {saved.level} · DALGA {saved.wave} · {saved.score?.toString().padStart(6,'0')}</span>
-            </button>
+            <div className="space-y-1.5">
+              <div className="font-mono-tech text-[7px] tracking-[0.2em] text-[#ffd166]/70">▶ KALDIĞIN YERDEN DEVAM — {entries.length} dilde kayıt var</div>
+              {entries.map(([l, saved]: [string, any]) => {
+                const meta = LANGUAGES.find(x=>x.code===l);
+                const isCurrent = l===lang;
+                return (
+                  <button key={l} onClick={() => { audio.ui(); (api as any).continueRun?.(l); onContinue?.(l as any); }}
+                    className="w-full rounded-xl py-2.5 active:scale-[0.97] transition-transform flex items-center justify-between px-3"
+                    style={{
+                      background: isCurrent ? 'linear-gradient(135deg, rgba(255,209,102,0.28), rgba(255,140,0,0.18))' : 'rgba(255,209,102,0.10)',
+                      border: `1px solid ${isCurrent ? '#ffd166' : 'rgba(255,209,102,0.35)'}`,
+                      boxShadow: isCurrent ? '0 0 16px rgba(255,209,102,0.32)' : 'none',
+                    }}>
+                    <span className="flex items-center gap-2">
+                      <span className="font-orbitron text-[11px] font-black" style={{ color: meta?.accent ?? '#ffd166' }}>{meta?.flag ?? l.toUpperCase()}</span>
+                      <span className="font-mono-tech text-[8px] tracking-[0.12em]" style={{ color: isCurrent ? '#fff8e6' : 'rgba(255,255,255,0.7)' }}>{saved.level} · DALGA {saved.wave}</span>
+                    </span>
+                    <span className="font-pixel text-[11px] text-[#ffd166]">{saved.score?.toString().padStart(6,'0')}</span>
+                  </button>
+                );
+              })}
+            </div>
           );
         })()}
         <button onClick={() => { audio.unlock(); audio.ui(); go('setup'); }}
