@@ -646,7 +646,7 @@ export function buildLanguage(lang: LangCode): Entry[] {
    /* 7 — verb + object collocations (öncelik: mantık hatasız, erken üretilir) */
     const DRINKABLE_TR = new Set(['su','süt','kahve','çay','meyve suyu','şarap','çorba']);
     const READABLE_NOUN_TR = new Set(['kitap','defter','sayfa','kelime']);
-    const BREAKABLE_TR = new Set(['kapı','pencere','masa','sandalye','yatak','ayna','telefon','saat','anahtar','cam','bardak','tabak','şişe','kutu','kalem','kitap','çanta','ayakkabı','ekmek','palto','sandalye','masa','pencere']);
+    const BREAKABLE_TR = new Set(['kapı','pencere','cam','ayna','tabak','bardak','şişe','kutu','kalem','kitap','çanta','masa','sandalye','yatak','anahtar','saat','telefon','ekmek','kurabiye','dal','buz','kalp','çubuk','yumurta','fındık','ceviz','ayakkabı','palto']);
     const OBJ_OK: Record<string, CatId[]> = {
      'yemek':            ['food'],
      'içmek':            ['food'],
