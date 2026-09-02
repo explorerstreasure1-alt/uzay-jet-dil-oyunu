@@ -104,3 +104,17 @@ export function countWords(lang: LangCode, extra: VocabWord[] = []) {
 export function categoryCount(lang: LangCode, level: CEFRLevel, cat: CategoryId, extra: VocabWord[] = []) {
   return getWords(lang, level, cat, extra).length;
 }
+export function getSeriesCount(lang: LangCode, level: CEFRLevel, extra: VocabWord[] = []): number {
+  return Math.max(1, Math.ceil(getWords(lang, level, 'all', extra).length / 50));
+}
+export function getSeriesWords(lang: LangCode, level: CEFRLevel, idx: number, extra: VocabWord[] = []): VocabWord[] {
+  const all = getWords(lang, level, 'all', extra);
+  return all.slice(idx * 50, idx * 50 + 50);
+}
+export function isSeriesCompleted(lang: LangCode, level: CEFRLevel, idx: number, heat: import('../types/game').HeatMap, extra: VocabWord[] = []): boolean {
+  const words = getSeriesWords(lang, level, idx, extra);
+  return words.length > 0 && words.every(w => {
+    const s = heat[w.id];
+    return s && s.seen > 0 && s.hits > 0;
+  });
+}

@@ -3,7 +3,7 @@ import { useGameEngine, VW, VH } from './hooks/useGameEngine';
 import { GameScreen } from './components/GameScreen';
 import {
   MenuScreen, SetupScreen, DeckScreen, StatsScreen, SettingsScreen, InstallScreen, WrongBookScreen, DailyChallengeScreen, LeaderboardScreen, CampaignScreen, TeacherScreen,
-  LevelCompleteScreen, GameOverScreen, PauseOverlay, type MenuView,
+  LevelCompleteScreen, GameOverScreen, PauseOverlay, SeriesScreen, type MenuView,
 } from './components/Screens';
 import { highScoreKey } from './lib/storage';
 import { usePwaInstall } from './lib/pwa';
@@ -23,6 +23,7 @@ export default function App() {
     lang: 'en', level: 'A1', category: 'all',
   });
   const [viewport, setViewport] = useState({ width: VW, height: VH, left: 0, top: 0, scale: 1 });
+  const [seriesNav, setSeriesNav] = useState<{ lang: LangCode; level: CEFRLevel } | null>(null);
   const pwa = usePwaInstall();
   const [showTutorial, setShowTutorial] = useState(() => {
     try { return localStorage.getItem('wi_tutorial_seen') !== '1'; } catch { return true; }
@@ -112,7 +113,8 @@ export default function App() {
           <>
             <MenuBackdrop />
             {view === 'menu' && <MenuScreen api={api} lang={uiLang} setLang={setUiLang} go={setView} pwa={pwa} onContinue={(l) => { const ok = (l ? (api as any).continueRun(l) : api.continueRun()); if (ok) { const s = api.state; setRun({ lang: s.lang, level: s.level, category: s.category }); setRoot('playing'); } }} />}
-            {view === 'setup' && <SetupScreen api={api} lang={uiLang} setLang={setUiLang} onStart={start} onBack={() => setView('menu')} />}
+            {view === 'setup' && <SetupScreen api={api} lang={uiLang} setLang={setUiLang} onStart={start} onBack={() => setView('menu')} onViewSeries={(lang, level) => { setSeriesNav({ lang, level }); setView('series'); }} />}
+            {view === 'series' && seriesNav && <SeriesScreen api={api} lang={seriesNav.lang} level={seriesNav.level} onBack={() => setView('setup')} onStartSeries={(idx) => { (api as any).startSeries(seriesNav.lang, seriesNav.level, idx); setRun({ lang: seriesNav.lang, level: seriesNav.level, category: 'all' }); setRoot('playing'); }} />}
             {view === 'deck' && <DeckScreen api={api} onBack={() => setView('menu')} />}
             {view === 'wrongbook' && <WrongBookScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}
             {view === 'daily' && <DailyChallengeScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}

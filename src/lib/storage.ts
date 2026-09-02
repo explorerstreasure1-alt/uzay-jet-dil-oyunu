@@ -7,6 +7,7 @@ const K = {
   settings: 'wi_settings_v1',
   stats: 'wi_stats_v1',
   run: 'wi_run_v1',
+  series: 'wi_series_ticks_v1',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -81,6 +82,24 @@ export const store = {
     const legacy = read<any>(K.run, null);
     if (legacy && !out[legacy.lang]) out[legacy.lang] = legacy;
     return out;
+  },
+  loadSeriesTicks: (): Record<string, boolean> => read<Record<string, boolean>>(K.series, {}),
+  isSeriesTicked: (lang: LangCode, level: CEFRLevel, idx: number) => {
+    const ticks = read<Record<string, boolean>>(K.series, {});
+    return !!ticks[`${lang}:${level}:${idx}`];
+  },
+  setSeriesTick: (lang: LangCode, level: CEFRLevel, idx: number, done: boolean) => {
+    const ticks = read<Record<string, boolean>>(K.series, {});
+    const key = `${lang}:${level}:${idx}`;
+    if (done) ticks[key] = true; else delete ticks[key];
+    write(K.series, ticks);
+  },
+  clearSeriesTicks: (lang?: LangCode, level?: CEFRLevel) => {
+    if (!lang) { try { localStorage.removeItem(K.series); } catch {} return; }
+    const ticks = read<Record<string, boolean>>(K.series, {});
+    const prefix = level ? `${lang}:${level}:` : `${lang}:`;
+    for (const k of Object.keys(ticks)) if (k.startsWith(prefix)) delete ticks[k];
+    write(K.series, ticks);
   },
 
   loadSettings: (): Settings => {

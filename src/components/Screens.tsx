@@ -4,9 +4,9 @@ import { VW } from '../hooks/useGameEngine';
 import type { GameState, HeatMap, Settings } from '../types/game';
 import type { CategoryId, CEFRLevel, LangCode } from '../data/vocabulary';
 import {
-  LANGUAGES, LEVEL_CONFIG, CATEGORIES, HEAT_META, getWords, countWords, allWords, WORDS_PER_LANGUAGE,
+  LANGUAGES, LEVEL_CONFIG, CATEGORIES, HEAT_META, getWords, countWords, allWords, WORDS_PER_LANGUAGE, getSeriesCount, getSeriesWords,
 } from '../data/vocabulary';
-import { heatBreakdown, highScoreKey, reviewSummary, getWrongWords, streakInfo, getDailyChallenge, requestDailyPush, scheduleDailyPush } from '../lib/storage';
+import { heatBreakdown, highScoreKey, reviewSummary, getWrongWords, streakInfo, getDailyChallenge, requestDailyPush, scheduleDailyPush, store } from '../lib/storage';
 import { NEON } from '../lib/theme';
 import { ACHIEVEMENTS, xpFor } from '../lib/achievements';
 import { audio } from '../lib/audio';
@@ -367,9 +367,9 @@ export function InstallScreen({ canInstall, installed, isIos, onInstall, onBack 
 }
 
 /* ══════════════════ SETUP WIZARD ══════════════════ */
-export function SetupScreen({ api, lang, setLang, onStart, onBack }: {
+export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries }: {
   api: EngineApi; lang: LangCode; setLang: (l: LangCode) => void;
-  onStart: (l: LangCode, lv: CEFRLevel, c: CategoryId, cloze?: boolean) => void; onBack: () => void;
+  onStart: (l: LangCode, lv: CEFRLevel, c: CategoryId, cloze?: boolean) => void; onBack: () => void; onViewSeries?: (lang: LangCode, level: CEFRLevel) => void;
 }) {
   const [lv, setLv] = useState<CEFRLevel>('A1');
   const [cat, setCat] = useState<CategoryId>('all');
@@ -476,6 +476,40 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack }: {
         style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,102,255,0.16))', border: `1px solid #00d4ff`, boxShadow: `0 0 20px rgba(0,212,255,0.4)` }}>
         <span className="font-orbitron text-[15px] font-black tracking-[0.28em] text-[#e6faff]">SAVAŞA GİR</span>
       </button>
+      <button onClick={() => onViewSeries?.(lang, lv)} className="w-full mt-2 rounded-xl py-2.5 active:scale-[0.97] transition-transform" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)' }}>
+        <span className="font-mono-tech text-[9px] tracking-[0.14em] text-white/70">📚 50'LİK SERİLERİ GÖR — {getSeriesCount(lang, lv, api.customWords)} seri × 50 kelime</span>
+      </button>
+    </Shell>
+  );
+}
+
+/* ══════════════════ SERIES (50'şer) ══════════════════ */
+export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api: EngineApi; lang: LangCode; level: CEFRLevel; onBack: () => void; onStartSeries: (idx: number) => void }) {
+  const total = getSeriesCount(lang, level, api.customWords);
+  const allTicks = store.loadSeriesTicks();
+  return (
+    <Shell>
+      <BackBtn onClick={onBack} />
+      <div className="font-orbitron text-[18px] font-black tracking-[0.12em] text-white/90 mb-1">{LANGUAGES.find(l=>l.code===lang)?.flag} {level} — 50'LİK SERİLER</div>
+      <div className="font-mono-tech text-[8px] text-white/35 mb-3">{total} seri × 50 kelime = {getWords(lang, level, 'all', api.customWords).length} kelime · Tikle ve sıradakine geç — 80 seri = 4000 kelime/dil</div>
+      <div className="grid grid-cols-2 gap-2 pb-4">
+        {Array.from({ length: total }, (_, i) => {
+          const done = !!allTicks[`${lang}:${level}:${i}`];
+          const words = getSeriesWords(lang, level, i, api.customWords);
+          const preview = words.slice(0,3).map(w=>w.foreign).join(', ');
+          return (
+            <button key={i} onClick={()=> onStartSeries(i)} className="rounded-xl px-3 py-3 text-left active:scale-[0.98] transition-all" style={{ background: done ? 'linear-gradient(135deg, rgba(0,255,163,0.18), rgba(0,180,120,0.10))' : 'rgba(255,255,255,0.045)', border: `1px solid ${done ? '#00ffa3' : 'rgba(255,255,255,0.12)'}`, boxShadow: done ? '0 0 10px rgba(0,255,163,0.25)' : 'none' }}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-orbitron text-[12px] font-black" style={{ color: done ? '#00ffa3' : '#8be9ff' }}>SERİ {i+1}</span>
+                <span className="font-mono-tech text-[10px]" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.25)' }}>{done ? '✓' : `${words.length}`}</span>
+              </div>
+              <div className="font-mono-tech text-[7px] text-white/35 truncate">{preview}</div>
+              <div className="font-mono-tech text-[6px] mt-1" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{done ? '✓ ÖĞRENİLDİ — tikli' : '50 kelime — oyna ve öğrenince tikle'}</div>
+            </button>
+          );
+        })}
+      </div>
+      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Öğrendiğinden emin olunca seri otomatik tiklenir (50/50 doğru) — sıradaki seriye geçebilirsin.</div>
     </Shell>
   );
 }
@@ -1250,5 +1284,5 @@ export function TeacherScreen({ api, onBack }: { api: EngineApi; onBack: ()=>voi
   );
 }
 
-export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily' | 'leaderboard' | 'campaign' | 'teacher';
+export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily' | 'leaderboard' | 'campaign' | 'teacher' | 'series';
 export function heatOfUnused(h: HeatMap) { void h; }

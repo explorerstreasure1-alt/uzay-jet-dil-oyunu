@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Alien, GameState, Settings, RunStats, HeatMap } from '../types/game';
 import type { CategoryId, CEFRLevel, HeatLevel, LangCode, VocabWord } from '../data/vocabulary';
-import { LEVEL_CONFIG, getWords, HEAT_META } from '../data/vocabulary';
+import { LEVEL_CONFIG, getWords, HEAT_META, getSeriesWords } from '../data/vocabulary';
 import {
   store, heatOf, isDue, applyResult, highScoreKey, DEFAULT_SETTINGS, bumpStreak,
 } from '../lib/storage';
@@ -159,6 +159,7 @@ export interface EngineApi {
   replay: () => void;
   startRun: (lang: LangCode, level: CEFRLevel, category: CategoryId, cloze?: boolean) => void;
   startWrongRun: (lang: LangCode, level: CEFRLevel, ids: string[]) => void;
+  startSeries: (lang: LangCode, level: CEFRLevel, idx: number) => void;
   continueRun: (lang?: LangCode) => boolean;
   hasSavedRun: (lang?: LangCode) => any | null;
   getAllSavedRuns: () => Record<string, any>;
@@ -203,6 +204,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   /** Yanlış defteri filtresi: sadece bu id'ler havuzda kalır */
   const wrongFilterRef = useRef<Set<string> | null>(null);
+  /** Seri filtresi: sadece bu 50 kelimelik serinin id'leri */
+  const seriesFilterRef = useRef<Set<string> | null>(null);
+  const seriesMetaRef = useRef<{ lang: LangCode; level: CEFRLevel; idx: number } | null>(null);
   const clozeModeRef = useRef(false);
   /** Koşu boyunca her hedefin kaç kez sorulduğu — en fazla 2 tekrar, sonra taze kelimeye geç. */
   const sessionCountsRef = useRef<Map<string, number>>(new Map());
@@ -251,6 +255,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   const spawnWave = useCallback((wave: number, banner?: string, sub?: string) => {
     const s = ref.current;
     let pool = getWords(s.lang, s.level, s.category, customRef.current);
+    // seri filtresi (50'lik bölüm) öncelikli
+    if (seriesFilterRef.current) {
+      const f = pool.filter(w => seriesFilterRef.current!.has(w.id));
+      if (f.length >= 2) pool = f;
+    }
     if (wrongFilterRef.current) {
       const filtered = pool.filter(w => wrongFilterRef.current!.has(w.id));
       if (filtered.length >= 2) pool = filtered;
@@ -443,6 +452,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     sessionCountsRef.current.clear();
     seriesQueueRef.current = [];
     seriesKeyRef.current = "";
+    seriesFilterRef.current = null;
+    seriesMetaRef.current = null;
     wrongFilterRef.current = null;
     spawnWave(1, cloze ? 'CÜMLE MODU' : 'HAZIR OL', cloze ? 'Boşluğu doldur' : LEVEL_CONFIG[level].label);
     audio.startMusic('ice');
@@ -479,7 +490,40 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     sessionCountsRef.current.clear();
     seriesQueueRef.current = [];
     seriesKeyRef.current = "";
+    seriesFilterRef.current = null;
+    seriesMetaRef.current = null;
     spawnWave(1, 'YANLIŞ DEFTERİ', `${ids.length} kelime · tekrar modu`);
+    audio.startMusic('ice');
+    flushSoon();
+    saveRunSoon();
+  }, [spawnWave, flushSoon, saveRunSoon]);
+
+  const startSeries = useCallback((lang: LangCode, level: CEFRLevel, idx: number) => {
+    const diff = DIFF[setRef.current.difficulty];
+    const vig = { A1: 0, A2: 0.12, B1: 0.24, B2: 0.36, C1: 0.5 }[level];
+    audio.unlock();
+    audio.setMusicEnabled(setRef.current.music);
+    audio.setSfxEnabled(setRef.current.sfx);
+    audio.setBgmVolume(setRef.current.bgmVolume ?? 0);
+    audio.ttsOn = setRef.current.tts;
+    audio.setRate(setRef.current.ttsRate ?? 1);
+    const words = getSeriesWords(lang, level, idx, customRef.current);
+    seriesFilterRef.current = new Set(words.map(w => w.id));
+    seriesMetaRef.current = { lang, level, idx };
+    wrongFilterRef.current = null;
+    clozeModeRef.current = false;
+    statsRef.current = { ...statsRef.current, sessionsPlayed: statsRef.current.sessionsPlayed + 1 };
+    ref.current = {
+      ...initialState(),
+      phase: 'playing', lang, level, category: 'all',
+      lives: diff.lives, maxLives: diff.lives, vignette: vig,
+      neurons: ref.current.neurons, parallaxStars: ref.current.parallaxStars, gameTime: ref.current.gameTime,
+    };
+    moveTarget.current = null; dirHold.current = 0;
+    sessionCountsRef.current.clear();
+    seriesQueueRef.current = [];
+    seriesKeyRef.current = `${lang}-${level}-series-${idx}`;
+    spawnWave(1, `SERİ ${idx + 1}`, `${words.length} kelime · ${level}`);
     audio.startMusic('ice');
     flushSoon();
     saveRunSoon();
@@ -937,6 +981,21 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             }
           }
           flushSoon();
+          // seri tik: 50 kelimenin hepsi en az 1 doğru yapıldıysa otomatik tik
+          if (seriesMetaRef.current && seriesFilterRef.current) {
+            const { lang, level, idx } = seriesMetaRef.current;
+            const words = getSeriesWords(lang, level, idx, customRef.current);
+            const allDone = words.length > 0 && words.every(w => {
+              const s2 = heatRef.current[w.id];
+              return s2 && s2.hits > 0 && s2.seen > 0;
+            });
+            if (allDone && !store.isSeriesTicked(lang, level, idx)) {
+              store.setSeriesTick(lang, level, idx, true);
+              s.floats.push({ id: uid(), x: VW/2, y: 310, text: `✓ SERİ ${idx + 1} TAMAMLANDI — SIRADAKİ AÇILDI`, color: '#00ffa3', life: 2.2, vy: -0.45 });
+              s.waveBanner = { text: `✓ SERİ ${idx + 1} BİTTİ`, sub: 'SIRADAKİ SERİYE GEÇEBİLİRSİN', t: 1 };
+              audio.levelUp(); haptic('level', hap);
+            }
+          }
 
           // Adrenalin: combo ve frenzy ile patlama büyür
           const frenzyBonus = s.frenzy ? 1.55 : 1;
@@ -1249,7 +1308,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   return {
     state: st, settings, stats, heat, customWords, lockedId, hintId,
-    startRun, startWrongRun, continueRun, hasSavedRun, getAllSavedRuns, addSpeechBonus, triggerMine, toggleRepeat, setMicSlow, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
+    startRun, startWrongRun, startSeries, continueRun, hasSavedRun, getAllSavedRuns, addSpeechBonus, triggerMine, toggleRepeat, setMicSlow, fire, setMoveTarget, holdDir, stepLane, gotoX, replay,
     pause, resume, quit,
     updateSettings, addCustomWord, removeCustomWord, resetProgress,
   };
