@@ -647,6 +647,7 @@ export function buildLanguage(lang: LangCode): Entry[] {
     const DRINKABLE_TR = new Set(['su','süt','kahve','çay','meyve suyu','şarap','çorba']);
     const READABLE_NOUN_TR = new Set(['kitap','defter','sayfa','kelime']);
     const BREAKABLE_TR = new Set(['kapı','pencere','cam','ayna','tabak','bardak','şişe','kutu','kalem','kitap','çanta','masa','sandalye','yatak','anahtar','saat','telefon','ekmek','kurabiye','dal','buz','kalp','çubuk','yumurta','fındık','ceviz','ayakkabı','palto']);
+    const NOT_PURCHASABLE_TR = new Set(['havalimanı','istasyon','sınır','plaj','müze','eczane','hastane','banka','pazar','şehir','köy','sokak','köprü','okul','bahçe','park','kütüphane','orman','nehir','dağ','deniz','gökyüzü','bulut','yağmur','kar','rüzgar','fırtına','güneş','ay','yıldız','ada','anne','baba','arkadaş','çocuk','öğretmen','doktor','şoför','komşu']);
     const OBJ_OK: Record<string, CatId[]> = {
      'yemek':            ['food'],
      'içmek':            ['food'],
@@ -683,6 +684,7 @@ export function buildLanguage(lang: LangCode): Entry[] {
         if (v.n === 'yıkamak' && !['gömlek','pantolon','elbise','ceket','havlu','tabak','bardak','çatal','bıçak','kaşık','şişe'].includes(o.n)) return;
         if (v.n === 'giymek' && !['gömlek','pantolon','elbise','ceket','etek','şapka','çorap','eldiven','kemer','ayakkabı','palto'].includes(o.n)) return;
         if (v.n === 'kırmak' && !BREAKABLE_TR.has(o.n)) return;
+        if ((v.n === 'satın almak' || v.n === 'satmak') && NOT_PURCHASABLE_TR.has(o.n)) return;
         const obj = objForm(lang, o);
         if (!obj) return;
         push(`${v.f} ${obj}`, `${o.n} ${v.n}`, o.lv === 'A1' && v.lv === 'A1' ? 'A2' : 'B1', 'phrase');

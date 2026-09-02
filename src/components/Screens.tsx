@@ -491,7 +491,7 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
     <Shell>
       <BackBtn onClick={onBack} />
       <div className="font-orbitron text-[18px] font-black tracking-[0.12em] text-white/90 mb-1">{LANGUAGES.find(l=>l.code===lang)?.flag} {level} — 50'LİK SERİLER</div>
-      <div className="font-mono-tech text-[8px] text-white/35 mb-3">{total} seri × 50 kelime = {getWords(lang, level, 'all', api.customWords).length} kelime · Tikle ve sıradakine geç — 80 seri = 4000 kelime/dil</div>
+      <div className="font-mono-tech text-[8px] text-white/35 mb-3">{total} seri × 50 kelime = {getWords(lang, level, 'all', api.customWords).length} kelime · Tikle ve sıradakine geç — 90 seri = 4500 kelime/dil</div>
       <div className="grid grid-cols-2 gap-2 pb-4">
         {Array.from({ length: total }, (_, i) => {
           const done = !!allTicks[`${lang}:${level}:${i}`];
