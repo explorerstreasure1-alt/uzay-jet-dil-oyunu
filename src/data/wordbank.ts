@@ -643,10 +643,11 @@ export function buildLanguage(lang: LangCode): Entry[] {
     push(poss(lang, n), TT.my(n.n), 'A1', 'phrase');
   });
 
-  /* 7 — verb + object collocations (öncelik: mantık hatasız, erken üretilir) */
-   const DRINKABLE_TR = new Set(['su','süt','kahve','çay','meyve suyu','şarap','çorba']);
-   const READABLE_NOUN_TR = new Set(['kitap','defter','sayfa','kelime']);
-   const OBJ_OK: Record<string, CatId[]> = {
+   /* 7 — verb + object collocations (öncelik: mantık hatasız, erken üretilir) */
+    const DRINKABLE_TR = new Set(['su','süt','kahve','çay','meyve suyu','şarap','çorba']);
+    const READABLE_NOUN_TR = new Set(['kitap','defter','sayfa','kelime']);
+    const BREAKABLE_TR = new Set(['kapı','pencere','masa','sandalye','yatak','ayna','telefon','saat','anahtar','cam','bardak','tabak','şişe','kutu','kalem','kitap','çanta','ayakkabı','ekmek','palto','sandalye','masa','pencere']);
+    const OBJ_OK: Record<string, CatId[]> = {
      'yemek':            ['food'],
      'içmek':            ['food'],
      'yemek pişirmek':   ['food'],
@@ -681,6 +682,7 @@ export function buildLanguage(lang: LangCode): Entry[] {
         if ((v.n === 'açmak' || v.n === 'kapatmak') && !['kapı','pencere','kitap','çanta','şişe','kutu'].includes(o.n)) return;
         if (v.n === 'yıkamak' && !['gömlek','pantolon','elbise','ceket','havlu','tabak','bardak','çatal','bıçak','kaşık','şişe'].includes(o.n)) return;
         if (v.n === 'giymek' && !['gömlek','pantolon','elbise','ceket','etek','şapka','çorap','eldiven','kemer','ayakkabı','palto'].includes(o.n)) return;
+        if (v.n === 'kırmak' && !BREAKABLE_TR.has(o.n)) return;
         const obj = objForm(lang, o);
         if (!obj) return;
         push(`${v.f} ${obj}`, `${o.n} ${v.n}`, o.lv === 'A1' && v.lv === 'A1' ? 'A2' : 'B1', 'phrase');
