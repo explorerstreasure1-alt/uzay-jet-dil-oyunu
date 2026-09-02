@@ -471,8 +471,9 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries 
         </div>
       )}
 
-      <button onClick={() => onViewSeries?.(lang, lv)} className="w-full rounded-lg py-2.5 active:scale-95 transition-transform" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.10)' }}>
-        <span className="font-mono-tech text-[9px] tracking-[0.14em] text-white/60">50'LİK SERİYE GİR — {getSeriesCount(lang, lv, api.customWords)} seri · Bölüm seçince direkt başlar</span>
+      <button onClick={() => onViewSeries?.(lang, lv)} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform" style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.22), rgba(0,102,255,0.14))', border: '1px solid #00d4ff', boxShadow: '0 0 16px rgba(0,212,255,0.32)' }}>
+        <span className="font-orbitron text-[12px] font-black tracking-[0.14em] text-[#e6faff]" style={{ textShadow: '0 0 8px #00d4ff' }}>📚 50'LİK SERİYE GİR</span>
+        <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55 block mt-0.5">{getSeriesCount(lang, lv, api.customWords)} seri · Bölüm seçince direkt başlar</span>
       </button>
     </Shell>
   );
