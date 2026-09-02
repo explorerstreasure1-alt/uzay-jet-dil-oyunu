@@ -471,13 +471,8 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries 
         </div>
       )}
 
-      <button disabled={words.length < 4} onClick={() => onStart(lang, lv, cat, false)}
-        className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform disabled:opacity-35"
-        style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,102,255,0.16))', border: `1px solid #00d4ff`, boxShadow: `0 0 20px rgba(0,212,255,0.4)` }}>
-        <span className="font-orbitron text-[15px] font-black tracking-[0.28em] text-[#e6faff]">SAVAŞA GİR</span>
-      </button>
-      <button onClick={() => onViewSeries?.(lang, lv)} className="w-full mt-2 rounded-xl py-2.5 active:scale-[0.97] transition-transform" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)' }}>
-        <span className="font-mono-tech text-[9px] tracking-[0.14em] text-white/70">📚 50'LİK SERİLERİ GÖR — {getSeriesCount(lang, lv, api.customWords)} seri × 50 kelime</span>
+      <button onClick={() => onViewSeries?.(lang, lv)} className="w-full rounded-lg py-2.5 active:scale-95 transition-transform" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.10)' }}>
+        <span className="font-mono-tech text-[9px] tracking-[0.14em] text-white/60">50'LİK SERİYE GİR — {getSeriesCount(lang, lv, api.customWords)} seri · Bölüm seçince direkt başlar</span>
       </button>
     </Shell>
   );
