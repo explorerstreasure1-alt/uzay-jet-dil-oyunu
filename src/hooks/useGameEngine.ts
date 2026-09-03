@@ -1098,9 +1098,16 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             const absorbed = s.shield;
             s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
             if (absorbed) s.shield = false;
-            else s.lives -= 1;
-          s.shake = 3.2;
-          s.flash = { color: '#ff2e63', t: 0.28 };
+            else {
+              // seride can gitmesin — sadece uyar, öğrenme modu
+              if (seriesFilterRef.current) {
+                s.floats.push({ id: uid(), x: cx, y: a.y - 12, text: `SERİDE CAN KORUNDU`, color: '#8be9ff', life: 1.0, vy: -0.8 });
+              } else {
+                s.lives -= 1;
+              }
+            }
+           s.shake = 3.2;
+           s.flash = { color: '#ff2e63', t: 0.28 };
             heatRef.current = applyResult(heatRef.current, a.word.id, false);
             statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
             flushSoon();
@@ -1139,7 +1146,13 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         targetBreached = true;
         const absorbed = s.shield;
         if (absorbed) s.shield = false;
-        else s.lives -= 1;
+        else {
+          if (seriesFilterRef.current) {
+            s.floats.push({ id: uid(), x: a.drawX, y: FLOOR_Y - 36, text: 'SERİDE KAÇIŞ SERBEST', color: '#8be9ff', life: 1.1, vy: -0.7 });
+          } else {
+            s.lives -= 1;
+          }
+        }
         s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
         s.shake = 3.8;
         s.flash = { color: '#ff2e63', t: 0.30 };
