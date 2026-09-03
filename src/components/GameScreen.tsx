@@ -603,10 +603,13 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               const isEnemy = (b as any).from === 'enemy';
               if (isEnemy) {
                 return (
-                  <g key={b.id} opacity="0.96" style={{ filter: 'drop-shadow(0 0 7px #ff2e63)' }}>
-                    <rect x={b.x - 1.6} y={b.y - 10} width="3.2" height="18" rx="1.6" fill="#ff2e63" />
-                    <rect x={b.x - 0.6} y={b.y - 10} width="1.2" height="10" fill="#ffd1d1" opacity="0.95" />
-                    <circle cx={b.x} cy={b.y + 8} r="2.4" fill="#ff2e63" opacity="0.9" />
+                  <g key={b.id} opacity="1" style={{ filter: 'drop-shadow(0 0 9px #ff2e63)' }}>
+                    <rect x={b.x - 2.4} y={b.y - 12} width="4.8" height="24" rx="2.4" fill="#ff2e63" stroke="#ffffff" strokeWidth="0.9" />
+                    <rect x={b.x - 0.9} y={b.y - 12} width="1.8" height="14" fill="#ffffff" opacity="0.98" />
+                    <circle cx={b.x} cy={b.y + 12} r="3.2" fill="#ff2e63" stroke="#ffffff" strokeWidth="0.7" />
+                    <circle cx={b.x} cy={b.y - 14} r="1.2" fill="#ffd166" opacity="0.95">
+                      <animate attributeName="opacity" values="1;0.3;1" dur="0.18s" repeatCount="indefinite" />
+                    </circle>
                   </g>
                 );
               }

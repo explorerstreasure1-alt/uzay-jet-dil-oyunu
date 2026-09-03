@@ -934,19 +934,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 18, text: 'KALKAN KIRILDI', color: '#8be9ff', life: 1.1, vy: -0.6 });
             s.flash = { color: '#8be9ff', t: 0.18 }; s.shake = 2.2; audio.repair();
           } else {
-            const dmg = 4;
-            s.health = Math.max(0, (s.health ?? 100) - dmg);
-            s.shake = 2.6; s.flash = { color: '#ff2e63', t: 0.16 };
-            s.floats.push({ id: uid(), x: s.shipX + (Math.random()*10-5), y: SHIP_Y - 14, text: `-${dmg}`, color: '#ff8fa8', life: 0.85, vy: -0.9 });
-            audio.wrong(); haptic('miss', hap);
-            if (s.health <= 0) {
-              s.lives = Math.max(0, s.lives - 1);
-              s.health = s.maxHealth ?? 100;
-              s.combo = 0; s.multiplier = 1;
-              s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 32, text: 'CAN KAYBI', color: '#ff2e63', life: 1.3, vy: -0.7 });
-              s.flash = { color: '#ff2e63', t: 0.28 }; s.shake = 4.5;
-              if (s.lives <= 0) gameEnded = true;
-            }
+            // can hiç azalmasın — sadece görsel geri bildirim
+            s.health = 100;
+            s.shake = 1.2; s.flash = { color: '#ffd166', t: 0.10 };
+            s.floats.push({ id: uid(), x: s.shipX + (Math.random()*10-5), y: SHIP_Y - 14, text: `ENGELLENDİ`, color: '#ffd166', life: 0.75, vy: -0.9 });
+            audio.tick(); haptic('tap', hap);
           }
         }
       }
