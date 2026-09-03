@@ -379,9 +379,9 @@ function Hud({ s, onPause, onRepeat }: { s: GameState; onPause: () => void; onRe
           <div className="font-orbitron text-[12px] font-black leading-none" style={{ color: cfg.color, textShadow: `0 0 8px ${cfg.color}` }}>{s.level}</div>
           <div className="font-mono-tech text-[7px] tracking-widest" style={{ color: lang.accent }}>{lang.flag}</div>
         </div>
-        <div className="glass px-2 py-1 rounded-md">
-          <div className="font-mono-tech text-[7px] tracking-[0.22em] text-white/35 mb-[3px]">CAN</div>
-          <div className="flex gap-[3px] h-[11px] items-center">
+        <div className="glass px-2 py-1 rounded-md min-w-[72px]">
+          <div className="font-mono-tech text-[7px] tracking-[0.22em] text-white/35 mb-[3px]">CAN {s.health ?? 100}</div>
+          <div className="flex gap-[3px] h-[11px] items-center mb-1">
             {Array.from({ length: s.maxLives }).map((_, i) => (
               <svg key={i} width="12" height="10" viewBox="0 0 13 11" opacity={i < s.lives ? 1 : 0.16}>
                 <path d="M6.5,0 L8.5,5 L12,8 L9,7.5 L7.5,10 L5.5,10 L4,7.5 L1,8 L4.5,5 Z"
@@ -389,6 +389,9 @@ function Hud({ s, onPause, onRepeat }: { s: GameState; onPause: () => void; onRe
                   style={i < s.lives ? { filter: 'drop-shadow(0 0 4px #ff2e63)' } : undefined} />
               </svg>
             ))}
+          </div>
+          <div className="h-[4px] rounded-full bg-white/10 overflow-hidden">
+            <div className="h-full rounded-full transition-all" style={{ width: `${Math.max(0, s.health ?? 100)}%`, background: (s.health ?? 100) > 35 ? 'linear-gradient(90deg,#00ffa3,#00d4ff)' : 'linear-gradient(90deg,#ff2e63,#ff7a00)', boxShadow: `0 0 6px ${(s.health ?? 100) > 35 ? '#00ffa3' : '#ff2e63'}` }} />
           </div>
         </div>
         <button
@@ -597,9 +600,18 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
 
             {s.bullets.map(b => {
               const isWing = (b as any).from === 'wingman';
+              const isEnemy = (b as any).from === 'enemy';
+              if (isEnemy) {
+                return (
+                  <g key={b.id} opacity="0.96" style={{ filter: 'drop-shadow(0 0 7px #ff2e63)' }}>
+                    <rect x={b.x - 1.6} y={b.y - 10} width="3.2" height="18" rx="1.6" fill="#ff2e63" />
+                    <rect x={b.x - 0.6} y={b.y - 10} width="1.2" height="10" fill="#ffd1d1" opacity="0.95" />
+                    <circle cx={b.x} cy={b.y + 8} r="2.4" fill="#ff2e63" opacity="0.9" />
+                  </g>
+                );
+              }
               return (
                 <g key={b.id}>
-                  {/* mobilde drop-shadow kaldırıldı — GPU donması bitirir */}
                   <rect x={b.x - (isWing ? 1.5 : 2.2)} y={b.y - (isWing ? 32 : 43)} width={isWing ? 3 : 4.4} height={isWing ? 34 : 47} rx={isWing ? 1.5 : 2.2}
                     fill={isWing ? '#7af7ff' : s.overcharged ? '#e0a6ff' : '#8be9ff'} opacity={isWing ? 0.88 : 0.92} />
                   <rect x={b.x - 0.7} y={b.y - (isWing ? 32 : 43)} width={isWing ? 1.2 : 1.6} height={isWing ? 12 : 18} fill="#fff" opacity={0.95} />

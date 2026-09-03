@@ -27,7 +27,7 @@ export interface Alien {
   cloakPhase: number;
 }
 
-export interface Bullet { id: string; x: number; y: number; vy: number; power: number; from?: 'player' | 'wingman'; py?: number }
+export interface Bullet { id: string; x: number; y: number; vy: number; power: number; from?: 'player' | 'wingman' | 'enemy'; py?: number }
 
 export interface Wingman { id: string; side: -1 | 1; x: number; y: number; cooldown: number }
 
@@ -69,6 +69,8 @@ export interface GameState {
   bestCombo: number;
   lives: number;
   maxLives: number;
+  health: number;
+  maxHealth: number;
   overcharged: boolean;
   overchargeTimer: number;
   /** absorbs one mistake or target breach without losing a life */
