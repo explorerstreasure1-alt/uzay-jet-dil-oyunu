@@ -808,6 +808,12 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         const patrol = Math.sin(s.gameTime * 0.0012 + (w.side === -1 ? 0 : 2.2)) * 58;
         targetX = Math.max(22, Math.min(VW - 22, VW / 2 + patrol + w.side * 18));
       }
+      // hedefin şeridinden uzak dur — asla hedefe yanaşma
+      const targetForAvoid = s.aliens.find(a => a.isTarget);
+      if (targetForAvoid && Math.abs(targetX - (targetForAvoid.laneX + targetForAvoid.laneW/2)) < targetForAvoid.laneW/2 + 4) {
+        targetX = targetForAvoid.laneX + targetForAvoid.laneW/2 + (w.side * targetForAvoid.laneW * 0.9);
+        targetX = Math.max(18, Math.min(VW - 18, targetX));
+      }
       const spring = (targetX - w.x) * 0.38;
       w.x += spring * dt;
       w.x = Math.max(14, Math.min(VW - 14, w.x));
@@ -843,6 +849,12 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       for (const w of s.wingmen) {
         w.cooldown -= dt;
         if (w.cooldown <= 0) {
+          // hedefin şeridindeyse ateş etme — hedefe dokunma
+          const targetLane = s.aliens.find(a => a.isTarget);
+          if (targetLane && Math.abs(w.x - (targetLane.laneX + targetLane.laneW/2)) < targetLane.laneW/2 + 6) {
+            w.cooldown = 18;
+            continue;
+          }
           const decoys = s.aliens.filter(a => !a.isTarget && !a.dead);
           if (decoys.length) {
             let best: typeof decoys[0] | null = null;
@@ -853,6 +865,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             }
             if (best) {
               const laneMatch = Math.abs(best.drawX - w.x) < best.laneW * 0.85;
+              // ekstra koruma: hedefin şeridindeyse asla ateş etme
+              const inTargetLane = targetLane ? (best.laneX === targetLane.laneX) : false;
+              if (inTargetLane) { w.cooldown = 20; continue; }
               if (laneMatch || Math.random() < 0.25) {
                 s.bullets.push({ id: uid(), x: w.x, y: w.y - 16, vy: -46, power: 1, from: 'wingman' });
                 if (Math.random() < 0.3) audio.tick();
