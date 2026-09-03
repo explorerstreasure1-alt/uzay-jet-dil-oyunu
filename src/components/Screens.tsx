@@ -481,8 +481,15 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries 
 
 /* ══════════════════ SERIES (50'şer) ══════════════════ */
 export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api: EngineApi; lang: LangCode; level: CEFRLevel; onBack: () => void; onStartSeries: (idx: number) => void }) {
+  const [, force] = useState(0);
   const total = getSeriesCount(lang, level, api.customWords);
   const allTicks = store.loadSeriesTicks();
+  const toggle = (e: React.MouseEvent, idx: number, done: boolean) => {
+    e.stopPropagation();
+    store.setSeriesTick(lang, level, idx, !done);
+    force(v => v + 1);
+    audio.ui();
+  };
   return (
     <Shell>
       <BackBtn onClick={onBack} />
@@ -494,18 +501,24 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
           const words = getSeriesWords(lang, level, i, api.customWords);
           const preview = words.slice(0,3).map(w=>w.foreign).join(', ');
           return (
-            <button key={i} onClick={()=> onStartSeries(i)} className="rounded-xl px-3 py-3 text-left active:scale-[0.98] transition-all" style={{ background: done ? 'linear-gradient(135deg, rgba(0,255,163,0.18), rgba(0,180,120,0.10))' : 'rgba(255,255,255,0.045)', border: `1px solid ${done ? '#00ffa3' : 'rgba(255,255,255,0.12)'}`, boxShadow: done ? '0 0 10px rgba(0,255,163,0.25)' : 'none' }}>
-              <div className="flex items-center justify-between mb-1">
+            <div key={i} className="rounded-xl px-3 py-3 text-left relative" style={{ background: done ? 'linear-gradient(135deg, rgba(0,255,163,0.18), rgba(0,180,120,0.10))' : 'rgba(255,255,255,0.045)', border: `1px solid ${done ? '#00ffa3' : 'rgba(255,255,255,0.12)'}`, boxShadow: done ? '0 0 10px rgba(0,255,163,0.25)' : 'none' }}>
+              <button onClick={()=> onStartSeries(i)} className="absolute inset-0 rounded-xl" aria-label={`Seri ${i+1} başlat`} />
+              <div className="flex items-center justify-between mb-1 pointer-events-none">
                 <span className="font-orbitron text-[12px] font-black" style={{ color: done ? '#00ffa3' : '#8be9ff' }}>SERİ {i+1}</span>
                 <span className="font-mono-tech text-[10px]" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.25)' }}>{done ? '✓' : `${words.length}`}</span>
               </div>
-              <div className="font-mono-tech text-[7px] text-white/35 truncate">{preview}</div>
-              <div className="font-mono-tech text-[6px] mt-1" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{done ? '✓ ÖĞRENİLDİ — tikli' : '50 kelime — oyna ve öğrenince tikle'}</div>
-            </button>
+              <div className="font-mono-tech text-[7px] text-white/35 truncate pointer-events-none">{preview}</div>
+              <div className="flex items-center justify-between mt-1.5">
+                <span className="font-mono-tech text-[6px]" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{done ? '✓ ÖĞRENİLDİ' : '50 kelime'}</span>
+                <button onClick={(e)=> toggle(e,i,done)} className="rounded-full px-2 py-0.5 active:scale-95 transition-transform pointer-events-auto" style={{ background: done ? 'rgba(255,46,99,0.14)' : 'rgba(0,255,163,0.14)', border: `1px solid ${done ? '#ff5a7a' : '#00ffa3'}` }}>
+                  <span className="font-mono-tech text-[6px] tracking-[0.08em]" style={{ color: done ? '#ff8fa8' : '#00ffa3' }}>{done ? '✕ KALDIR' : '✓ TİKLE'}</span>
+                </button>
+              </div>
+            </div>
           );
         })}
       </div>
-      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Öğrendiğinden emin olunca seri otomatik tiklenir (50/50 doğru) — sıradaki seriye geçebilirsin.</div>
+      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Seriye tıkla = direkt başlar · Sağ alttan ✓ TİKLE / ✕ KALDIR ile manuel tik de ekleyebilirsin — otomatik 50/50 de tiklenir.</div>
     </Shell>
   );
 }
