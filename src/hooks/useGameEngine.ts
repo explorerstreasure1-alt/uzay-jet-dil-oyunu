@@ -864,12 +864,14 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
               if (d < bestD) { bestD = d; best = a; }
             }
             if (best) {
-              const laneMatch = Math.abs(best.drawX - w.x) < best.laneW * 0.85;
-              // ekstra koruma: hedefin şeridindeyse asla ateş etme
+              // hedefin şeridindeyse asla ateş etme — ek koruma
               const inTargetLane = targetLane ? (best.laneX === targetLane.laneX) : false;
-              if (inTargetLane) { w.cooldown = 20; continue; }
-              if (laneMatch || Math.random() < 0.25) {
-                s.bullets.push({ id: uid(), x: w.x, y: w.y - 16, vy: -46, power: 1, from: 'wingman' });
+              if (inTargetLane) { w.cooldown = 24; continue; }
+              const laneMatch = Math.abs(best.drawX - w.x) < best.laneW * 0.85;
+              if (laneMatch || Math.random() < 0.22) {
+                // mermiyi decoy'un şeridinden at — hedefe asla değmesin
+                const bx = best.drawX;
+                s.bullets.push({ id: uid(), x: bx, y: w.y - 16, vy: -46, power: 1, from: 'wingman' });
                 if (Math.random() < 0.3) audio.tick();
                 w.cooldown = 42 + Math.random() * 22; // ~700-1000ms — daha seyrek, donma önler
               } else {
