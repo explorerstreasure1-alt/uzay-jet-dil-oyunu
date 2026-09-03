@@ -57,10 +57,6 @@ const initialState = (): GameState => ({
   lives: 3, maxLives: 3, health: 100, maxHealth: 100, overcharged: false, overchargeTimer: 0,
   shield: false, focusTimer: 0, perfectStreak: 0,
   shipX: VW / 2, shipY: SHIP_Y, shipVx: 0,
-  wingmen: [
-    { id: 'wL', side: -1, x: VW / 2 - 44, y: SHIP_Y + 14, cooldown: 18 },
-    { id: 'wR', side: 1, x: VW / 2 + 44, y: SHIP_Y + 14, cooldown: 42 },
-  ],
   aliens: [], bullets: [], explosions: [], floats: [],
   neurons: makeNeurons(), parallaxStars: makeStars(),
   repairStation: null, targetWord: null, targetHeat: 'ice',
@@ -783,43 +779,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     s.shipVx = Math.max(-26, Math.min(26, s.shipVx));
     s.shipX = Math.max(24, Math.min(VW - 24, s.shipX + s.shipVx * dt));
 
-    /* ── wingmen: tam otonom avcı — senden bağımsız hedef bulup vurur ── */
-    const assigned = new Set<string>();
-    for (const w of s.wingmen) {
-      let targetX: number;
-      const decoys = s.aliens.filter(a => !a.isTarget && !a.dead && !assigned.has(a.id));
-      const pool = decoys.length ? decoys : s.aliens.filter(a => !a.isTarget && !a.dead);
-      if (pool.length) {
-        let best: typeof pool[0] | null = null;
-        let bestD = Infinity;
-        for (const a of pool) {
-          const laneCx = a.laneX + a.laneW / 2;
-          const d = Math.abs(laneCx - w.x) + a.y * 0.12;
-          if (d < bestD) { bestD = d; best = a; }
-        }
-        if (best) {
-          assigned.add(best.id);
-          targetX = best.laneX + best.laneW / 2;
-        } else {
-          targetX = s.shipX + w.side * 44;
-        }
-      } else {
-        // av yoksa hafif devriye — senden ayrı süzül
-        const patrol = Math.sin(s.gameTime * 0.0012 + (w.side === -1 ? 0 : 2.2)) * 58;
-        targetX = Math.max(22, Math.min(VW - 22, VW / 2 + patrol + w.side * 18));
-      }
-      // hedefin şeridinden uzak dur — asla hedefe yanaşma
-      const targetForAvoid = s.aliens.find(a => a.isTarget);
-      if (targetForAvoid && Math.abs(targetX - (targetForAvoid.laneX + targetForAvoid.laneW/2)) < targetForAvoid.laneW/2 + 4) {
-        targetX = targetForAvoid.laneX + targetForAvoid.laneW/2 + (w.side * targetForAvoid.laneW * 0.9);
-        targetX = Math.max(18, Math.min(VW - 18, targetX));
-      }
-      const spring = (targetX - w.x) * 0.38;
-      w.x += spring * dt;
-      w.x = Math.max(14, Math.min(VW - 14, w.x));
-      w.y = SHIP_Y + 14 + Math.sin(s.gameTime * 0.008 + (w.side === -1 ? 0 : Math.PI)) * 3.5 + Math.abs(w.x - targetX) * 0.06;
-    }
-
     // basılı tutunca tarama (klavye) — push, GC yok
     if ((keys.current.has(' ') || keys.current.has('ArrowUp') || keys.current.has('w') || keys.current.has('W')) && s.phase === 'playing') {
       const now = performance.now();
@@ -842,52 +801,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 0.85);
     if (s.flash) { s.flash.t -= dt * 0.075; if (s.flash.t <= 0) s.flash = null; }
     if (s.waveBanner) { s.waveBanner.t -= dt * 0.013; if (s.waveBanner.t <= 0) s.waveBanner = null; }
-
-    /* ── wingmen auto-fire: sadece decoy, hedefe ASLA — throttled for performance ── */
-    // mermi sayısını cap'le: fazla yığılma donma yapar
-    if (s.bullets.length < 14) {
-      for (const w of s.wingmen) {
-        w.cooldown -= dt;
-        if (w.cooldown <= 0) {
-          // hedefin şeridindeyse ateş etme — hedefe dokunma
-          const targetLane = s.aliens.find(a => a.isTarget);
-          if (targetLane && Math.abs(w.x - (targetLane.laneX + targetLane.laneW/2)) < targetLane.laneW/2 + 6) {
-            w.cooldown = 18;
-            continue;
-          }
-          const decoys = s.aliens.filter(a => !a.isTarget && !a.dead);
-          if (decoys.length) {
-            let best: typeof decoys[0] | null = null;
-            let bestD = Infinity;
-            for (const a of decoys) {
-              const d = Math.abs(a.drawX - w.x) + a.y * 0.15;
-              if (d < bestD) { bestD = d; best = a; }
-            }
-            if (best) {
-              // hedefin şeridindeyse asla ateş etme — ek koruma
-              const inTargetLane = targetLane ? (best.laneX === targetLane.laneX) : false;
-              if (inTargetLane) { w.cooldown = 24; continue; }
-              const laneMatch = Math.abs(best.drawX - w.x) < best.laneW * 0.85;
-              if (laneMatch || Math.random() < 0.22) {
-                // mermiyi decoy'un şeridinden at — hedefe asla değmesin
-                const bx = best.drawX;
-                s.bullets.push({ id: uid(), x: bx, y: w.y - 16, vy: -46, power: 1, from: 'wingman' });
-                if (Math.random() < 0.3) audio.tick();
-                w.cooldown = 42 + Math.random() * 22; // ~700-1000ms — daha seyrek, donma önler
-              } else {
-                w.cooldown = 12;
-              }
-            } else {
-              w.cooldown = 24;
-            }
-          } else {
-            w.cooldown = 40;
-          }
-        }
-      }
-    } else {
-      for (const w of s.wingmen) w.cooldown = Math.max(w.cooldown, 10);
-    }
 
     // düşman ateşi — daha yavaş, daha seyrek
     enemyShootTimer.current += dt * 16.667;
@@ -973,10 +886,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       if (spentBullets.has(b.id)) continue;
       for (const a of s.aliens) {
         if (a.dead || removed.has(a.id)) continue;
-        if ((b.from === 'wingman') && a.isTarget) continue;
-        // hayva serisi ve genel: wingman mermisi hedefe asla değmesin — dar bleed
-        const bleed = (b as any).from === 'wingman' ? 1 : LANE_BLEED;
-        const inLane = b.x >= a.laneX - bleed && b.x < a.laneX + a.laneW + bleed;
+        const inLane = b.x >= a.laneX - LANE_BLEED && b.x < a.laneX + a.laneW + LANE_BLEED;
         if (!inLane) continue;
         const top = a.y - (a.isBoss ? 10 : 0) - TOP_PAD;
         const bot = a.y + HIT_H * (a.isBoss ? 1.6 : 1.25) + BOT_PAD;
@@ -1106,44 +1016,35 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             if (near.length) audio.explode(false);
           }
         } else {
-          /* ─── WRONG or WINGMAN CLEANUP ─── */
-          if (b.from === 'wingman') {
-            // Wingman decoyu temizler: ödül, ceza yok, combo bozulmaz
-            s.score += Math.round(35 * diff.score);
-            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 5, maxRadius: 48, opacity: 1, color: '#7af7ff', isChain: true });
-            s.floats.push({ id: uid(), x: cx, y: a.y - 2, text: '+35 DRONE', color: '#7af7ff', life: 0.9, vy: -0.9 });
-            audio.tick();
-          } else {
-            const absorbed = s.shield;
-            s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
-            if (absorbed) s.shield = false;
-            else {
-              // seride can gitmesin — sadece uyar, öğrenme modu
-              if (seriesFilterRef.current) {
-                s.floats.push({ id: uid(), x: cx, y: a.y - 12, text: `SERİDE CAN KORUNDU`, color: '#8be9ff', life: 1.0, vy: -0.8 });
-              } else {
-                s.lives -= 1;
-              }
+          /* ─── WRONG ─── */
+          const absorbed = s.shield;
+          s.combo = 0; s.multiplier = 1; s.wrongThisWave += 1; s.runWrong += 1;
+          if (absorbed) s.shield = false;
+          else {
+            // seride can gitmesin — sadece uyar, öğrenme modu
+            if (seriesFilterRef.current) {
+              s.floats.push({ id: uid(), x: cx, y: a.y - 12, text: `SERİDE CAN KORUNDU`, color: '#8be9ff', life: 1.0, vy: -0.8 });
+            } else {
+              s.lives -= 1;
             }
-           s.shake = 3.2;
-           s.flash = { color: '#ff2e63', t: 0.28 };
-            heatRef.current = applyResult(heatRef.current, a.word.id, false);
-            statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
-            flushSoon();
-
-            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 6, maxRadius: 56, opacity: 1, color: '#ff2e63', isChain: false });
-            s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: false, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 0 };
-            // Wingman öğretici fısıldaması — yanlışta doğruyu göster, akıcı öğrenme
-            s.floats.push({ id: uid(), x: cx, y: a.y + 18, text: `💡 ${a.word.foreign} → ${a.word.native}`, color: '#ffd166', life: 1.9, vy: -0.32 });
-            if (absorbed) {
-              s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 74, text: 'KALKAN EMİLDİ', color: '#8be9ff', life: 1.3, vy: -0.7 });
-              audio.repair();
-            }
-            audio.wrong();
-            haptic('miss', hap);
-
-            if (s.lives <= 0) { gameEnded = true; }
           }
+          s.shake = 3.2;
+          s.flash = { color: '#ff2e63', t: 0.28 };
+          heatRef.current = applyResult(heatRef.current, a.word.id, false);
+          statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
+          flushSoon();
+
+          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 6, maxRadius: 56, opacity: 1, color: '#ff2e63', isChain: false });
+          s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: false, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 0 };
+          s.floats.push({ id: uid(), x: cx, y: a.y + 18, text: `💡 ${a.word.foreign} → ${a.word.native}`, color: '#ffd166', life: 1.9, vy: -0.32 });
+          if (absorbed) {
+            s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 74, text: 'KALKAN EMİLDİ', color: '#8be9ff', life: 1.3, vy: -0.7 });
+            audio.repair();
+          }
+          audio.wrong();
+          haptic('miss', hap);
+
+          if (s.lives <= 0) { gameEnded = true; }
         }
         break;
       }

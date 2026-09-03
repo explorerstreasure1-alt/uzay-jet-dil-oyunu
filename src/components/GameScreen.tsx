@@ -253,40 +253,6 @@ function Ship({ x, over, shield, vx, t, reduceMotion }: { x: number; over: boole
   );
 }
 
-function Wingman({ x, y, side, t, reduceMotion }: { x: number; y: number; side: -1 | 1; t: number; reduceMotion?: boolean }) {
-  const bob = reduceMotion ? 0 : Math.sin(t * 0.01 + (side === -1 ? 0 : 2.1)) * 1.2;
-  return (
-    <g transform={`translate(${x}, ${y + bob})`}>
-      {/* drone gölgesi */}
-      <ellipse cx="0" cy="10" rx="10" ry="2" fill="#00e5ff" opacity={reduceMotion ? 0.03 : 0.06} />
-      {/* mini egzoz — hafif gölge */}
-      <g style={{ filter: reduceMotion ? undefined : 'drop-shadow(0 0 3px #7af7ff)' }}>
-        <path d="M-3,6 C-2,9 -1,11 0,13 C1,11 2,9 3,6 Z" fill="#00ffcc" opacity="0.85">
-          {!reduceMotion && <animate attributeName="opacity" values="0.9;0.5;0.9" dur="0.14s" repeatCount="indefinite" />}
-        </path>
-        <path d="M-1.5,6 C-1,8 -0.5,9 0,10 C0.5,9 1,8 1.5,6 Z" fill="#ffffff" opacity="0.9" />
-      </g>
-      {/* drone gövde — küçük elmas — tek gölge */}
-      <g style={{ filter: 'drop-shadow(0 0 5px #00e5ff)' }}>
-        <path d="M0,-10 L7,-2 L5,7 L0,9 L-5,7 L-7,-2 Z" fill="#0a162e" stroke="#7af7ff" strokeWidth="1" />
-        <path d="M0,-10 L4,-2 L2,5 L0,7 L-2,5 L-4,-2 Z" fill="#00e5ff" opacity="0.95" />
-        <path d="M0,-10 L1.8,-4 L0,-1 L-1.8,-4 Z" fill="#ffffff" opacity="0.88" />
-        {/* kanatçıklar */}
-        <path d="M-7,-2 L-11,0 L-9,3 L-5,4 Z" fill="#0066ff" />
-        <path d="M7,-2 L11,0 L9,3 L5,4 Z" fill="#0066ff" />
-        <circle cx="-9.5" cy="1.5" r="1" fill="#00ffcc" opacity="0.9" />
-        <circle cx="9.5" cy="1.5" r="1" fill="#00ffcc" opacity="0.9" />
-        <circle cx="0" cy="0" r="1.8" fill="#061a2e" stroke="#7af7ff" strokeWidth="0.7" />
-        <circle cx="0" cy="0" r="0.9" fill="#ff3b5c" opacity={reduceMotion ? 0.7 : 0.95}>
-          {!reduceMotion && <animate attributeName="opacity" values="1;0.35;1" dur="0.6s" repeatCount="indefinite" />}
-        </circle>
-      </g>
-      {/* formation ışını — ana gemiye bağlı */}
-      <line x1={side * -14} y1={-2} x2={side * -26} y2={-6} stroke="#7af7ff" strokeWidth="0.7" opacity={reduceMotion ? 0.14 : 0.28} strokeDasharray="3 4" />
-    </g>
-  );
-}
-
 /* ══════════ backdrop ══════════ */
 function Cortex({ s }: { s: GameState }) {
   const meta = HEAT_META[s.targetHeat];
@@ -599,7 +565,6 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
             })}
 
             {s.bullets.map(b => {
-              const isWing = (b as any).from === 'wingman';
               const isEnemy = (b as any).from === 'enemy';
               if (isEnemy) {
                 return (
@@ -615,11 +580,10 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               }
               return (
                 <g key={b.id}>
-                  <rect x={b.x - (isWing ? 1.5 : 2.2)} y={b.y - (isWing ? 32 : 43)} width={isWing ? 3 : 4.4} height={isWing ? 34 : 47} rx={isWing ? 1.5 : 2.2}
-                    fill={isWing ? '#7af7ff' : s.overcharged ? '#e0a6ff' : '#8be9ff'} opacity={isWing ? 0.88 : 0.92} />
-                  <rect x={b.x - 0.7} y={b.y - (isWing ? 32 : 43)} width={isWing ? 1.2 : 1.6} height={isWing ? 12 : 18} fill="#fff" opacity={0.95} />
-                  {!isWing && <rect x={b.x - 5.5} y={b.y - 18} width="11" height="2" rx="1" fill={s.overcharged ? '#ff2ea6' : '#00d4ff'} opacity={0.45} />}
-                  {isWing && <circle cx={b.x} cy={b.y - 28} r="1.1" fill="#ffffff" opacity={0.9} />}
+                  <rect x={b.x - 2.2} y={b.y - 43} width={4.4} height={47} rx={2.2}
+                    fill={s.overcharged ? '#e0a6ff' : '#8be9ff'} opacity={0.92} />
+                  <rect x={b.x - 0.7} y={b.y - 43} width={1.6} height={18} fill="#fff" opacity={0.95} />
+                  <rect x={b.x - 5.5} y={b.y - 18} width="11" height="2" rx="1" fill={s.overcharged ? '#ff2ea6' : '#00d4ff'} opacity={0.45} />
                 </g>
               );
             })}
@@ -642,8 +606,6 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               </g>
             )}
 
-            {/* wingmen — iki yancı drone */}
-            {s.wingmen.map(w => <Wingman key={w.id} x={w.x} y={w.y} side={w.side} t={s.gameTime} reduceMotion={api.settings.reduceMotion} />)}
             <Ship x={s.shipX} over={s.overcharged} shield={s.shield} vx={s.shipVx} t={s.gameTime} reduceMotion={api.settings.reduceMotion} />
           </svg>
 
