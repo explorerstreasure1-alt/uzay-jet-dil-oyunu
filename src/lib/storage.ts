@@ -25,7 +25,7 @@ function write(key: string, value: unknown) {
 
 export const DEFAULT_SETTINGS: Settings = {
   crt: false, music: true, sfx: true, tts: true, haptics: true, leftHanded: false,
-  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0.22,
+  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0.02,
   fontScale: 1, highContrast: false, reduceMotion: false, dyslexia: false,
 };
 export const DEFAULT_STATS: RunStats = {
@@ -105,16 +105,9 @@ export const store = {
   loadSettings: (): Settings => {
     const raw = read<Partial<Settings>>(K.settings, {});
     const merged = { ...DEFAULT_SETTINGS, ...raw } as Settings & { eyeComfort?: boolean };
-    // adrenalin modu: artık varsayılan açık, eski sessiz migrasyonu kaldırıldı
-    // sadece çok yüksek sesi normalize et (>0.85 ise 0.22'ye çek)
-    if (raw.bgmVolume !== undefined && raw.bgmVolume > 0.85) {
-      merged.bgmVolume = 0.22;
-      write(K.settings, merged);
-    }
-    if (raw.bgmVolume === 0 && raw.music === false) {
-      // kullanıcı daha önce sessize almışsa saygı duy, ama bir kez adrenalin için hafif aç
-      // dokunma — ayarlardan açabilir
-    }
+    // müzik sesi her zaman 2'de sabit
+    merged.bgmVolume = 0.02;
+    if (raw.bgmVolume !== 0.02) write(K.settings, merged);
     return merged as Settings;
   },
   saveSettings: (s: Settings) => write(K.settings, s),

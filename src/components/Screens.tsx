@@ -6,7 +6,7 @@ import type { CategoryId, CEFRLevel, LangCode } from '../data/vocabulary';
 import {
   LANGUAGES, LEVEL_CONFIG, CATEGORIES, HEAT_META, getWords, countWords, allWords, WORDS_PER_LANGUAGE, getSeriesCount, getSeriesWords,
 } from '../data/vocabulary';
-import { heatBreakdown, highScoreKey, reviewSummary, getWrongWords, streakInfo, getDailyChallenge, requestDailyPush, scheduleDailyPush, store } from '../lib/storage';
+import { heatBreakdown, highScoreKey, reviewSummary, streakInfo, getDailyChallenge, requestDailyPush, scheduleDailyPush, store } from '../lib/storage';
 import { NEON } from '../lib/theme';
 import { ACHIEVEMENTS, xpFor } from '../lib/achievements';
 import { audio } from '../lib/audio';
@@ -208,15 +208,6 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
             <span className="font-mono-tech text-[8px] tracking-[0.14em] text-[#00ffa3]">✓ UYGULAMA KURULU — Ana ekrandan aç</span>
           </div>
         )}
-        <button onClick={() => { audio.ui(); go('wrongbook'); }}
-          className="w-full rounded-xl py-2.5 active:scale-95 transition-transform flex items-center justify-center gap-2"
-          style={{ background: 'rgba(255,46,99,0.12)', border: '1px solid rgba(255,46,99,0.38)', boxShadow: '0 0 14px rgba(255,46,99,0.18)' }}>
-          <span className="font-mono-tech text-[10px] tracking-[0.16em] text-[#ff8fa8]">✕ YANLIŞ DEFTERİ</span>
-          {(() => {
-            const c = getWrongWords([...allWords(), ...api.customWords].filter(w => w.lang === lang), api.heat).length;
-            return c ? <span className="font-orbitron text-[11px] font-black px-1.5 py-0.5 rounded" style={{ background: '#ff2e63', color: '#fff' }}>{c}</span> : null;
-          })()}
-        </button>
         <button onClick={() => { audio.ui(); go('daily'); }}
           className="w-full rounded-xl py-2.5 active:scale-95 transition-transform flex items-center justify-center gap-2"
           style={{ background: 'rgba(255,209,102,0.14)', border: '1px solid rgba(255,209,102,0.44)', boxShadow: '0 0 14px rgba(255,209,102,0.18)' }}>
@@ -863,65 +854,6 @@ export function DeckScreen({ api, onBack }: { api: EngineApi; onBack: () => void
   );
 }
 
-/* ══════════════════ WRONG BOOK ══════════════════ */
-export function WrongBookScreen({ api, onBack, onStart }: { api: EngineApi; onBack: () => void; onStart: (lang: LangCode, lvl: CEFRLevel, ids: string[]) => void }) {
-  const [lang, setLang] = useState<LangCode>('en');
-  const [lvl, setLvl] = useState<CEFRLevel>('A1');
-  const all = useMemo(() => [...allWords(), ...api.customWords].filter(w => w.lang === lang && w.level === lvl), [lang, lvl, api.customWords]);
-  const wrong = useMemo(() => getWrongWords(all, api.heat), [all, api.heat]);
-  const ids = wrong.map(r => r.word.id);
-
-  return (
-    <Shell>
-      <BackBtn onClick={onBack} />
-      <div className="font-orbitron text-[20px] font-black tracking-[0.14em] text-white/90 mb-1">YANLIŞ DEFTERİ</div>
-      <div className="font-mono-tech text-[9px] text-white/35 mb-3">Hatalı vurduğun / kaçırdığın kelimeler — sadece bunlarla tekrar oyna.</div>
-
-      <div className="flex gap-1.5 mb-3">
-        {LANGUAGES.map(l => (
-          <button key={l.code} onClick={() => setLang(l.code)} className="flex-1 rounded-md py-1.5 active:scale-95 transition-all" style={btn(l.accent, lang === l.code)}>
-            <span className="font-orbitron text-[11px] font-black" style={{ color: lang === l.code ? l.accent : 'rgba(255,255,255,0.4)' }}>{l.flag}</span>
-          </button>
-        ))}
-      </div>
-      <div className="flex gap-1.5 mb-3">
-        {(['A1','A2','B1','B2','C1'] as CEFRLevel[]).map(l => (
-          <button key={l} onClick={() => setLvl(l)} className="flex-1 rounded-md py-1.5 active:scale-95 transition-all" style={btn(LEVEL_CONFIG[l].color, lvl === l)}>
-            <span className="font-mono-tech text-[9px]" style={{ color: lvl === l ? LEVEL_CONFIG[l].color : 'rgba(255,255,255,0.4)' }}>{l}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="glass rounded-xl px-3 py-2.5 mb-3 flex items-center justify-between">
-        <span className="font-mono-tech text-[9px] tracking-[0.14em] text-white/50">HATALI KELİME</span>
-        <span className="font-orbitron text-[16px] font-black" style={{ color: wrong.length ? '#ff2e63' : '#00ffa3', textShadow: `0 0 8px ${wrong.length ? '#ff2e63' : '#00ffa3'}` }}>{wrong.length}</span>
-      </div>
-
-      {wrong.length >= 2 ? (
-        <button onClick={() => onStart(lang, lvl, ids)} className="w-full rounded-xl py-3 mb-3 active:scale-[0.97] transition-transform"
-          style={{ background: 'linear-gradient(135deg, rgba(255,46,99,0.28), rgba(180,0,50,0.14))', border: '1px solid #ff2e63', boxShadow: '0 0 18px rgba(255,46,99,0.4)' }}>
-          <span className="font-orbitron text-[13px] font-black tracking-[0.2em] text-[#ffe3ea]">↺ SADECE BUNLARI ÇALIŞ ({wrong.length})</span>
-        </button>
-      ) : (
-        <div className="glass rounded-xl px-3 py-3 mb-3 text-center font-mono-tech text-[10px] text-white/40">En az 2 hatalı kelime birikince tekrar modu açılır. Oynamaya devam et!</div>
-      )}
-
-      <div className="space-y-1 pb-4">
-        {wrong.slice(0, 40).map(({ word, stat }) => (
-          <div key={word.id} className="glass rounded-lg px-3 py-2 flex items-center gap-2">
-            <div className="flex-1 min-w-0">
-              <div className="font-mono-tech text-[11px] text-white/90 truncate">{word.foreign} <span className="text-white/30">→</span> {word.native}</div>
-              <div className="font-mono-tech text-[7px] text-white/35">{word.category} · {stat.seen} kez · {stat.misses} hata · {stat.phase}</div>
-            </div>
-            <span className="font-mono-tech text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,46,99,0.15)', color: '#ff8fa8', border: '1px solid rgba(255,46,99,0.3)' }}>✕{stat.misses}</span>
-          </div>
-        ))}
-        {wrong.length === 0 && <div className="font-mono-tech text-[9px] text-white/25 text-center py-6">Bu dil/seviyede hata yok. Tertemiz!</div>}
-      </div>
-    </Shell>
-  );
-}
-
 export function DailyChallengeScreen({ api, onBack, onStart }: { api: EngineApi; onBack: () => void; onStart: (lang: LangCode, lvl: CEFRLevel, ids: string[]) => void }) {
   const [lang, setLang] = useState<LangCode>('en');
   const [lvl, setLvl] = useState<CEFRLevel>('A1');
@@ -1049,18 +981,16 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
           className="w-full accent-[#00d4ff]" />
       </div>
 
-      <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">MÜZİK SESİ</div>
+      <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">MÜZİK SESİ — SABİT 2</div>
       <div className="glass rounded-xl px-3 py-2.5 mb-4">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="font-mono-tech text-[9px] text-white/50">Kısık · Orta · Yüksek</span>
-          <span className="font-pixel text-[14px] text-[#00d4ff]">{Math.round((api.settings.bgmVolume ?? 0.16) * 100)}%</span>
+          <span className="font-mono-tech text-[9px] text-white/50">Sabit — her zaman 2</span>
+          <span className="font-pixel text-[14px] text-[#00d4ff]">2%</span>
         </div>
-        <input type="range" min={0} max={1} step={0.02} value={api.settings.bgmVolume ?? 0.16}
-          onChange={e => { const v = Number(e.target.value); api.updateSettings({ bgmVolume: v }); }}
-          onPointerDown={() => audio.unlock()}
-          className="w-full accent-[#00d4ff] disabled:opacity-30"
-          disabled={!api.settings.music} />
-        {!api.settings.music && <div className="font-mono-tech text-[7px] text-white/30 mt-1">Müzik kapalıyken sessiz — yukarıdan aç.</div>}
+        <input type="range" min={0} max={1} step={0.02} value={0.02}
+          className="w-full accent-[#00d4ff] opacity-50"
+          disabled />
+        <div className="font-mono-tech text-[7px] text-white/30 mt-1">Sabit 2 — değiştirelemez, hafif arka plan.</div>
       </div>
 
       <div className="space-y-1.5 mb-4">
@@ -1308,5 +1238,5 @@ export function TeacherScreen({ api, onBack }: { api: EngineApi; onBack: ()=>voi
   );
 }
 
-export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily' | 'leaderboard' | 'campaign' | 'teacher' | 'series';
+export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'daily' | 'leaderboard' | 'campaign' | 'teacher' | 'series';
 export function heatOfUnused(h: HeatMap) { void h; }

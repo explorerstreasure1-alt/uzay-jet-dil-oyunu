@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useGameEngine, VW, VH } from './hooks/useGameEngine';
 import { GameScreen } from './components/GameScreen';
 import {
-  MenuScreen, SetupScreen, DeckScreen, StatsScreen, SettingsScreen, InstallScreen, WrongBookScreen, DailyChallengeScreen, LeaderboardScreen, CampaignScreen, TeacherScreen,
+  MenuScreen, SetupScreen, DeckScreen, StatsScreen, SettingsScreen, InstallScreen, DailyChallengeScreen, LeaderboardScreen, CampaignScreen, TeacherScreen,
   LevelCompleteScreen, GameOverScreen, PauseOverlay, SeriesScreen, type MenuView,
 } from './components/Screens';
 import { highScoreKey } from './lib/storage';
@@ -116,7 +116,6 @@ export default function App() {
             {view === 'setup' && <SetupScreen api={api} lang={uiLang} setLang={setUiLang} onStart={start} onBack={() => setView('menu')} onViewSeries={(lang, level) => { setSeriesNav({ lang, level }); setView('series'); }} />}
             {view === 'series' && seriesNav && <SeriesScreen api={api} lang={seriesNav.lang} level={seriesNav.level} onBack={() => setView('setup')} onStartSeries={(idx) => { (api as any).startSeries(seriesNav.lang, seriesNav.level, idx); setRun({ lang: seriesNav.lang, level: seriesNav.level, category: 'all' }); setRoot('playing'); }} />}
             {view === 'deck' && <DeckScreen api={api} onBack={() => setView('menu')} />}
-            {view === 'wrongbook' && <WrongBookScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}
             {view === 'daily' && <DailyChallengeScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}
             {view === 'stats' && <StatsScreen api={api} onBack={() => setView('menu')} />}
             {view === 'settings' && <SettingsScreen api={api} onBack={() => setView('menu')} />}

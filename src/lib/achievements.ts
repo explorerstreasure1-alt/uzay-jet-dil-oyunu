@@ -20,7 +20,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'waves50', title: 'Dalga Sörfçüsü', desc: '50 dalga temizle', icon: '🌊', check: s => s.wavesTotal >= 50 },
   { id: 'perfect3', title: 'Kusursuz 3', desc: '3 perfect dalga', icon: '◇', check: (_s, c) => (c?.waves ?? 0) >= 3 },
   { id: 'frenzy5', title: 'Frenzy Avcısı', desc: '5 frenzy temizle', icon: '⚡', check: s => (s as any).frenzyCleared >= 5 },
-  { id: 'wrongbook', title: 'Yanlış Defteri', desc: 'Yanlış defterinde çalış', icon: '✕', check: s => (s as any).wrongBookRuns >= 1 },
   { id: 'daily3', title: 'Günlük 3', desc: '3 günlük meydan okuma', icon: '📅', check: s => (s as any).dailyRuns >= 3 },
   { id: 'speech10', title: 'Konuşkan', desc: '10 kelimeyi söyle', icon: '🎤', check: s => (s as any).speechCount >= 10 },
   { id: 'lvl5', title: 'Seviye 5', desc: 'Seviye 5 ol', icon: '⬆', check: s => Math.floor((s.totalCorrect)/50)+1 >= 5 },
