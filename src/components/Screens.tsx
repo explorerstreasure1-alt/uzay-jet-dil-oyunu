@@ -52,7 +52,7 @@ function BackBtn({ onClick }: { onClick: () => void }) {
 /* ══════════════════ MENU ══════════════════ */
 export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
   api: EngineApi; lang: LangCode; setLang: (l: LangCode) => void;
-  go: (v: 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'wrongbook' | 'daily') => void;
+  go: (v: 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'daily') => void;
   pwa?: { canInstall: boolean; isInstalled: boolean; isIos: boolean; install: () => Promise<string> };
   onContinue?: (lang?: LangCode) => void;
 }) {
@@ -479,13 +479,43 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries 
   );
 }
 
+function SeriesCard({ lang, level, idx, done, preview, count, onStart, onToggle }: { lang: LangCode; level: CEFRLevel; idx: number; done: boolean; preview: string; count: number; onStart: (i:number)=>void; onToggle: (i:number, done:boolean)=>void }) {
+  const holdRef = React.useRef<number | null>(null);
+  const longRef = React.useRef(false);
+  const down = (e: React.PointerEvent) => {
+    longRef.current = false;
+    (e.currentTarget as Element).setPointerCapture?.((e as any).pointerId);
+    holdRef.current = window.setTimeout(() => {
+      longRef.current = true;
+      onToggle(idx, done);
+      try { navigator.vibrate?.(40); } catch {}
+    }, 620) as any;
+  };
+  const up = (e: React.PointerEvent) => {
+    if (holdRef.current) { window.clearTimeout(holdRef.current); holdRef.current = null; }
+    try { (e.currentTarget as Element).releasePointerCapture?.((e as any).pointerId); } catch {}
+    if (longRef.current) { e.preventDefault(); e.stopPropagation(); return; }
+    onStart(idx);
+  };
+  const cancel = () => { if (holdRef.current) { window.clearTimeout(holdRef.current); holdRef.current = null; } };
+  return (
+    <div onPointerDown={down} onPointerUp={up} onPointerCancel={cancel} onPointerLeave={cancel}
+      className="rounded-xl px-3 py-3 text-left select-none touch-manipulation active:scale-[0.98] transition-all" style={{ background: done ? 'linear-gradient(135deg, rgba(0,255,163,0.18), rgba(0,180,120,0.10))' : 'rgba(255,255,255,0.045)', border: `1px solid ${done ? '#00ffa3' : 'rgba(255,255,255,0.12)'}`, boxShadow: done ? '0 0 10px rgba(0,255,163,0.25)' : 'none' }}>
+      <div className="flex items-center justify-between mb-1 pointer-events-none">
+        <span className="font-orbitron text-[12px] font-black" style={{ color: done ? '#00ffa3' : '#8be9ff' }}>SERİ {idx+1}</span>
+        <span className="font-mono-tech text-[10px]" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.25)' }}>{done ? '✓' : `${count}`}</span>
+      </div>
+      <div className="font-mono-tech text-[7px] text-white/35 truncate pointer-events-none">{preview}</div>
+      <div className="font-mono-tech text-[6px] mt-1 pointer-events-none" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{done ? '✓ ÖĞRENİLDİ — basılı tut kaldır' : '50 kelime — basılı tut tikle'}</div>
+    </div>
+  );
+}
 /* ══════════════════ SERIES (50'şer) ══════════════════ */
 export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api: EngineApi; lang: LangCode; level: CEFRLevel; onBack: () => void; onStartSeries: (idx: number) => void }) {
   const [, force] = useState(0);
   const total = getSeriesCount(lang, level, api.customWords);
   const allTicks = store.loadSeriesTicks();
-  const toggle = (e: React.MouseEvent, idx: number, done: boolean) => {
-    e.stopPropagation();
+  const toggle = (idx: number, done: boolean) => {
     store.setSeriesTick(lang, level, idx, !done);
     force(v => v + 1);
     audio.ui();
@@ -500,25 +530,10 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
           const done = !!allTicks[`${lang}:${level}:${i}`];
           const words = getSeriesWords(lang, level, i, api.customWords);
           const preview = words.slice(0,3).map(w=>w.foreign).join(', ');
-          return (
-            <div key={i} className="rounded-xl px-3 py-3 text-left relative" style={{ background: done ? 'linear-gradient(135deg, rgba(0,255,163,0.18), rgba(0,180,120,0.10))' : 'rgba(255,255,255,0.045)', border: `1px solid ${done ? '#00ffa3' : 'rgba(255,255,255,0.12)'}`, boxShadow: done ? '0 0 10px rgba(0,255,163,0.25)' : 'none' }}>
-              <button onClick={()=> onStartSeries(i)} className="absolute inset-0 rounded-xl" aria-label={`Seri ${i+1} başlat`} />
-              <div className="flex items-center justify-between mb-1 pointer-events-none">
-                <span className="font-orbitron text-[12px] font-black" style={{ color: done ? '#00ffa3' : '#8be9ff' }}>SERİ {i+1}</span>
-                <span className="font-mono-tech text-[10px]" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.25)' }}>{done ? '✓' : `${words.length}`}</span>
-              </div>
-              <div className="font-mono-tech text-[7px] text-white/35 truncate pointer-events-none">{preview}</div>
-              <div className="flex items-center justify-between mt-1.5">
-                <span className="font-mono-tech text-[6px]" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{done ? '✓ ÖĞRENİLDİ' : '50 kelime'}</span>
-                <button onClick={(e)=> toggle(e,i,done)} className="rounded-full px-2 py-0.5 active:scale-95 transition-transform pointer-events-auto" style={{ background: done ? 'rgba(255,46,99,0.14)' : 'rgba(0,255,163,0.14)', border: `1px solid ${done ? '#ff5a7a' : '#00ffa3'}` }}>
-                  <span className="font-mono-tech text-[6px] tracking-[0.08em]" style={{ color: done ? '#ff8fa8' : '#00ffa3' }}>{done ? '✕ KALDIR' : '✓ TİKLE'}</span>
-                </button>
-              </div>
-            </div>
-          );
+          return <SeriesCard key={i} lang={lang} level={level} idx={i} done={done} preview={preview} count={words.length} onStart={onStartSeries} onToggle={toggle} />;
         })}
       </div>
-      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Seriye tıkla = direkt başlar · Sağ alttan ✓ TİKLE / ✕ KALDIR ile manuel tik de ekleyebilirsin — otomatik 50/50 de tiklenir.</div>
+      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Tıkla = başlat · Basılı tut (0.6s) = tik ekle/kaldır — otomatik 50/50 de tiklenir.</div>
     </Shell>
   );
 }
