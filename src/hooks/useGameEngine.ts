@@ -207,7 +207,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   /** Koşu boyunca her hedefin kaç kez sorulduğu — en fazla 2 tekrar, sonra taze kelimeye geç. */
   const sessionCountsRef = useRef<Map<string, number>>(new Map());
   const frameTick = useRef(0);
-  const enemyShootTimer = useRef(0);
   /** Kelime serisi kuyruğu — seri bitmeden aynı kelime tekrar gelmez, kaldığın yerden devam */
   const seriesQueueRef = useRef<VocabWord[]>([]);
   const seriesKeyRef = useRef<string>("");
@@ -802,17 +801,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.flash) { s.flash.t -= dt * 0.075; if (s.flash.t <= 0) s.flash = null; }
     if (s.waveBanner) { s.waveBanner.t -= dt * 0.013; if (s.waveBanner.t <= 0) s.waveBanner = null; }
 
-    // düşman ateşi — daha yavaş, daha seyrek
-    enemyShootTimer.current += dt * 16.667;
-    if (enemyShootTimer.current > 210 && s.aliens.length > 0 && s.phase === 'playing') {
-      enemyShootTimer.current = 0;
-      const shooter = s.aliens[Math.floor(Math.random() * s.aliens.length)];
-      if (shooter.y > 50 && shooter.y < FLOOR_Y - 60) {
-        s.bullets.push({ id: uid(), x: shooter.drawX, y: shooter.y + 22, vy: 2.1, power: 1, from: 'enemy' });
-        if (s.bullets.length > 22) s.bullets.shift();
-      }
-    }
-
     // hit-stop: doğru vuruşta 45ms donma (göz yormadan tatmin)
     if (s.hitPause > 0) s.hitPause = Math.max(0, s.hitPause - dt);
     /* ── aliens descend; sway is cosmetic only ── */
@@ -850,30 +838,6 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     for (const b of s.bullets) { b.py = b.y; b.y += b.vy * dt; }
     s.bullets = s.bullets.filter(b => b.y > -30 && b.y < VH + 30);
     let gameEnded = false;
-    // düşman mermisi → gemi: azar azar can götür (yavaş hasar)
-    {
-      const hitSet = new Set<string>();
-      for (const b of s.bullets) {
-        if (b.from !== 'enemy') continue;
-        const dx = Math.abs(b.x - s.shipX);
-        const dy = Math.abs(b.y - SHIP_Y);
-        if (dx < 14 && dy < 16) {
-          hitSet.add(b.id);
-          if (s.shield) {
-            s.shield = false;
-            s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 18, text: 'KALKAN KIRILDI', color: '#8be9ff', life: 1.1, vy: -0.6 });
-            s.flash = { color: '#8be9ff', t: 0.18 }; s.shake = 2.2; audio.repair();
-          } else {
-            // can hiç azalmasın — sadece görsel geri bildirim
-            s.health = 100;
-            s.shake = 1.2; s.flash = { color: '#ffd166', t: 0.10 };
-            s.floats.push({ id: uid(), x: s.shipX + (Math.random()*10-5), y: SHIP_Y - 14, text: `ENGELLENDİ`, color: '#ffd166', life: 0.75, vy: -0.9 });
-            audio.tick(); haptic('tap', hap);
-          }
-        }
-      }
-      if (hitSet.size) s.bullets = s.bullets.filter(b => !hitSet.has(b.id));
-    }
 
     /* ── collision: bullet ↔ lane band — geniş, affedici vuruş ── */
     const spentBullets = new Set<string>();
