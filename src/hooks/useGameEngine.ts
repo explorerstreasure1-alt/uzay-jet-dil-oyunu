@@ -972,7 +972,9 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       for (const a of s.aliens) {
         if (a.dead || removed.has(a.id)) continue;
         if ((b.from === 'wingman') && a.isTarget) continue;
-        const inLane = b.x >= a.laneX - LANE_BLEED && b.x < a.laneX + a.laneW + LANE_BLEED;
+        // hayva serisi ve genel: wingman mermisi hedefe asla değmesin — dar bleed
+        const bleed = (b as any).from === 'wingman' ? 1 : LANE_BLEED;
+        const inLane = b.x >= a.laneX - bleed && b.x < a.laneX + a.laneW + bleed;
         if (!inLane) continue;
         const top = a.y - (a.isBoss ? 10 : 0) - TOP_PAD;
         const bot = a.y + HIT_H * (a.isBoss ? 1.6 : 1.25) + BOT_PAD;
