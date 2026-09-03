@@ -884,6 +884,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
     for (const b of s.bullets) {
       if (spentBullets.has(b.id)) continue;
+      if ((b as any).from === 'enemy') continue; // düşman mermisi canavara değmesin — oto-ölüm bug'ı
       for (const a of s.aliens) {
         if (a.dead || removed.has(a.id)) continue;
         const inLane = b.x >= a.laneX - LANE_BLEED && b.x < a.laneX + a.laneW + LANE_BLEED;
