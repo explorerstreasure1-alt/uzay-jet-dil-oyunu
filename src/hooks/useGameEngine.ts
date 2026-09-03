@@ -920,6 +920,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     /* ── bullets — swept AABB (turbo mermi tünellemez) ── */
     for (const b of s.bullets) { b.py = b.y; b.y += b.vy * dt; }
     s.bullets = s.bullets.filter(b => b.y > -30 && b.y < VH + 30);
+    let gameEnded = false;
     // düşman mermisi → gemi: azar azar can götür (yavaş hasar)
     {
       const hitSet = new Set<string>();
@@ -951,13 +952,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         }
       }
       if (hitSet.size) s.bullets = s.bullets.filter(b => !hitSet.has(b.id));
-      if (gameEnded) { s.bullets = s.bullets.filter(b => !hitSet.has(b.id)); }
     }
 
     /* ── collision: bullet ↔ lane band — geniş, affedici vuruş ── */
     const spentBullets = new Set<string>();
     const removed = new Set<string>();
-    let gameEnded = false;
     const LANE_BLEED = 8; // şerit dışına 8px taşma affı — zor vuruyor şikayeti biter
     const TOP_PAD = 18;
     const BOT_PAD = 14;
