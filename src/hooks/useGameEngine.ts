@@ -99,7 +99,7 @@ function layoutWave(
   const n = entries.length;
   const laneW = VW / n;
   const ramp = Math.min(MAX_RAMP, 1 + (wave - 1) * WAVE_SPEED_RAMP);
-  const baseVy = cfg.speed * speedMul * ramp;
+  const baseVy = cfg.speed * speedMul * ramp * 0.85;
   return entries.map((e, i) => {
     const laneX = laneW * i;
     const stagger = (i % 2) * 74;
@@ -872,14 +872,13 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       for (const w of s.wingmen) w.cooldown = Math.max(w.cooldown, 10);
     }
 
-    // düşman ateşi — yavaşça, azar azar
+    // düşman ateşi — daha yavaş, daha seyrek
     enemyShootTimer.current += dt * 16.667;
-    if (enemyShootTimer.current > 110 && s.aliens.length > 0 && s.phase === 'playing') {
+    if (enemyShootTimer.current > 210 && s.aliens.length > 0 && s.phase === 'playing') {
       enemyShootTimer.current = 0;
       const shooter = s.aliens[Math.floor(Math.random() * s.aliens.length)];
-      // sadece ekranda görünen ve tabana yakın olmayanlar ateş etsin
-      if (shooter.y > 40 && shooter.y < FLOOR_Y - 40) {
-        s.bullets.push({ id: uid(), x: shooter.drawX, y: shooter.y + 22, vy: 3.2, power: 1, from: 'enemy' });
+      if (shooter.y > 50 && shooter.y < FLOOR_Y - 60) {
+        s.bullets.push({ id: uid(), x: shooter.drawX, y: shooter.y + 22, vy: 2.1, power: 1, from: 'enemy' });
         if (s.bullets.length > 22) s.bullets.shift();
       }
     }
@@ -935,7 +934,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 18, text: 'KALKAN KIRILDI', color: '#8be9ff', life: 1.1, vy: -0.6 });
             s.flash = { color: '#8be9ff', t: 0.18 }; s.shake = 2.2; audio.repair();
           } else {
-            const dmg = 7;
+            const dmg = 4;
             s.health = Math.max(0, (s.health ?? 100) - dmg);
             s.shake = 2.6; s.flash = { color: '#ff2e63', t: 0.16 };
             s.floats.push({ id: uid(), x: s.shipX + (Math.random()*10-5), y: SHIP_Y - 14, text: `-${dmg}`, color: '#ff8fa8', life: 0.85, vy: -0.9 });
