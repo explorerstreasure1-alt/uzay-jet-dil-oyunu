@@ -761,22 +761,37 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (s.hitCard) { s.hitCard.t -= dt * 0.011; if (s.hitCard.t <= 0) s.hitCard = null; }
     if (s.speechNudge > 0) s.speechNudge -= dt;
 
-    /* ── ship: momentum + soft brake ── */
+    /* ── ship: akıcı momentum — sallanma/takılma bitti ── */
     let want = 0;
     if (keys.current.has('ArrowLeft') || keys.current.has('a') || keys.current.has('A')) want = -1;
     if (keys.current.has('ArrowRight') || keys.current.has('d') || keys.current.has('D')) want = 1;
     if (dirHold.current !== 0) { want = dirHold.current; moveTarget.current = null; }
 
+    const maxSpeed = 24;
     if (want !== 0) {
-      s.shipVx += want * 6.2 * dt;
+      // FIX: direkt ivme yerine hedef hıza yumuşak lerp — takılma/sallanma biter, akıcı
+      const targetVx = want * maxSpeed;
+      s.shipVx += (targetVx - s.shipVx) * 0.22 * Math.min(1, dt * 0.7);
     } else if (moveTarget.current !== null) {
       const d = moveTarget.current - s.shipX;
-      if (Math.abs(d) < 1.5) s.shipVx *= Math.pow(0.28, dt);
-      else s.shipVx += Math.max(-16, Math.min(16, d * 0.95)) * dt;
+      if (Math.abs(d) < 0.8) {
+        s.shipX = moveTarget.current;
+        s.shipVx *= 0.72;
+        if (Math.abs(s.shipVx) < 0.3) s.shipVx = 0;
+        moveTarget.current = null;
+      } else {
+        const targetVx = Math.max(-maxSpeed, Math.min(maxSpeed, d * 0.28));
+        s.shipVx += (targetVx - s.shipVx) * 0.18 * dt;
+      }
+    } else {
+      // FIX: sert fren 0.68 → 0.84 yumuşak süzülme
+      s.shipVx *= Math.pow(0.84, dt);
+      if (Math.abs(s.shipVx) < 0.08) s.shipVx = 0;
     }
-    s.shipVx *= Math.pow(0.68, dt);
-    s.shipVx = Math.max(-26, Math.min(26, s.shipVx));
-    s.shipX = Math.max(24, Math.min(VW - 24, s.shipX + s.shipVx * dt));
+    s.shipVx = Math.max(-maxSpeed, Math.min(maxSpeed, s.shipVx));
+    s.shipX += s.shipVx * dt * 0.58;
+    s.shipX = Math.max(24, Math.min(VW - 24, s.shipX));
+    if (s.shipX <= 24 || s.shipX >= VW - 24) s.shipVx *= 0.45;
 
     // basılı tutunca tarama (klavye) — push, GC yok
     if ((keys.current.has(' ') || keys.current.has('ArrowUp') || keys.current.has('w') || keys.current.has('W')) && s.phase === 'playing') {
