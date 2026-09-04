@@ -8,7 +8,7 @@
 
 import { EXT_N, EXT_A, EXT_V, EXT_P } from './wordbank_ext';
 
-export type LangCode = 'en' | 'es' | 'it' | 'ru' | 'pt';
+export type LangCode = 'en' | 'es' | 'it' | 'ru' | 'pt' | 'fr';
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
 export type CatId =
   | 'daily' | 'travel' | 'food' | 'business' | 'slang'
@@ -242,6 +242,42 @@ memória=hafıza:f|B1|emotion; sonho=hayal:m|B1|emotion; silêncio=sessizlik:m|B
 paciência=sabır:f|B1|emotion; solidão=yalnızlık:f|B2|emotion; alegria=neşe:f|B1|emotion; tristeza=keder:f|B2|emotion;
 `);
 
+const N_FR = nouns(`
+eau=su:f|A1|food; pain=ekmek:m|A1|food; lait=süt:m|A1|food; pomme=elma:f|A1|food;
+fromage=peynir:m|A1|food; œuf=yumurta:m|A1|food; riz=pilav:m|A1|food; soupe=çorba:f|A1|food;
+viande=et:f|A1|food; poisson=balık:m|A1|food; salade=salata:f|A1|food; café=kahve:m|A1|food;
+thé=çay:m|A1|food; sucre=şeker:m|A1|food; sel=tuz:m|A1|food; huile=yağ:f|A2|food;
+poulet=tavuk:m|A1|food; pomme de terre=patates:f|A1|food; tomate=domates:f|A1|food; oignon=soğan:m|A2|food;
+gâteau=pasta:m|A2|food; glace=dondurma:f|A2|food; jus=meyve suyu:m|A1|food; vin=şarap:m|A2|food;
+maison=ev:f|A1|daily; porte=kapı:f|A1|daily; fenêtre=pencere:f|A1|daily; table=masa:f|A1|daily;
+chaise=sandalye:f|A1|daily; lit=yatak:m|A1|daily; cuisine=mutfak:f|A1|daily; chambre=oda:f|A1|daily;
+livre=kitap:m|A1|daily; stylo=kalem:m|A1|daily; sac=çanta:m|A1|daily; clé=anahtar:f|A1|daily;
+téléphone=telefon:m|A1|tech; horloge=saat:f|A1|daily; miroir=ayna:m|A2|daily; serviette=havlu:f|A2|daily;
+savon=sabun:m|A2|daily; chemise=gömlek:f|A1|daily; chaussure=ayakkabı:f|A1|daily; manteau=palto:m|A2|daily;
+aéroport=havalimanı:m|A2|travel; gare=istasyon:f|A2|travel; billet=bilet:m|A1|travel; train=tren:m|A1|travel;
+bus=otobüs:m|A1|travel; taxi=taksi:m|A1|travel; hôtel=otel:m|A1|travel; bagage=bavul:m|A2|travel;
+carte=harita:f|A2|travel; passeport=pasaport:m|A2|travel; frontière=sınır:f|B1|travel; plage=plaj:f|A2|travel;
+musée=müze:m|A2|travel; pharmacie=eczane:f|A2|travel; hôpital=hastane:m|A2|travel; valise=valiz:f|A2|travel;
+banque=banka:f|A2|business; marché=pazar:m|A1|business; magasin=dükkân:m|A1|business; prix=fiyat:m|A2|business;
+argent=para:m|A1|business; facture=fatura:f|B1|business; contrat=sözleşme:m|B1|business; réunion=toplantı:f|A2|business;
+bureau=ofis:m|A2|business; salaire=maaş:m|B1|business; budget=bütçe:m|B1|business; bénéfice=kâr:m|B1|business;
+client=müşteri:m|A2|business; rapport=rapor:m|B1|business; stratégie=strateji:f|B2|business; entreprise=şirket:f|A2|business;
+ordinateur=bilgisayar:m|A2|tech; écran=ekran:m|A2|tech; clavier=klavye:m|A2|tech; réseau=ağ:m|B1|tech;
+mot de passe=şifre:m|A2|tech; fichier=dosya:m|A2|tech; logiciel=yazılım:m|B1|tech; algorithme=algoritma:m|B2|tech;
+serveur=sunucu:m|B1|tech; batterie=pil:f|A2|tech; chargeur=şarj aleti:m|A2|tech; base de données=veritabanı:f|B2|tech;
+arbre=ağaç:m|A1|nature; fleur=çiçek:f|A1|nature; rivière=nehir:f|A2|nature; montagne=dağ:f|A2|nature;
+mer=deniz:f|A1|nature; forêt=orman:f|A2|nature; ciel=gökyüzü:m|A1|nature; nuage=bulut:m|A1|nature;
+pluie=yağmur:f|A1|nature; neige=kar:f|A1|nature; vent=rüzgâr:m|A2|nature; tempête=fırtına:f|B1|nature;
+soleil=güneş:m|A1|nature; lune=ay:f|A1|nature; étoile=yıldız:f|A1|nature; île=ada:f|A2|nature;
+mère=anne:f|A1|daily; père=baba:m|A1|daily; ami=arkadaş:m|A1|daily; enfant=çocuk:m|A1|daily;
+professeur=öğretmen:m|A1|daily; médecin=doktor:m|A1|daily; chauffeur=şoför:m|A2|daily; voisin=komşu:m|A2|daily;
+ville=şehir:f|A1|daily; village=köy:m|A2|daily; rue=sokak:f|A1|daily; pont=köprü:m|A2|daily;
+école=okul:f|A1|daily; jardin=bahçe:m|A1|nature; parc=park:m|A1|daily; bibliothèque=kütüphane:f|A2|daily;
+liberté=özgürlük:f|B1|emotion; espoir=umut:m|B1|emotion; peur=korku:f|B1|emotion; confiance=güven:f|B1|emotion;
+mémoire=hafıza:f|B1|emotion; rêve=hayal:m|B1|emotion; silence=sessizlik:m|B1|emotion; courage=cesaret:m|B2|emotion;
+patience=sabır:f|B1|emotion; solitude=yalnızlık:f|B2|emotion; joie=neşe:f|B1|emotion; chagrin=keder:m|B2|emotion;
+`);
+
 /* ══════════════════════════ ADJECTIVES ══════════════════════════ */
 const A_EN = adjs(`big=büyük|A1; small=küçük|A1; good=iyi|A1; bad=kötü|A1; new=yeni|A1; old=eski|A1;
 hot=sıcak|A1; cold=soğuk|A1; fast=hızlı|A1; slow=yavaş|A1; easy=kolay|A1; hard=zor|A1;
@@ -302,6 +338,18 @@ zangado=kızgın|A2; calmo=sakin|A2; nervoso=gergin|B1; orgulhoso=gururlu|B1; ci
 honesto=dürüst|B1; educado=kibar|A2; rude=kaba|B1; generoso=cömert|B1; confiável=güvenilir|B1; teimoso=inatçı|B2;
 brilhante e inteligente=parlak zekâlı|B2; constrangedor=tuhaf|B2; relutante=isteksiz|B2; sobrecarregado=bunalmış|B2; grato=minnettar|B1;
 resiliente=dayanıklı|C1; ambivalente=kararsız|C1; meticuloso=titiz|C1; profundo=derin anlamlı|C1; inevitável=kaçınılmaz|C1;`);
+
+const A_FR = adjs(`grand=büyük|A1; petit=küçük|A1; bon=iyi|A1; mauvais=kötü|A1; nouveau=yeni|A1; vieux=eski|A1;
+chaud=sıcak|A1; froid=soğuk|A1; rapide=hızlı|A1; lent=yavaş|A1; facile=kolay|A1; difficile=zor|A1;
+beau=güzel|A1; laid=çirkin|A2; heureux=mutlu|A1; triste=üzgün|A1; fatigué=yorgun|A1; affamé=aç|A1;
+assoiffé=susuz|A1; fort=güçlü|A2; faible=zayıf|A2; propre=temiz|A1; sale=kirli|A1; bon marché=ucuz|A2;
+cher=pahalı|A2; riche=zengin|A2; pauvre=fakir|A2; jeune=genç|A1; long=uzun|A1; court=kısa|A1;
+silencieux=sessiz|A2; bruyant=gürültülü|A2; sûr=güvenli|A2; dangereux=tehlikeli|A2; vide=boş|A2; plein=dolu|A2;
+brillant=parlak|A2; sombre=karanlık|A2; profond=derin|B1; lourd=ağır|A2; léger=hafif|A2; doux=yumuşak|A2;
+en colère=kızgın|A2; calme=sakin|A2; nerveux=gergin|B1; fier=gururlu|B1; jaloux=kıskanç|B1; curieux=meraklı|B1;
+honnête=dürüst|B1; poli=kibar|A2; impoli=kaba|B1; généreux=cömert|B1; fiable=güvenilir|B1; têtu=inatçı|B2;
+brillant et intelligent=parlak zekâlı|B2; embarrassant=tuhaf|B2; réticent=isteksiz|B2; dépassé=bunalmış|B2; reconnaissant=minnettar|B1;
+résilient=dayanıklı|C1; ambivalent=kararsız|C1; méticuleux=titiz|C1; profond=derin anlamlı|C1; inévitable=kaçınılmaz|C1;`);
 
 /* ══════════════════════════ VERBS ══════════════════════════ */
 const V_EN = verbs(`to eat=yemek>I eat>you eat>I ate|A1; to drink=içmek>I drink>you drink>I drank|A1;
@@ -425,6 +473,30 @@ conseguir=başarmak>consigo>consegues>consegui|B2; gerir=yönetmek>giro>geres>ge
 negociar=müzakere etmek>negocio>negocias>negociei|B2; adiar=ertelemek>adio>adias>adiei|B2;
 reconhecer=kabul etmek>reconheço>reconheces>reconheci|C1;`);
 
+const V_FR = verbs(`manger=yemek>je mange>tu manges>j'ai mangé|A1; boire=içmek>je bois>tu bois>j'ai bu|A1;
+aller=gitmek>je vais>tu vas>je suis allé|A1; venir=gelmek>je viens>tu viens>je suis venu|A1;
+voir=görmek>je vois>tu vois>j'ai vu|A1; entendre=duymak>j'entends>tu entends>j'ai entendu|A1;
+parler=konuşmak>je parle>tu parles>j'ai parlé|A1; lire=okumak>je lis>tu lis>j'ai lu|A1;
+écrire=yazmak>j'écris>tu écris>j'ai écrit|A1; travailler=çalışmak>je travaille>tu travailles>j'ai travaillé|A1;
+dormir=uyumak>je dors>tu dors>j'ai dormi|A1; acheter=satın almak>j'achète>tu achètes>j'ai acheté|A1;
+vendre=satmak>je vends>tu vends>j'ai vendu|A2; ouvrir=açmak>j'ouvre>tu ouvres>j'ai ouvert|A1;
+fermer=kapatmak>je ferme>tu fermes>j'ai fermé|A1; donner=vermek>je donne>tu donnes>j'ai donné|A1;
+prendre=almak>je prends>tu prends>j'ai pris|A1; trouver=bulmak>je trouve>tu trouves>j'ai trouvé|A2;
+perdre=kaybetmek>je perds>tu perds>j'ai perdu|A2; attendre=beklemek>j'attends>tu attends>j'ai attendu|A1;
+aider=yardım etmek>j'aide>tu aides>j'ai aidé|A1; demander=sormak>je demande>tu demandes>j'ai demandé|A1;
+répondre=cevaplamak>je réponds>tu réponds>j'ai répondu|A2; apprendre=öğrenmek>j'apprends>tu apprends>j'ai appris|A1;
+enseigner=öğretmek>j'enseigne>tu enseignes>j'ai enseigné|A2; comprendre=anlamak>je comprends>tu comprends>j'ai compris|A2;
+penser=düşünmek>je pense>tu penses>j'ai pensé|A1; se souvenir=hatırlamak>je me souviens>tu te souviens>je me suis souvenu|A2;
+oublier=unutmak>j'oublie>tu oublies>j'ai oublié|A2; voyager=seyahat etmek>je voyage>tu voyages>j'ai voyagé|A2;
+conduire=araba sürmek>je conduis>tu conduis>j'ai conduit|A2; marcher=yürümek>je marche>tu marches>j'ai marché|A1;
+courir=koşmak>je cours>tu cours>j'ai couru|A1; cuisiner=yemek pişirmek>je cuisine>tu cuisines>j'ai cuisiné|A1;
+payer=ödemek>je paie>tu paies>j'ai payé|A2; construire=inşa etmek>je construis>tu construis>j'ai construit|B1;
+changer=değiştirmek>je change>tu changes>j'ai changé|A2; décider=karar vermek>je décide>tu décides>j'ai décidé|B1;
+expliquer=açıklamak>j'explique>tu expliques>j'ai expliqué|B1; améliorer=geliştirmek>j'améliore>tu améliores>j'ai amélioré|B1;
+réussir=başarmak>je réussis>tu réussis>j'ai réussi|B2; gérer=yönetmek>je gère>tu gères>j'ai géré|B1;
+négocier=müzakere etmek>je négocie>tu négocies>j'ai négocié|B2; reporter=ertelemek>je reporte>tu reportes>j'ai reporté|B2;
+reconnaître=kabul etmek>je reconnais>tu reconnais>j'ai reconnu|C1;`);
+
 /* ══════════════════════════ PHRASES (curated) ══════════════════════════ */
 const P_EN = `hello=merhaba; good morning=günaydın; good evening=iyi akşamlar; good night=iyi geceler;
 thank you=teşekkür ederim; you are welcome=rica ederim; please=lütfen; excuse me=affedersiniz;
@@ -495,6 +567,20 @@ perto=yakın; longe=uzak; acima=yukarı; abaixo=aşağı; dentro=içeride; fora=
 porque=çünkü; mas=ama; e=ve; ou=veya; se=eğer; no entanto=ancak; portanto=bu yüzden; embora=-e rağmen;
 na minha opinião=bence; por outro lado=öte yandan; que eu saiba=bildiğim kadarıyla; para ser sincero=açıkçası;
 depende=duruma bağlı; não faz mal=sorun değil; cuida-te=kendine iyi bak; boa sorte=iyi şanslar;`;
+
+const P_FR = `bonjour=merhaba; bonjour=günaydın; bonsoir=iyi akşamlar; bonne nuit=iyi geceler;
+merci=teşekkür ederim; de rien=rica ederim; s'il vous plaît=lütfen; pardon=affedersiniz;
+désolé=özür dilerim; oui=evet; non=hayır; peut-être=belki; bien sûr=tabii ki; à plus tard=görüşürüz;
+comment ça va?=nasılsın?; je vais bien=iyiyim; comment tu t'appelles?=adın ne?; je m'appelle...=benim adım...;
+enchanté=memnun oldum; je ne comprends pas=anlamıyorum; pouvez-vous répéter?=tekrar eder misin?;
+parlez lentement s'il vous plaît=lütfen yavaş konuş; combien ça coûte?=ne kadar?; où sont les toilettes?=tuvalet nerede?;
+j'ai besoin d'aide=yardıma ihtiyacım var; appelez un médecin=doktor çağırın; je suis perdu=kayboldum; quelle heure est-il?=saat kaç?;
+aujourd'hui=bugün; demain=yarın; hier=dün; maintenant=şimdi; plus tard=sonra; toujours=her zaman; jamais=asla;
+parfois=bazen; souvent=sık sık; ici=burada; là=orada; gauche=sol; droite=sağ; tout droit=düz ileri;
+près=yakın; loin=uzak; en haut=yukarı; en bas=aşağı; dedans=içeride; dehors=dışarıda; avant=önce; après=sonra;
+parce que=çünkü; mais=ama; et=ve; ou=veya; si=eğer; cependant=ancak; donc=bu yüzden; bien que=-e rağmen;
+à mon avis=bence; d'autre part=öte yandan; autant que je sache=bildiğim kadarıyla; pour être honnête=açıkçası;
+ça dépend=duruma bağlı; pas de problème=sorun değil; prends soin de toi=kendine iyi bak; bonne chance=iyi şanslar;`;
 
 /* ══════════════════════════ NUMBER ENGINES ══════════════════════════ */
 const TR_ONES = ['sıfır','bir','iki','üç','dört','beş','altı','yedi','sekiz','dokuz'];
@@ -569,7 +655,20 @@ function ptNum(x: number): string {
   return (k === 1 ? 'mil' : ptNum(k) + ' mil') + (r ? ' e ' + ptNum(r) : '');
 }
 
-const NUM: Record<LangCode, (x: number) => string> = { en: enNum, es: esNum, it: itNum, ru: ruNum, pt: ptNum };
+const FR_ONES = ['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf','vingt','vingt et un','vingt-deux','vingt-trois','vingt-quatre','vingt-cinq','vingt-six','vingt-sept','vingt-huit','vingt-neuf'];
+const FR_TENS = ['','','vingt','trente','quarante','cinquante','soixante','soixante-dix','quatre-vingt','quatre-vingt-dix'];
+function frNum(x: number): string {
+  if (x < 30) return FR_ONES[x];
+  if (x < 70) { const t = Math.floor(x / 10), o = x % 10; return FR_TENS[t] + (o === 1 ? ' et un' : o ? '-' + FR_ONES[o] : ''); }
+  if (x < 80) return 'soixante-' + frNum(x - 60);
+  if (x < 100) return 'quatre-vingt' + (x === 80 ? 's' : x % 20 === 1 ? ' et un' : '-' + FR_ONES[x % 20]);
+  if (x === 100) return 'cent';
+  if (x < 1000) { const h = Math.floor(x / 100), r = x % 100; return (h === 1 ? 'cent' : FR_ONES[h] + ' cent') + (r ? ' ' + frNum(r) : ''); }
+  const k = Math.floor(x / 1000), r = x % 1000;
+  return (k === 1 ? 'mille' : frNum(k) + ' mille') + (r ? ' ' + frNum(r) : '');
+}
+
+const NUM: Record<LangCode, (x: number) => string> = { en: enNum, es: esNum, it: itNum, ru: ruNum, pt: ptNum, fr: frNum };
 
 const ORD: Record<LangCode, string[]> = {
   en: ['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth','eleventh','twelfth','thirteenth','fourteenth','fifteenth','sixteenth','seventeenth','eighteenth','nineteenth','twentieth'],
@@ -577,6 +676,7 @@ const ORD: Record<LangCode, string[]> = {
   it: ['primo','secondo','terzo','quarto','quinto','sesto','settimo','ottavo','nono','decimo','undicesimo','dodicesimo','tredicesimo','quattordicesimo','quindicesimo','sedicesimo','diciassettesimo','diciottesimo','diciannovesimo','ventesimo'],
   ru: ['первый','второй','третий','четвёртый','пятый','шестой','седьмой','восьмой','девятый','десятый','одиннадцатый','двенадцатый','тринадцатый','четырнадцатый','пятнадцатый','шестнадцатый','семнадцатый','восемнадцатый','девятнадцатый','двадцатый'],
   pt: ['primeiro','segundo','terceiro','quarto','quinto','sexto','sétimo','oitavo','nono','décimo','décimo primeiro','décimo segundo','décimo terceiro','décimo quarto','décimo quinto','décimo sexto','décimo sétimo','décimo oitavo','décimo nono','vigésimo'],
+  fr: ['premier','deuxième','troisième','quatrième','cinquième','sixième','septième','huitième','neuvième','dixième','onzième','douzième','treizième','quatorzième','quinzième','seizième','dix-septième','dix-huitième','dix-neuvième','vingtième'],
 };
 const TR_ORD = ['birinci','ikinci','üçüncü','dördüncü','beşinci','altıncı','yedinci','sekizinci','dokuzuncu','onuncu','on birinci','on ikinci','on üçüncü','on dördüncü','on beşinci','on altıncı','on yedinci','on sekizinci','on dokuzuncu','yirminci'];
 
@@ -586,6 +686,7 @@ const DAYS: Record<LangCode, string[]> = {
   it: ['lunedì','martedì','mercoledì','giovedì','venerdì','sabato','domenica'],
   ru: ['понедельник','вторник','среда','четверг','пятница','суббота','воскресенье'],
   pt: ['segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado','domingo'],
+  fr: ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'],
 };
 const TR_DAYS = ['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
 
@@ -595,6 +696,7 @@ const MONTHS: Record<LangCode, string[]> = {
   it: ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'],
   ru: ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'],
   pt: ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'],
+  fr: ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'],
 };
 const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
@@ -604,6 +706,7 @@ const COLORS: Record<LangCode, string[]> = {
   it: ['rosso','blu','verde','giallo','nero','bianco','arancione','viola','rosa','marrone','grigio','oro','argento','turchese','beige','blu navy'],
   ru: ['красный','синий','зелёный','жёлтый','чёрный','белый','оранжевый','фиолетовый','розовый','коричневый','серый','золотой','серебряный','бирюзовый','бежевый','тёмно-синий'],
   pt: ['vermelho','azul','verde','amarelo','preto','branco','laranja','roxo','rosa','castanho','cinzento','dourado','prateado','turquesa','bege','azul marinho'],
+  fr: ['rouge','bleu','vert','jaune','noir','blanc','orange','violet','rose','marron','gris','or','argent','turquoise','beige','bleu marine'],
 };
 const TR_COLORS = ['kırmızı','mavi','yeşil','sarı','siyah','beyaz','turuncu','mor','pembe','kahverengi','gri','altın','gümüş','turkuaz','bej','lacivert'];
 
@@ -615,6 +718,7 @@ function art(lang: LangCode, n: Noun): string {
   if (lang === 'en') return `the ${n.f}`;
   if (lang === 'es') return `${n.g === 'f' ? 'la' : 'el'} ${n.f}`;
   if (lang === 'pt') return `${n.g === 'f' ? 'a' : 'o'} ${n.f}`;
+  if (lang === 'fr') return `${n.g === 'f' ? 'la' : 'le'} ${n.f}`;
   if (lang === 'it') {
     if (startsVowel(n.f)) return `l'${n.f}`;
     if (n.g === 'f') return `la ${n.f}`;
@@ -627,6 +731,7 @@ function poss(lang: LangCode, n: Noun): string {
   if (lang === 'en') return `my ${n.f}`;
   if (lang === 'es') return `mi ${n.f}`;
   if (lang === 'pt') return `meu ${n.f}`;
+  if (lang === 'fr') return `mon ${n.f}`;
   if (lang === 'it') return startsVowel(n.f) ? `il mio ${n.f}` : n.g === 'f' ? `la mia ${n.f}` : `il mio ${n.f}`;
   return `${n.g === 'f' ? 'моя' : n.g === 'n' ? 'моё' : 'мой'} ${n.f}`;
 }
@@ -634,6 +739,7 @@ function need(lang: LangCode, n: Noun): string {
   if (lang === 'en') return `I need ${art(lang, n)}`;
   if (lang === 'es') return `necesito ${art(lang, n)}`;
   if (lang === 'pt') return `preciso de ${art(lang, n)}`;
+  if (lang === 'fr') return `j'ai besoin de ${art(lang, n)}`;
   if (lang === 'it') return `ho bisogno d${startsVowel(n.f) ? "ell'" + n.f : n.g === 'f' ? 'ella ' + n.f : 'el ' + n.f}`;
   return `мне ${n.g === 'f' ? 'нужна' : n.g === 'n' ? 'нужно' : 'нужен'} ${n.f}`;
 }
@@ -644,16 +750,16 @@ function objForm(lang: LangCode, n: Noun): string | null {
 }
 
 const T = {
-  where:  { en: (x: string) => `where is ${x}?`,      es: (x: string) => `¿dónde está ${x}?`, it: (x: string) => `dov'è ${x}?`,        ru: (x: string) => `где ${x}?`, pt: (x: string) => `onde está ${x}?` },
-  cost:   { en: (x: string) => `how much is ${x}?`,   es: (x: string) => `¿cuánto cuesta ${x}?`, it: (x: string) => `quanto costa ${x}?`, ru: (x: string) => `сколько стоит ${x}?`, pt: (x: string) => `quanto custa ${x}?` },
-  have:   { en: (x: string) => `do you have ${x}?`,   es: (x: string) => `¿tiene ${x}?`,      it: (x: string) => `avete ${x}?`,        ru: (x: string) => `у вас есть ${x}?`, pt: (x: string) => `tem ${x}?` },
-  this:   { en: (x: string) => `this is ${x}`,        es: (x: string) => `esto es ${x}`,      it: (x: string) => `questo è ${x}`,      ru: (x: string) => `это ${x}`, pt: (x: string) => `isto é ${x}` },
-  very:   { en: (x: string) => `very ${x}`,           es: (x: string) => `muy ${x}`,          it: (x: string) => `molto ${x}`,         ru: (x: string) => `очень ${x}`, pt: (x: string) => `muito ${x}` },
-  not:    { en: (x: string) => `not ${x}`,            es: (x: string) => `no ${x}`,           it: (x: string) => `non ${x}`,           ru: (x: string) => `не ${x}`, pt: (x: string) => `não ${x}` },
-  too:    { en: (x: string) => `too ${x}`,            es: (x: string) => `demasiado ${x}`,    it: (x: string) => `troppo ${x}`,        ru: (x: string) => `слишком ${x}`, pt: (x: string) => `demasiado ${x}` },
-  want:   { en: (x: string) => `I want to ${x.replace(/^to /, '')}`, es: (x: string) => `quiero ${x}`, it: (x: string) => `voglio ${x}`, ru: (x: string) => `я хочу ${x}`, pt: (x: string) => `quero ${x}` },
-  must:   { en: (x: string) => `I must ${x.replace(/^to /, '')}`,    es: (x: string) => `debo ${x}`,   it: (x: string) => `devo ${x}`,   ru: (x: string) => `я должен ${x}`, pt: (x: string) => `devo ${x}` },
-  like:   { en: (x: string) => `I like to ${x.replace(/^to /, '')}`, es: (x: string) => `me gusta ${x}`, it: (x: string) => `mi piace ${x}`, ru: (x: string) => `я люблю ${x}`, pt: (x: string) => `gosto de ${x}` },
+  where:  { en: (x: string) => `where is ${x}?`,      es: (x: string) => `¿dónde está ${x}?`, it: (x: string) => `dov'è ${x}?`,        ru: (x: string) => `где ${x}?`, pt: (x: string) => `onde está ${x}?`, fr: (x: string) => `où est ${x}?` },
+  cost:   { en: (x: string) => `how much is ${x}?`,   es: (x: string) => `¿cuánto cuesta ${x}?`, it: (x: string) => `quanto costa ${x}?`, ru: (x: string) => `сколько стоит ${x}?`, pt: (x: string) => `quanto custa ${x}?`, fr: (x: string) => `combien coûte ${x}?` },
+  have:   { en: (x: string) => `do you have ${x}?`,   es: (x: string) => `¿tiene ${x}?`,      it: (x: string) => `avete ${x}?`,        ru: (x: string) => `у вас есть ${x}?`, pt: (x: string) => `tem ${x}?`, fr: (x: string) => `avez-vous ${x}?` },
+  this:   { en: (x: string) => `this is ${x}`,        es: (x: string) => `esto es ${x}`,      it: (x: string) => `questo è ${x}`,      ru: (x: string) => `это ${x}`, pt: (x: string) => `isto é ${x}`, fr: (x: string) => `c'est ${x}` },
+  very:   { en: (x: string) => `very ${x}`,           es: (x: string) => `muy ${x}`,          it: (x: string) => `molto ${x}`,         ru: (x: string) => `очень ${x}`, pt: (x: string) => `muito ${x}`, fr: (x: string) => `très ${x}` },
+  not:    { en: (x: string) => `not ${x}`,            es: (x: string) => `no ${x}`,           it: (x: string) => `non ${x}`,           ru: (x: string) => `не ${x}`, pt: (x: string) => `não ${x}`, fr: (x: string) => `pas ${x}` },
+  too:    { en: (x: string) => `too ${x}`,            es: (x: string) => `demasiado ${x}`,    it: (x: string) => `troppo ${x}`,        ru: (x: string) => `слишком ${x}`, pt: (x: string) => `demasiado ${x}`, fr: (x: string) => `trop ${x}` },
+  want:   { en: (x: string) => `I want to ${x.replace(/^to /, '')}`, es: (x: string) => `quiero ${x}`, it: (x: string) => `voglio ${x}`, ru: (x: string) => `я хочу ${x}`, pt: (x: string) => `quero ${x}`, fr: (x: string) => `je veux ${x}` },
+  must:   { en: (x: string) => `I must ${x.replace(/^to /, '')}`,    es: (x: string) => `debo ${x}`,   it: (x: string) => `devo ${x}`,   ru: (x: string) => `я должен ${x}`, pt: (x: string) => `devo ${x}`, fr: (x: string) => `je dois ${x}` },
+  like:   { en: (x: string) => `I like to ${x.replace(/^to /, '')}`, es: (x: string) => `me gusta ${x}`, it: (x: string) => `mi piace ${x}`, ru: (x: string) => `я люблю ${x}`, pt: (x: string) => `gosto de ${x}`, fr: (x: string) => `j'aime ${x}` },
 };
 const TT = {
   where: (x: string) => `${x} nerede?`,
@@ -677,6 +783,7 @@ const DATA: Record<LangCode, { N: Noun[]; A: Adj[]; V: Verb[]; P: string }> = {
   it: { N: [...N_IT, ...nouns(EXT_N.it)], A: [...A_IT, ...adjs(EXT_A.it)], V: [...V_IT, ...verbs(EXT_V.it)], P: P_IT + EXT_P.it },
   ru: { N: [...N_RU, ...nouns(EXT_N.ru)], A: [...A_RU, ...adjs(EXT_A.ru)], V: [...V_RU, ...verbs(EXT_V.ru)], P: P_RU + EXT_P.ru },
   pt: { N: [...N_PT, ...nouns((EXT_N as any).pt ?? '')], A: [...A_PT, ...adjs((EXT_A as any).pt ?? '')], V: [...V_PT, ...verbs((EXT_V as any).pt ?? '')], P: P_PT + ((EXT_P as any).pt ?? '') },
+  fr: { N: [...N_FR, ...nouns((EXT_N as any).fr ?? '')], A: [...A_FR, ...adjs((EXT_A as any).fr ?? '')], V: [...V_FR, ...verbs((EXT_V as any).fr ?? '')], P: P_FR + ((EXT_P as any).fr ?? '') },
 };
 
 export const WORDS_PER_LANGUAGE = 4500;
@@ -727,6 +834,7 @@ export function buildLanguage(lang: LangCode): Entry[] {
       lang === 'en' ? `${enNum(h)} o'clock` :
       lang === 'es' ? `las ${esNum(h)}` :
       lang === 'pt' ? `${ptNum(h)} horas` :
+      lang === 'fr' ? `${frNum(h)} heures` :
       lang === 'it' ? `le ${itNum(h)}` :
       `${ruNum(h)} ${h === 1 ? 'час' : h < 5 ? 'часа' : 'часов'}`;
     push(clock, `saat ${trNum(h)}`, 'A1', 'number');
@@ -734,6 +842,7 @@ export function buildLanguage(lang: LangCode): Entry[] {
       lang === 'en' ? `half past ${enNum(h)}` :
       lang === 'es' ? `las ${esNum(h)} y media` :
       lang === 'pt' ? `${ptNum(h)} e meia` :
+      lang === 'fr' ? `${frNum(h)} heures et demie` :
       lang === 'it' ? `le ${itNum(h)} e mezza` :
       `половина ${ruNum(h + 1 > 12 ? 1 : h + 1)}`;
     push(half, `${trNum(h)} buçuk`, 'A2', 'number');

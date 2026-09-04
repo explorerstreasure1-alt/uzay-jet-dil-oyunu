@@ -938,6 +938,7 @@ const SAMPLES: Record<LangCode, string> = {
   it: 'Buongiorno, benvenuto a bordo.',
   ru: 'Доброе утро, добро пожаловать.',
   pt: 'Bom dia, bem-vindo a bordo.',
+  fr: 'Bonjour, bienvenue à bord.',
 };
 
 export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => void }) {

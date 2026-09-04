@@ -25,6 +25,7 @@ export const LANGUAGES: {
   { code: 'it', name: 'Italiano', native: 'İtalyanca',  flag: 'IT', tts: 'it-IT', accent: '#00ff9d' },
   { code: 'ru', name: 'Русский',  native: 'Rusça',      flag: 'RU', tts: 'ru-RU', accent: '#ff4d6d' },
   { code: 'pt', name: 'Português', native: 'Portekizce', flag: 'PT', tts: 'pt-PT', accent: '#00ff88' },
+  { code: 'fr', name: 'Français', native: 'Fransızca',  flag: 'FR', tts: 'fr-FR', accent: '#6f42c1' },
 ];
 
 export const CATEGORIES: { id: CategoryId; label: string; icon: string }[] = [
