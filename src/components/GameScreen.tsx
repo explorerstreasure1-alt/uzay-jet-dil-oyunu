@@ -142,12 +142,12 @@ function Ship({ x, over, shield, vx, t, reduceMotion }: { x: number; over: boole
   const c1 = over ? '#e0a6ff' : '#00e5ff';
   const c2 = over ? '#ff2ea6' : '#0066ff';
   const accent = over ? '#ffb3ff' : '#7af7ff';
-  // FIX: hız/bank yumuşatıldı — sallanma jitter bitti, akıcı süzülme
-  const rawSpeed = Math.min(1, Math.abs(vx) / 18);
-  const speed = rawSpeed * 0.85 + (rawSpeed > 0.02 ? 0.02 : 0);
-  const dir = Math.abs(vx) < 0.3 ? 0 : Math.sign(vx);
-  const bank = dir * speed * 5.5;
-  const flame = 22 + speed * 24 + Math.sin(t * 0.05) * 3.5;
+  // FIX2: hızlı akıcı — bank daha hissedilir, flame daha canlı
+  const rawSpeed = Math.min(1, Math.abs(vx) / 16);
+  const speed = rawSpeed * 0.9 + (rawSpeed > 0.015 ? 0.015 : 0);
+  const dir = Math.abs(vx) < 0.2 ? 0 : Math.sign(vx);
+  const bank = dir * speed * 6.5;
+  const flame = 24 + speed * 28 + Math.sin(t * 0.05) * 4;
   const flame2 = flame * 0.72;
   return (
     <g transform={`translate(${x}, ${SHIP_Y}) rotate(${bank})`}>

@@ -767,31 +767,30 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (keys.current.has('ArrowRight') || keys.current.has('d') || keys.current.has('D')) want = 1;
     if (dirHold.current !== 0) { want = dirHold.current; moveTarget.current = null; }
 
-    const maxSpeed = 24;
+    const maxSpeed = 34;
     if (want !== 0) {
-      // FIX: direkt ivme yerine hedef hıza yumuşak lerp — takılma/sallanma biter, akıcı
+      // FIX2: hızlı + akıcı — hedef hıza agresif lerp, takılma yok
       const targetVx = want * maxSpeed;
-      s.shipVx += (targetVx - s.shipVx) * 0.22 * Math.min(1, dt * 0.7);
+      s.shipVx += (targetVx - s.shipVx) * 0.38 * Math.min(1, dt * 0.85);
     } else if (moveTarget.current !== null) {
       const d = moveTarget.current - s.shipX;
-      if (Math.abs(d) < 0.8) {
+      if (Math.abs(d) < 1.2) {
         s.shipX = moveTarget.current;
-        s.shipVx *= 0.72;
-        if (Math.abs(s.shipVx) < 0.3) s.shipVx = 0;
+        s.shipVx *= 0.58;
+        if (Math.abs(s.shipVx) < 0.4) s.shipVx = 0;
         moveTarget.current = null;
       } else {
-        const targetVx = Math.max(-maxSpeed, Math.min(maxSpeed, d * 0.28));
-        s.shipVx += (targetVx - s.shipVx) * 0.18 * dt;
+        const targetVx = Math.max(-maxSpeed, Math.min(maxSpeed, d * 0.42));
+        s.shipVx += (targetVx - s.shipVx) * 0.28 * dt;
       }
     } else {
-      // FIX: sert fren 0.68 → 0.84 yumuşak süzülme
-      s.shipVx *= Math.pow(0.84, dt);
-      if (Math.abs(s.shipVx) < 0.08) s.shipVx = 0;
+      s.shipVx *= Math.pow(0.80, dt);
+      if (Math.abs(s.shipVx) < 0.12) s.shipVx = 0;
     }
     s.shipVx = Math.max(-maxSpeed, Math.min(maxSpeed, s.shipVx));
-    s.shipX += s.shipVx * dt * 0.58;
+    s.shipX += s.shipVx * dt * 0.72;
     s.shipX = Math.max(24, Math.min(VW - 24, s.shipX));
-    if (s.shipX <= 24 || s.shipX >= VW - 24) s.shipVx *= 0.45;
+    if (s.shipX <= 24 || s.shipX >= VW - 24) s.shipVx *= 0.35;
 
     // basılı tutunca tarama (klavye) — push, GC yok
     if ((keys.current.has(' ') || keys.current.has('ArrowUp') || keys.current.has('w') || keys.current.has('W')) && s.phase === 'playing') {
