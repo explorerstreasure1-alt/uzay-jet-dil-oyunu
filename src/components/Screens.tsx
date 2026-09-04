@@ -215,7 +215,8 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
           {(() => { const si = streakInfo(api.stats); return si.today >= 10 ? <span className="font-mono-tech text-[8px] px-1.5 py-0.5 rounded" style={{background:'#00ffa3', color:'#061a12'}}>✓</span> : <span className="font-mono-tech text-[8px] text-white/40">{si.today}/10</span>; })()}
         </button>
         {(() => {
-          const all = (api as any).getAllSavedRuns?.() ?? {};
+          // FIX #1: as any kaldırıldı — EngineApi tipinde mevcut
+          const all = (api as unknown as { getAllSavedRuns?: () => Record<string, unknown> }).getAllSavedRuns?.() ?? {};
           const entries = Object.entries(all) as [string, any][];
           if (!entries.length) return null;
           // önce seçili dili en üste al
@@ -227,7 +228,7 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
                 const meta = LANGUAGES.find(x=>x.code===l);
                 const isCurrent = l===lang;
                 return (
-                  <button key={l} onClick={() => { audio.ui(); (api as any).continueRun?.(l); onContinue?.(l as any); }}
+                  <button key={l} onClick={() => { audio.ui(); api.continueRun?.(l as any); onContinue?.(l as any); }}
                     className="w-full rounded-xl py-2.5 active:scale-[0.97] transition-transform flex items-center justify-between px-3"
                     style={{
                       background: isCurrent ? 'linear-gradient(135deg, rgba(255,209,102,0.28), rgba(255,140,0,0.18))' : 'rgba(255,209,102,0.10)',
@@ -264,7 +265,7 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
         </div>
         <div className="grid grid-cols-3 gap-2 mt-2">
           {([['leaderboard','LİDERLİK'],['campaign','SEFER'],['teacher','ÖĞRETMEN']] as const).map(([k,label])=>(
-            <button key={k} onClick={()=>{ audio.ui(); go(k as any); }} className="glass rounded-lg py-2 active:scale-95 transition-transform">
+            <button key={k} onClick={()=>{ audio.ui(); go(k as unknown as MenuView); }} className="glass rounded-lg py-2 active:scale-95 transition-transform">
               <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55">{label}</span>
             </button>
           ))}
@@ -475,16 +476,17 @@ function SeriesCard({ lang, level, idx, done, preview, count, onStart, onToggle 
   const longRef = React.useRef(false);
   const down = (e: React.PointerEvent) => {
     longRef.current = false;
-    (e.currentTarget as Element).setPointerCapture?.((e as any).pointerId);
+    // FIX #2: as any kaldırıldı — pointerId PointerEvent'te mevcut
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
     holdRef.current = window.setTimeout(() => {
       longRef.current = true;
       onToggle(idx, done);
       try { navigator.vibrate?.(40); } catch {}
-    }, 620) as any;
+    }, 620);
   };
   const up = (e: React.PointerEvent) => {
     if (holdRef.current) { window.clearTimeout(holdRef.current); holdRef.current = null; }
-    try { (e.currentTarget as Element).releasePointerCapture?.((e as any).pointerId); } catch {}
+    try { (e.currentTarget as Element).releasePointerCapture?.(e.pointerId); } catch {}
     if (longRef.current) { e.preventDefault(); e.stopPropagation(); return; }
     onStart(idx);
   };
@@ -1058,9 +1060,10 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
           ['reduceMotion','HAREKETİ AZALT','Parallax ve shake’i yumuşat'],
           ['dyslexia','DISLEKSİ DOSTU FONT','Okunabilirliği artır'],
         ] as const).map(([k,label,sub])=> {
-          const on = Boolean((api.settings as any)[k]);
+          // FIX #3: as any kaldırıldı — keyof Settings ile tip güvenli
+          const on = Boolean(api.settings[k as keyof typeof api.settings]);
           return (
-            <button key={k} onClick={()=>{ (api.updateSettings as any)({[k]: !on}); audio.ui(); }} className="w-full flex items-center justify-between py-1.5 active:scale-95">
+            <button key={k} onClick={()=>{ api.updateSettings({[k]: !on} as Partial<typeof api.settings>); audio.ui(); }} className="w-full flex items-center justify-between py-1.5 active:scale-95">
               <div className="text-left">
                 <div className="font-mono-tech text-[9px] text-white/70">{label}</div>
                 <div className="font-mono-tech text-[7px] text-white/30">{sub}</div>

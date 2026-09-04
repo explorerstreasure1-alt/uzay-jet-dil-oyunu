@@ -564,29 +564,15 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               );
             })}
 
-            {s.bullets.map(b => {
-              const isEnemy = (b as any).from === 'enemy';
-              if (isEnemy) {
-                return (
-                  <g key={b.id} opacity="1" style={{ filter: 'drop-shadow(0 0 9px #ff2e63)' }}>
-                    <rect x={b.x - 2.4} y={b.y - 12} width="4.8" height="24" rx="2.4" fill="#ff2e63" stroke="#ffffff" strokeWidth="0.9" />
-                    <rect x={b.x - 0.9} y={b.y - 12} width="1.8" height="14" fill="#ffffff" opacity="0.98" />
-                    <circle cx={b.x} cy={b.y + 12} r="3.2" fill="#ff2e63" stroke="#ffffff" strokeWidth="0.7" />
-                    <circle cx={b.x} cy={b.y - 14} r="1.2" fill="#ffd166" opacity="0.95">
-                      <animate attributeName="opacity" values="1;0.3;1" dur="0.18s" repeatCount="indefinite" />
-                    </circle>
-                  </g>
-                );
-              }
-              return (
-                <g key={b.id}>
-                  <rect x={b.x - 2.2} y={b.y - 43} width={4.4} height={47} rx={2.2}
-                    fill={s.overcharged ? '#e0a6ff' : '#8be9ff'} opacity={0.92} />
-                  <rect x={b.x - 0.7} y={b.y - 43} width={1.6} height={18} fill="#fff" opacity={0.95} />
-                  <rect x={b.x - 5.5} y={b.y - 18} width="11" height="2" rx="1" fill={s.overcharged ? '#ff2ea6' : '#00d4ff'} opacity={0.45} />
-                </g>
-              );
-            })}
+            {/* FIX #1: enemy/wingman mermisi kaldırıldı — sadece player mermisi */}
+            {s.bullets.map(b => (
+              <g key={b.id}>
+                <rect x={b.x - 2.2} y={b.y - 43} width={4.4} height={47} rx={2.2}
+                  fill={s.overcharged ? '#e0a6ff' : '#8be9ff'} opacity={0.92} />
+                <rect x={b.x - 0.7} y={b.y - 43} width={1.6} height={18} fill="#fff" opacity={0.95} />
+                <rect x={b.x - 5.5} y={b.y - 18} width="11" height="2" rx="1" fill={s.overcharged ? '#ff2ea6' : '#00d4ff'} opacity={0.45} />
+              </g>
+            ))}
 
 
             {s.explosions.map(e => (
