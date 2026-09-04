@@ -27,7 +27,7 @@ export interface Alien {
   cloakPhase: number;
 }
 
-export interface Bullet { id: string; x: number; y: number; vy: number; power: number; from?: 'player' | 'enemy'; py?: number }
+export interface Bullet { id: string; x: number; y: number; vy: number; power: number; from?: 'player'; py?: number } // FIX #7: enemy kaldırıldı — sadece player
 
 export interface Explosion {
   id: string; x: number; y: number;

@@ -848,7 +848,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
     for (const b of s.bullets) {
       if (spentBullets.has(b.id)) continue;
-      if ((b as any).from === 'enemy') continue; // düşman mermisi canavara değmesin — oto-ölüm bug'ı
+      // FIX #7/8: enemy mermisi kalktı — tip güvenli, as any kaldırıldı
+      if (b.from && b.from !== 'player') continue;
       for (const a of s.aliens) {
         if (a.dead || removed.has(a.id)) continue;
         const inLane = b.x >= a.laneX - LANE_BLEED && b.x < a.laneX + a.laneW + LANE_BLEED;
@@ -856,7 +857,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         const top = a.y - (a.isBoss ? 10 : 0) - TOP_PAD;
         const bot = a.y + HIT_H * (a.isBoss ? 1.6 : 1.25) + BOT_PAD;
         // swept: mermi bir frame'de top-bot'u atladıysa da yakala
-        const py = (b as any).py ?? b.y;
+        const py = b.py ?? b.y;
         const lo = Math.min(py, b.y);
         const hi = Math.max(py, b.y);
         if (hi < top || lo > bot) continue;
