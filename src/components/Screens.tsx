@@ -265,7 +265,7 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
         </div>
         <div className="grid grid-cols-3 gap-2 mt-2">
           {([['leaderboard','LİDERLİK'],['campaign','SEFER'],['teacher','ÖĞRETMEN']] as const).map(([k,label])=>(
-            <button key={k} onClick={()=>{ audio.ui(); go(k as unknown as MenuView); }} className="glass rounded-lg py-2 active:scale-95 transition-transform">
+            <button key={k} onClick={()=>{ audio.ui(); (go as any)(k); }} className="glass rounded-lg py-2 active:scale-95 transition-transform">
               <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55">{label}</span>
             </button>
           ))}
@@ -937,6 +937,7 @@ const SAMPLES: Record<LangCode, string> = {
   es: 'Buenos días, bienvenido a bordo.',
   it: 'Buongiorno, benvenuto a bordo.',
   ru: 'Доброе утро, добро пожаловать.',
+  pt: 'Bom dia, bem-vindo a bordo.',
 };
 
 export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => void }) {
