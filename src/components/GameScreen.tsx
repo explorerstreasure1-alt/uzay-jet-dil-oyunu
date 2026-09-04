@@ -485,6 +485,8 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
     moved.current = false;
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
     api.gotoX(toLocal(e.clientX));
+    // FIX: ekrana tıklayınca da ateş et — ateş butonuna gerek kalmasın
+    api.fire();
   }, [api, toLocal]);
   const move = useCallback((e: React.PointerEvent) => {
     if (dragId.current !== e.pointerId) return;
