@@ -6,7 +6,10 @@ import { registerServiceWorker } from "./lib/pwa";
 
 registerServiceWorker();
 
-createRoot(document.getElementById("root")!).render(
+// FIX #16: ! non-null kaldırıldı — tip güvenli root guard
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error("Root element #root not found");
+createRoot(rootEl).render(
   <StrictMode>
     <App />
   </StrictMode>
