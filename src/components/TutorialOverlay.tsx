@@ -35,6 +35,7 @@ const STEPS = [
 
 export function TutorialOverlay({ onDone, onSkip }: { onDone: () => void; onSkip: () => void }) {
   const [idx, setIdx] = useState(0);
+  // FIX #1: keyboard ESC/Space desteği için idx stabil
   const s = STEPS[idx];
   const last = idx === STEPS.length - 1;
 

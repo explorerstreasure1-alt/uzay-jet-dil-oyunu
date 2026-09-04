@@ -1,5 +1,6 @@
+// FIX #1: organizeImports — type import önce, value sonra (biome)
+import type { CatId, CEFRLevel, LangCode } from './wordbank';
 import { buildLanguage } from './wordbank';
-import type { LangCode, CEFRLevel, CatId } from './wordbank';
 
 export type { LangCode, CEFRLevel } from './wordbank';
 export { WORDS_PER_LANGUAGE } from './wordbank';
