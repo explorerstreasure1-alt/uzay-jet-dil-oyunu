@@ -19,9 +19,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'boss5', title: 'Boss Avcısı', desc: '5 boss indir', icon: '👾', check: s => s.bossesKilled >= 5 },
   { id: 'waves50', title: 'Dalga Sörfçüsü', desc: '50 dalga temizle', icon: '🌊', check: s => s.wavesTotal >= 50 },
   { id: 'perfect3', title: 'Kusursuz 3', desc: '3 perfect dalga', icon: '◇', check: (_s, c) => (c?.waves ?? 0) >= 3 },
-  { id: 'frenzy5', title: 'Frenzy Avcısı', desc: '5 frenzy temizle', icon: '⚡', check: s => (s as any).frenzyCleared >= 5 },
-  { id: 'daily3', title: 'Günlük 3', desc: '3 günlük meydan okuma', icon: '📅', check: s => (s as any).dailyRuns >= 3 },
-  { id: 'speech10', title: 'Konuşkan', desc: '10 kelimeyi söyle', icon: '🎤', check: s => (s as any).speechCount >= 10 },
+  // FIX #10: as any kaldırıldı — optional field tip güvenli
+  { id: 'frenzy5', title: 'Frenzy Avcısı', desc: '5 frenzy temizle', icon: '⚡', check: s => (s.frenzyCleared ?? 0) >= 5 },
+  { id: 'daily3', title: 'Günlük 3', desc: '3 günlük meydan okuma', icon: '📅', check: s => (s.dailyRuns ?? 0) >= 3 },
+  { id: 'speech10', title: 'Konuşkan', desc: '10 kelimeyi söyle', icon: '🎤', check: s => (s.speechCount ?? 0) >= 10 },
   { id: 'lvl5', title: 'Seviye 5', desc: 'Seviye 5 ol', icon: '⬆', check: s => Math.floor((s.totalCorrect)/50)+1 >= 5 },
   { id: 'lvl10', title: 'Seviye 10', desc: 'Seviye 10 ol', icon: '⬆⬆', check: s => Math.floor((s.totalCorrect)/50)+1 >= 10 },
 ];
