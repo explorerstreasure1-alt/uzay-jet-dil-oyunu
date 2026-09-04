@@ -43,7 +43,9 @@ function similarity(a: string, b: string): number {
 
 export function speechSupported(): boolean {
   if (typeof window === 'undefined') return false;
-  return !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition;
+  // FIX #13: as any kaldırıldı — unknown guard ile tip güvenli
+  const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
+  return !!(w.SpeechRecognition || w.webkitSpeechRecognition);
 }
 
 export function speechLangTag(lang: LangCode): string {
@@ -54,9 +56,11 @@ export interface SpeechResult { transcript: string; score: number; ok: boolean; 
 
 export function listenOnce(lang: LangCode, expected: string, timeoutMs = 6500): Promise<SpeechResult> {
   return new Promise((resolve) => {
-    const Ctor: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    // FIX #14: any ctor → unknown, tip güvenli fallback
+    const w = window as unknown as { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition };
+    const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition) as unknown as new () => SpeechRecognition;
     if (!Ctor) { resolve({ transcript: '', score: 0, ok: false }); return; }
-    const rec = new Ctor();
+    const rec = new Ctor() as unknown as SpeechRecognition & { grammars?: unknown; maxAlternatives?: number };
     rec.lang = speechLangTag(lang);
     rec.interimResults = false;
     rec.continuous = false;
@@ -68,17 +72,19 @@ export function listenOnce(lang: LangCode, expected: string, timeoutMs = 6500): 
     const timer = window.setTimeout(() => finish({ transcript: '', score: 0, ok: false }), timeoutMs);
     // dil bazlı grammar bias (varsa) — hedef kelimeyi öne çıkar
     try {
-      const SG: any = (window as any).SpeechGrammarList || (window as any).webkitSpeechGrammarList;
+      // FIX #15: GrammarList any kaldırıldı
+      const ww = window as unknown as { SpeechGrammarList?: new () => { addFromString: (s:string,n:number)=>void }; webkitSpeechGrammarList?: new () => { addFromString: (s:string,n:number)=>void } };
+      const SG = ww.SpeechGrammarList || ww.webkitSpeechGrammarList;
       if (SG && expected) {
         const grammars = new SG();
         const words = norm(expected).split(' ').filter(Boolean).slice(0, 6).join(' ');
         if (words) grammars.addFromString(`#JSGF V1.0; grammar words; public <word> = ${words} ;`, 1);
-        rec.grammars = grammars;
+        (rec as unknown as { grammars: unknown }).grammars = grammars;
       }
     } catch {}
-    rec.onresult = (e: any) => {
+    rec.onresult = (e: SpeechRecognitionEvent) => {
       window.clearTimeout(timer);
-      const results: any[] = Array.from(e.results[0] as any);
+      const results = Array.from((e.results[0] as unknown as SpeechRecognitionAlternative[]));
       let best = 0, bestTxt = '';
       for (const alt of results) {
         const txt: string = alt.transcript ?? '';
@@ -92,10 +98,10 @@ export function listenOnce(lang: LangCode, expected: string, timeoutMs = 6500): 
       const shortBonus = norm(expected).length <= 3 ? 0.06 : 0;
       finish({ transcript: bestTxt, score: best, ok: best + shortBonus >= threshold });
     };
-    rec.onerror = (ev: any) => {
+    rec.onerror = (ev: SpeechRecognitionErrorEvent) => {
       window.clearTimeout(timer);
       // no-speech / audio-capture hatalarında hemen bitirme, onend'e bırak — bazı tarayıcılarda önce error sonra result geliyor
-      const err = ev?.error ?? '';
+      const err = (ev as unknown as { error?: string })?.error ?? '';
       if (err === 'no-speech' || err === 'audio-capture') {
         // 400ms ek bekle, belki result gelir
         window.setTimeout(() => { if (!done) finish({ transcript: '', score: 0, ok: false }); }, 400);
