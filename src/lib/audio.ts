@@ -452,8 +452,8 @@ class AudioEngine {
         const long = text.length > 14;
         u.rate = Math.max(0.6, Math.min(1.4, this.ttsRate * (long ? 0.97 : 1.06)));
         u.pitch = 1.0;
-        u.volume = 1;
-        /* duck the SFX bus so the voice always sits on top */
+        u.volume = 1; // FIX: telaffuz her zaman yüksek — asla kısılmasın
+        /* duck the SFX bus so the voice always sits on top — telaffuz öne çıksın */
         this.duck(0.34, 0.7);
         u.onend = () => this.duck(0.85, 0.25);
         u.onerror = () => this.duck(0.85, 0.25);
