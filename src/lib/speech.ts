@@ -54,19 +54,24 @@ export function speechLangTag(lang: LangCode): string {
 
 export interface SpeechResult { transcript: string; score: number; ok: boolean; }
 
-export function listenOnce(lang: LangCode, expected: string, timeoutMs = 6500): Promise<SpeechResult> {
+export function listenOnce(lang: LangCode, expected: string, timeoutMs = 8000): Promise<SpeechResult> {
   return new Promise((resolve) => {
-    // FIX #14: any ctor → unknown, tip güvenli fallback
+    // FIX: geliştirildi — interim + 10 alternatif + dil bazlı hassasiyet + uzun timeout
     const w = window as unknown as { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition };
     const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition) as unknown as new () => SpeechRecognition;
     if (!Ctor) { resolve({ transcript: '', score: 0, ok: false }); return; }
     const rec = new Ctor() as unknown as SpeechRecognition & { grammars?: unknown; maxAlternatives?: number };
     rec.lang = speechLangTag(lang);
-    rec.interimResults = false;
+    rec.interimResults = true;
     rec.continuous = false;
-    rec.maxAlternatives = 7;
-    // hassasiyet: dil bazlı eşik — Rusça ASR daha zayıf, eşiği düşür
-    const threshold = lang === 'ru' ? 0.50 : lang === 'en' ? 0.55 : 0.58;
+    rec.maxAlternatives = 10;
+    // hassasiyet: dil bazlı eşik — ASR zayıf dillerde daha toleranslı
+    const threshold =
+      lang === 'ru' ? 0.48 :
+      lang === 'de' ? 0.50 :
+      lang === 'fr' ? 0.52 :
+      lang === 'pt' ? 0.52 :
+      lang === 'en' ? 0.52 : 0.54;
     let done = false;
     const finish = (r: SpeechResult) => { if (done) return; done = true; try{ rec.stop(); }catch{} try{ rec.abort?.(); }catch{} resolve(r); };
     const timer = window.setTimeout(() => finish({ transcript: '', score: 0, ok: false }), timeoutMs);
@@ -82,35 +87,47 @@ export function listenOnce(lang: LangCode, expected: string, timeoutMs = 6500): 
         (rec as unknown as { grammars: unknown }).grammars = grammars;
       }
     } catch {}
+    let interimTxt = '';
     rec.onresult = (e: SpeechRecognitionEvent) => {
+      const isFinal = (e.results[0] as unknown as { isFinal?: boolean })?.isFinal ?? true;
+      if (!isFinal) {
+        try { interimTxt = (e.results[0][0] as unknown as { transcript?: string })?.transcript ?? ''; } catch {}
+        return;
+      }
       window.clearTimeout(timer);
       const results = Array.from((e.results[0] as unknown as SpeechRecognitionAlternative[]));
-      let best = 0, bestTxt = '';
+      let best = 0, bestTxt = interimTxt;
       for (const alt of results) {
         const txt: string = alt.transcript ?? '';
-        const conf: number = typeof alt.confidence === 'number' ? alt.confidence : 1;
+        const conf: number = typeof alt.confidence === 'number' ? alt.confidence : 0.9;
         const sim = similarity(txt, expected);
-        // güven + benzerlik ağırlıklı skor — hassasiyet için conf'u hafif kat
-        const weighted = sim * (0.82 + conf * 0.18);
+        const weighted = sim * (0.78 + conf * 0.22);
         if (weighted > best) { best = weighted; bestTxt = txt; }
       }
-      // kısa kelimelerde (<=3 harf) substring ve Jaccard zaten bonus verdi, eşiği biraz düşür
-      const shortBonus = norm(expected).length <= 3 ? 0.06 : 0;
-      finish({ transcript: bestTxt, score: best, ok: best + shortBonus >= threshold });
+      // interim'i de değerlendir — ASR kısa kelimeyi interimde yakalayabilir
+      if (interimTxt && !bestTxt) {
+        const simI = similarity(interimTxt, expected);
+        if (simI > best) { best = simI * 0.92; bestTxt = interimTxt; }
+      }
+      const len = norm(expected).length;
+      const shortBonus = len <= 3 ? 0.08 : len <= 6 ? 0.04 : 0;
+      const subBonus2 = bestTxt && norm(expected).split(' ').some(w => norm(bestTxt).includes(w)) ? 0.06 : 0;
+      finish({ transcript: bestTxt, score: best, ok: best + shortBonus + subBonus2 >= threshold });
     };
     rec.onerror = (ev: SpeechRecognitionErrorEvent) => {
       window.clearTimeout(timer);
-      // no-speech / audio-capture hatalarında hemen bitirme, onend'e bırak — bazı tarayıcılarda önce error sonra result geliyor
       const err = (ev as unknown as { error?: string })?.error ?? '';
       if (err === 'no-speech' || err === 'audio-capture') {
-        // 400ms ek bekle, belki result gelir
-        window.setTimeout(() => { if (!done) finish({ transcript: '', score: 0, ok: false }); }, 400);
-      } else {
+        window.setTimeout(() => { if (!done) finish({ transcript: interimTxt, score: similarity(interimTxt, expected), ok: false }); }, 500);
+      } else if (err === 'not-allowed' || err === 'service-not-allowed') {
         finish({ transcript: '', score: 0, ok: false });
+      } else {
+        finish({ transcript: interimTxt, score: 0, ok: false });
       }
     };
-    rec.onend = () => { if (!done) { window.clearTimeout(timer); finish({ transcript: '', score: 0, ok: false }); } };
+    rec.onend = () => { if (!done) { window.clearTimeout(timer); finish({ transcript: interimTxt, score: interimTxt ? similarity(interimTxt, expected) : 0, ok: false }); } };
     rec.onspeechend = () => { try { rec.stop(); } catch {} };
+    rec.onnomatch = () => { if (!done) finish({ transcript: interimTxt, score: 0, ok: false }); };
     try { rec.start(); } catch { finish({ transcript: '', score: 0, ok: false }); }
   });
 }

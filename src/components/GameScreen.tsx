@@ -463,18 +463,28 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
   const [micListening, setMicListening] = useState(false);
   const [micMsg, setMicMsg] = useState<string | null>(null);
   const doMic = useCallback(async () => {
-    if (!speechSupported() || !s.targetWord || micListening) return;
-    setMicListening(true); setMicMsg(null);
+    if (!speechSupported() || !s.targetWord || micListening) {
+      if (!speechSupported()) setMicMsg('✕ tarayıcı desteklemiyor');
+      setTimeout(() => setMicMsg(null), 1400);
+      return;
+    }
+    // FIX: mikrofon geliştirildi — izin isteği + 8s dinleme + detaylı geri bildirim
+    try { await navigator.mediaDevices?.getUserMedia?.({ audio: true }).then(m => m.getTracks().forEach(t => t.stop())).catch(()=>{}); } catch {}
+    setMicListening(true); setMicMsg('● dinliyor…');
     api.setMicSlow(true);
-    const res = await listenOnce(s.targetWord.lang, s.targetWord.foreign);
+    const res = await listenOnce(s.targetWord.lang, s.targetWord.foreign, 8000);
     setMicListening(false);
     api.setMicSlow(false);
     if (res.ok) {
       api.triggerMine();
-      setMicMsg('💥 ' + Math.round(res.score * 100) + '% MAYIN!');
-      setTimeout(() => setMicMsg(null), 1600);
+      api.addSpeechBonus?.();
+      setMicMsg(`💥 ${Math.round(res.score * 100)}% → ${res.transcript.slice(0,14)}`);
+      setTimeout(() => setMicMsg(null), 1800);
+    } else if (res.transcript) {
+      setMicMsg(`✕ ${res.transcript.slice(0,14)} (${Math.round(res.score*100)}%)`);
+      setTimeout(() => setMicMsg(null), 1700);
     } else {
-      setMicMsg(res.transcript ? `✕ ${res.transcript.slice(0,12)}` : '✕ duyamadım');
+      setMicMsg('✕ duyamadım — tekrar dene');
       setTimeout(() => setMicMsg(null), 1400);
     }
   }, [s.targetWord, micListening, api]);
