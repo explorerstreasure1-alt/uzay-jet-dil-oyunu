@@ -109,11 +109,11 @@ export function categoryCount(lang: LangCode, level: CEFRLevel, cat: CategoryId,
   return getWords(lang, level, cat, extra).length;
 }
 export function getSeriesCount(lang: LangCode, level: CEFRLevel, extra: VocabWord[] = []): number {
-  return Math.max(1, Math.ceil(getWords(lang, level, 'all', extra).length / 50));
+  return Math.max(1, Math.ceil(getWords(lang, level, 'all', extra).length / 10));
 }
 export function getSeriesWords(lang: LangCode, level: CEFRLevel, idx: number, extra: VocabWord[] = []): VocabWord[] {
   const all = getWords(lang, level, 'all', extra);
-  return all.slice(idx * 50, idx * 50 + 50);
+  return all.slice(idx * 10, idx * 10 + 10);
 }
 export function isSeriesCompleted(lang: LangCode, level: CEFRLevel, idx: number, heat: import('../types/game').HeatMap, extra: VocabWord[] = []): boolean {
   const words = getSeriesWords(lang, level, idx, extra);

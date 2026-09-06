@@ -202,7 +202,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   /** Yanlış defteri filtresi: sadece bu id'ler havuzda kalır */
   const wrongFilterRef = useRef<Set<string> | null>(null);
-  /** Seri filtresi: sadece bu 50 kelimelik serinin id'leri */
+  /** Seri filtresi: sadece bu 10 kelimelik serinin id'leri */
   const seriesFilterRef = useRef<Set<string> | null>(null);
   const seriesMetaRef = useRef<{ lang: LangCode; level: CEFRLevel; idx: number } | null>(null);
   /** Seri içi öncelikli kelimeler — yıldızlılar çok sık çıksın */
@@ -255,7 +255,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   const spawnWave = useCallback((wave: number, banner?: string, sub?: string) => {
     const s = ref.current;
     let pool = getWords(s.lang, s.level, s.category, customRef.current);
-    // seri filtresi (50'lik bölüm) öncelikli
+    // seri filtresi (10'luk bölüm) öncelikli
     if (seriesFilterRef.current) {
       const f = pool.filter(w => seriesFilterRef.current!.has(w.id));
       if (f.length >= 2) pool = f;
@@ -946,7 +946,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             }
           }
           flushSoon();
-          // seri tik: 50 kelimenin hepsi en az 1 doğru yapıldıysa otomatik tik
+          // seri tik: 10 kelimenin hepsi en az 1 doğru yapıldıysa otomatik tik
           if (seriesMetaRef.current && seriesFilterRef.current) {
             const { lang, level, idx } = seriesMetaRef.current;
             const words = getSeriesWords(lang, level, idx, customRef.current);
