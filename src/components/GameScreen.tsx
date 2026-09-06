@@ -499,9 +499,8 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
     dragId.current = e.pointerId;
     moved.current = false;
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    // FIX: sağa/sola gitmek için tıklayınca ateş etmesin — sadece şeride git
     api.gotoX(toLocal(e.clientX));
-    // FIX: ekrana tıklayınca da ateş et — ateş butonuna gerek kalmasın
-    api.fire();
   }, [api, toLocal]);
   const move = useCallback((e: React.PointerEvent) => {
     if (dragId.current !== e.pointerId) return;
@@ -511,8 +510,15 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
   const up = useCallback((e: React.PointerEvent) => {
     if (dragId.current !== e.pointerId) return;
     dragId.current = null;
-    if (moved.current) api.setMoveTarget(null);
-  }, [api]);
+    if (moved.current) {
+      api.setMoveTarget(null);
+    } else {
+      // FIX: sadece dokunulan yer gemiye yakınsa ateş et — uzağa tıklayınca sadece git, ateş yok
+      const tx = toLocal(e.clientX);
+      const dist = Math.abs(tx - api.state.shipX);
+      if (dist < 42) api.fire();
+    }
+  }, [api, toLocal]);
 
   const locked = s.aliens.find(a => a.id === api.lockedId) ?? null;
   const hint = s.aliens.find(a => a.id === api.hintId) ?? null;
