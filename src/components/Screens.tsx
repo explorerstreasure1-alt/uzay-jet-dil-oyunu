@@ -1018,6 +1018,35 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
         })}
       </div>
 
+      <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">GÖZ YORMAYAN GECE MODU PRO</div>
+      <div className="glass rounded-xl px-3 py-3 mb-4" style={api.settings.eyeCare ? { border: '1px solid #8FB996', background: 'rgba(143,185,150,0.12)', boxShadow: '0 0 12px rgba(143,185,150,0.22)' } : undefined}>
+        <button onClick={() => { api.updateSettings({ eyeCare: !api.settings.eyeCare } as never); audio.ui(); }}
+          className="w-full flex items-center gap-3 active:scale-[0.98] transition-transform text-left">
+          <div className="text-[20px]">{api.settings.eyeCare ? '👁️‍🗨️' : '👁️'}</div>
+          <div className="flex-1">
+            <div className="font-mono-tech text-[10px] tracking-[0.14em]" style={{ color: api.settings.eyeCare ? '#8FB996' : 'rgba(255,255,255,0.7)' }}>{api.settings.eyeCare ? 'AÇIK — GÖZ KORUMA AKTİF' : 'KAPALI'}</div>
+            <div className="font-mono-tech text-[7px] text-white/32">Sıfır neon, %70 kontrast, mavi ışık kesik. Yoğunluğu ayarla.</div>
+          </div>
+          <div className="w-10 h-[22px] rounded-full p-[2px] transition-colors"
+            style={{ background: api.settings.eyeCare ? 'rgba(143,185,150,0.35)' : 'rgba(255,255,255,0.1)', border: `1px solid ${api.settings.eyeCare ? '#8FB996' : 'rgba(255,255,255,0.16)'}` }}>
+            <div className="w-[16px] h-[16px] rounded-full transition-transform"
+              style={{ transform: api.settings.eyeCare ? 'translateX(18px)' : 'none', background: api.settings.eyeCare ? '#8FB996' : 'rgba(255,255,255,0.4)', boxShadow: api.settings.eyeCare ? '0 0 8px #8FB996' : 'none' }} />
+          </div>
+        </button>
+        {api.settings.eyeCare && (
+          <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(143,185,150,0.14)' }}>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="font-mono-tech text-[8px] tracking-[0.12em] text-white/45">YOĞUNLUK — HAFİF · ORTA · YOĞUN</span>
+              <span className="font-pixel text-[13px] text-[#8FB996]">{api.settings.eyeCareIntensity ?? 70}%</span>
+            </div>
+            <input type="range" min={20} max={100} step={5} value={api.settings.eyeCareIntensity ?? 70}
+              onChange={e => api.updateSettings({ eyeCareIntensity: Number(e.target.value) } as never)}
+              className="w-full accent-[#8FB996]" />
+            <div className="font-mono-tech text-[6px] text-white/28 mt-1">Düşük = taze, yüksek = tam gece kağıdı — gözün yorulduğu anda yükselt.</div>
+          </div>
+        )}
+      </div>
+
       <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">TELAFFUZ MOTORU</div>
       <div className="glass rounded-xl px-3 py-2.5 mb-4">
         <div className="font-mono-tech text-[8px] text-white/32 mb-2">

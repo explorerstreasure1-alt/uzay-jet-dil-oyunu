@@ -80,11 +80,15 @@ export default function App() {
     fontFamily: api.settings.dyslexia ? 'OpenDyslexic, Verdana, sans-serif' : undefined,
   };
 
+  const eyeFilter = api.settings.eyeCare
+    ? `sepia(${0.06 + (api.settings.eyeCareIntensity ?? 70) * 0.0018}) hue-rotate(-${3 + (api.settings.eyeCareIntensity ?? 70)*0.07}deg) brightness(${0.98 - (api.settings.eyeCareIntensity ?? 70)*0.0012}) contrast(${0.97 - (api.settings.eyeCareIntensity ?? 70)*0.0006}) saturate(${0.95 - (api.settings.eyeCareIntensity ?? 70)*0.001})`
+    : undefined;
   return (
     <div className={`fixed inset-0 overflow-hidden ${api.settings.reduceMotion ? 'reduce-motion' : ''} ${api.settings.highContrast ? 'high-contrast' : ''} ${api.settings.dyslexia ? 'dyslexia' : ''} ${api.settings.eyeCare ? 'eye-care' : ''}`}
       style={{
         ...a11yStyle,
         background: api.settings.eyeCare ? '#0A0F1E' : api.settings.highContrast ? '#000' : 'radial-gradient(ellipse at 50% 0%, #101f4d 0%, #060d26 55%, #03060f 100%)',
+        filter: eyeFilter,
         touchAction: 'none',
       }}>
 

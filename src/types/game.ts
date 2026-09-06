@@ -163,6 +163,7 @@ export interface Settings {
   reduceMotion: boolean;
   dyslexia: boolean;
   eyeCare: boolean;
+  eyeCareIntensity: number;
 }
 
 export interface HitCard {
