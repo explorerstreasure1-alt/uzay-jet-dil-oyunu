@@ -96,6 +96,28 @@ button { cursor: pointer; }
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
 }
+/* ── Göz Yormayan Palet — Gece Modu Pro ── */
+.eye-care {
+  --bg: #0A0F1E;
+  --bg2: #0B1410;
+  --text: #E8E8E8;
+  --text2: #F2E8D5;
+  --accent1: #FFB347;
+  --accent2: #8FB996;
+  --accent3: #4FB3A7;
+  --err: #D9827A;
+}
+.eye-care .glass {
+  background: rgba(11, 20, 16, 0.78) !important;
+  border-color: rgba(143, 185, 150, 0.18) !important;
+  box-shadow: inset 0 1px 0 rgba(242, 232, 213, 0.06), 0 4px 18px rgba(0, 0, 0, 0.5) !important;
+}
+.eye-care .font-mono-tech, .eye-care .font-orbitron, .eye-care .font-pixel { color: var(--text) !important; }
+.eye-care [style*="#00d4ff"], .eye-care [style*="#00e5ff"] { color: var(--accent3) !important; }
+.eye-care [style*="#ff2e63"] { color: var(--err) !important; }
+.eye-care [style*="#ffd166"], .eye-care [style*="#ffb300"] { color: var(--accent1) !important; }
+.eye-care [style*="#00ffa3"] { color: var(--accent2) !important; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   .glitch, .liquid-metal { animation: none !important; }

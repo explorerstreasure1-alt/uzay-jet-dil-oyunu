@@ -325,7 +325,7 @@ function Cortex({ s }: { s: GameState }) {
 }
 
 /* ══════════ HUD ══════════ */
-function Hud({ s, onPause, onRepeat }: { s: GameState; onPause: () => void; onRepeat: () => void }) {
+function Hud({ s, onPause, onRepeat, api }: { s: GameState; onPause: () => void; onRepeat: () => void; api?: any }) {
   const meta = HEAT_META[s.targetHeat];
   const lang = LANGUAGES.find(l => l.code === s.lang)!;
   const cfg = LEVEL_CONFIG[s.level];
@@ -372,6 +372,10 @@ function Hud({ s, onPause, onRepeat }: { s: GameState; onPause: () => void; onRe
         </button>
         <button onClick={onPause} className="glass rounded-md w-7 h-[32px] pointer-events-auto active:scale-95 transition-transform">
           <span className="font-mono-tech text-[11px] text-white/70">II</span>
+        </button>
+        <button onClick={() => api?.updateSettings({ eyeCare: !api?.settings?.eyeCare })} className="glass rounded-md w-8 h-[32px] pointer-events-auto active:scale-95 transition-transform flex items-center justify-center"
+          style={api?.settings?.eyeCare ? { border: '1px solid #8FB996', background: 'rgba(143,185,150,0.18)', boxShadow: '0 0 10px rgba(143,185,150,0.35)' } : { border: '1px solid rgba(255,255,255,0.14)' }} title={api?.settings?.eyeCare ? 'Gece Modu Pro açık' : 'Göz modu'}>
+          <span className="text-[14px] leading-none" style={{ filter: api?.settings?.eyeCare ? 'drop-shadow(0 0 5px #8FB996)' : undefined }}>👁️</span>
         </button>
       </div>
 
@@ -711,7 +715,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
           style={{ background: s.flash.color, opacity: s.flash.t * 0.14 }} />
       )}
 
-      <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} />
+      <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} api={api} />
       {s.micSlowTimer > 0 && (
         <>
           <div className="absolute inset-0 pointer-events-none z-24" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,255,163,0.08) 0%, transparent 62%)', opacity: 0.7 }} />

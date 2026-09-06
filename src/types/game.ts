@@ -162,6 +162,7 @@ export interface Settings {
   highContrast: boolean;
   reduceMotion: boolean;
   dyslexia: boolean;
+  eyeCare: boolean;
 }
 
 export interface HitCard {

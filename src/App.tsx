@@ -81,10 +81,10 @@ export default function App() {
   };
 
   return (
-    <div className={`fixed inset-0 overflow-hidden ${api.settings.reduceMotion ? 'reduce-motion' : ''} ${api.settings.highContrast ? 'high-contrast' : ''} ${api.settings.dyslexia ? 'dyslexia' : ''}`}
+    <div className={`fixed inset-0 overflow-hidden ${api.settings.reduceMotion ? 'reduce-motion' : ''} ${api.settings.highContrast ? 'high-contrast' : ''} ${api.settings.dyslexia ? 'dyslexia' : ''} ${api.settings.eyeCare ? 'eye-care' : ''}`}
       style={{
         ...a11yStyle,
-        background: api.settings.highContrast ? '#000' : 'radial-gradient(ellipse at 50% 0%, #101f4d 0%, #060d26 55%, #03060f 100%)',
+        background: api.settings.eyeCare ? '#0A0F1E' : api.settings.highContrast ? '#000' : 'radial-gradient(ellipse at 50% 0%, #101f4d 0%, #060d26 55%, #03060f 100%)',
         touchAction: 'none',
       }}>
 
