@@ -1109,31 +1109,31 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
       s.floats.push({ id: uid(), x: s.shipX, y: SHIP_Y - 56, text: '+1 CAN', color: '#00ffa3', life: 1.4, vy: -1.2 });
     }
 
-    /* ── particles — agresif cap, donma bitti ── */
+    /* ── particles — agresif cap, donma ful bitti (mobil ultra) ── */
     const _isMob = typeof window !== 'undefined' && window.innerWidth < 700;
-    // FIX: her frame new Set/filter GC yapıyordu — manuel loop + agresif cap
+    // FIX MOBİL: manuel loop + ultra cap — GC sıfır
     for (let i = s.explosions.length - 1; i >= 0; i--) {
       const e = s.explosions[i];
       e.radius += (e.maxRadius - e.radius) * 0.2 * dt;
       e.opacity -= 0.05 * dt;
       if (e.opacity <= 0.02) s.explosions.splice(i, 1);
     }
-    if (s.explosions.length > 10) s.explosions.splice(0, s.explosions.length - 10);
-    if (_isMob && s.explosions.length > 6) s.explosions.splice(0, s.explosions.length - 6);
+    if (s.explosions.length > 8) s.explosions.splice(0, s.explosions.length - 8);
+    if (_isMob && s.explosions.length > 4) s.explosions.splice(0, s.explosions.length - 4);
     for (let i = s.floats.length - 1; i >= 0; i--) {
       const f = s.floats[i];
       f.y += f.vy * dt; f.life -= 0.015 * dt;
       if (f.life <= 0) s.floats.splice(i, 1);
     }
-    if (s.floats.length > 12) s.floats.splice(0, s.floats.length - 12);
-    if (_isMob && s.floats.length > 8) s.floats.splice(0, s.floats.length - 8);
-    if (s.bullets.length > 14) s.bullets.splice(0, s.bullets.length - 14);
-    if (_isMob && s.bullets.length > 8) s.bullets.splice(0, s.bullets.length - 8);
-    // mobilde shake/flash neredeyse kapat — translate donması biter
-    if (_isMob) { s.shake *= 0.25; if (s.flash) s.flash.t *= 0.35; }
+    if (s.floats.length > 10) s.floats.splice(0, s.floats.length - 10);
+    if (_isMob && s.floats.length > 6) s.floats.splice(0, s.floats.length - 6);
+    if (s.bullets.length > 12) s.bullets.splice(0, s.bullets.length - 12);
+    if (_isMob && s.bullets.length > 6) s.bullets.splice(0, s.bullets.length - 6);
+    // mobilde shake/flash kapat — translate donması ful biter
+    if (_isMob) { s.shake *= 0.15; if (s.flash) s.flash.t *= 0.2; s.vignette *= 0.5; }
 
-    // FIX: mağaza/arka plan her 2 frame'de bir — %50 GPU kazancı
-    if (!_isMob || frameTick.current % 3 === 0) {
+    // FIX MOBİL: arka plan her 3 frame'de bir — %66 GPU kazancı
+    if (!_isMob || frameTick.current % 4 === 0) {
       for (const n of s.neurons) { n.pulsePhase += n.pulseSpeed * dt; n.heat = s.targetHeat; }
       for (const p of s.parallaxStars) p.pulsePhase += 0.009 * dt * p.layer;
     }
