@@ -617,7 +617,8 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
 
           <Plates s={s} hintId={api.hintId} lockedId={api.lockedId} />
 
-          {s.floats.map(f => (
+          {/* FIX: ekranda hiç yazı/pencere belirmesin — floats + waveBanner tamamen kapatıldı */}
+          {false && s.floats.map(f => (
             <div key={f.id} className="absolute pointer-events-none z-20 -translate-x-1/2 whitespace-nowrap"
               style={{
                 left: f.x, top: f.y, opacity: Math.max(0, Math.min(1, f.life)), color: f.color,
@@ -625,7 +626,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
               }}>{f.text}</div>
           ))}
 
-          {s.waveBanner && (
+          {false && s.waveBanner && (
             <div className="absolute inset-x-0 top-[34%] z-20 text-center pointer-events-none"
               style={{ opacity: Math.min(1, s.waveBanner.t * 1.7) }}>
               <div className="font-orbitron text-[30px] font-black tracking-[0.14em]"
@@ -638,8 +639,8 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
         </div>
       </div>
 
-      {/* ══ HIT CARD — the word you just shot, big and unmissable ══ */}
-      {s.hitCard && (
+      {/* ══ HIT CARD — kapatıldı: ekranda hiç pencere belirmesin ══ */}
+      {false && s.hitCard && (
         <div className="absolute inset-x-4 top-[30%] z-30 pointer-events-none flex justify-center"
           style={{ opacity: Math.min(1, s.hitCard.t * 1.5), transform: `scale(${0.94 + Math.min(1, s.hitCard.t) * 0.06})` }}>
           <div className="rounded-2xl px-5 py-3 text-center max-w-full"
@@ -701,7 +702,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
           opacity: 0.30 + Math.sin(s.gameTime * 0.012) * 0.14,
         }} />
       )}
-      {s.danger > 0.6 && (
+      {false && s.danger > 0.6 && (
         <div className="absolute top-[42%] left-1/2 -translate-x-1/2 z-26 pointer-events-none">
           <div className="font-orbitron text-[9px] font-bold tracking-[0.28em]" style={{ color: '#D9827A', textShadow: '0 0 6px rgba(217,130,122,0.28)' }}>
             {s.danger > 0.85 ? '● TEHLİKE ●' : '▲ YAKLAŞIYOR ▲'}
@@ -718,7 +719,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
       )}
 
       <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} api={api} />
-      {s.micSlowTimer > 0 && (
+      {false && s.micSlowTimer > 0 && (
         <>
           <div className="absolute inset-0 pointer-events-none z-24" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,255,163,0.08) 0%, transparent 62%)', opacity: 0.7 }} />
           <div className="absolute top-[56px] left-1/2 -translate-x-1/2 z-30 pointer-events-none">
