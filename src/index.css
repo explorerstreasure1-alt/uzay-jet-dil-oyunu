@@ -96,7 +96,7 @@ button { cursor: pointer; }
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
 }
-/* ── Göz Yormayan Palet — Gece Modu Pro v2 (geliştirilmiş) ── */
+/* ── Göz Yormayan Palet — Gece Modu Pro v4 (asla yormaz) ── */
 .eye-care {
   --bg: #0A0F1E;
   --bg2: #0B1410;
@@ -107,13 +107,25 @@ button { cursor: pointer; }
   --accent3: #4FB3A7;
   --err: #D9827A;
   filter: sepia(0.08) hue-rotate(-4deg) brightness(0.93) contrast(0.94) saturate(0.88);
+  font-variant-ligatures: none;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
+.eye-care * { scrollbar-color: var(--accent2) transparent; }
+.eye-care ::selection { background: rgba(143,185,150,0.28); color: #0A0F1E; }
 .eye-care::before {
   content: '';
   position: fixed; inset: 0;
-  background: radial-gradient(ellipse at 50% 50%, rgba(255,179,71,0.035) 0%, rgba(79,179,167,0.015) 55%, transparent 85%),
-              linear-gradient(180deg, rgba(255,179,71,0.02) 0%, transparent 40%);
+  background: radial-gradient(ellipse at 50% 50%, rgba(255,179,71,0.038) 0%, rgba(79,179,167,0.018) 55%, transparent 85%),
+              linear-gradient(180deg, rgba(255,179,71,0.025) 0%, transparent 42%),
+              repeating-linear-gradient(0deg, rgba(242,232,213,0.015) 0px, transparent 1px, transparent 2px);
   pointer-events: none; z-index: 9999;
+  opacity: 0.9;
+}
+.eye-care::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,0.22) 100%);
+  pointer-events: none; z-index: 9998;
 }
 .eye-care .glass {
   background: rgba(14, 24, 18, 0.82) !important;

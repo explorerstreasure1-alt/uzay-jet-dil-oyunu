@@ -39,6 +39,21 @@ export default function App() {
     setRoot(kind === 'gameOver' ? 'gameOver' : 'levelComplete');
   });
 
+  // FIX v4: gece otomatik göz koruma — 19-07 arası veya sistem dark ise varsayılan açık, asla göz yormasın
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('wi_settings_v1');
+      if (raw && raw.includes('"eyeCare"')) return;
+      const hour = new Date().getHours();
+      const isNight = hour >= 19 || hour < 7;
+      const prefersDark = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
+      if ((isNight || prefersDark) && !api.settings.eyeCare) {
+        api.updateSettings({ eyeCare: true, eyeCareIntensity: 75 } as never);
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const fit = () => {
       const vv = window.visualViewport;
