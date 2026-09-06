@@ -290,7 +290,8 @@ export function applyResult(heat: HeatMap, wordId: string, correct: boolean): He
       phase,
     };
   } else {
-    const intervalDays = prev.seen <= 1 ? 8 * MIN / DAY : 30 * MIN / DAY;
+    // FIX: öğrenmeyi kolaylaştır — yanlışta anında tekrar (2dk/5dk), konsantrasyon bozulmasın
+    const intervalDays = prev.seen <= 1 ? 2 * MIN / DAY : 5 * MIN / DAY;
     next = {
       ...prev,
       hits,
@@ -298,12 +299,12 @@ export function applyResult(heat: HeatMap, wordId: string, correct: boolean): He
       streak: 0,
       seen,
       last: now,
-      ease: clamp(prev.ease - 0.24, 1.3, 3.35),
+      ease: clamp(prev.ease - 0.18, 1.3, 3.35),
       intervalDays,
       due: now + intervalDays * DAY,
       lapses: prev.lapses + 1,
-      stability: clamp(prev.stability * 0.45, 0.08, 365),
-      difficulty: clamp(prev.difficulty + 0.12, 0.05, 0.98),
+      stability: clamp(prev.stability * 0.52, 0.08, 365),
+      difficulty: clamp(prev.difficulty + 0.08, 0.05, 0.98),
       phase: 'relearning',
     };
   }

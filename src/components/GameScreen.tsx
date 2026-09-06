@@ -16,7 +16,7 @@ function Pixels({ rows, color, w }: { rows: string[]; color: string; w: number }
 }
 
 /* ══════════ sprites (SVG) ══════════ */
-function Sprite({ a, t, locked, hint }: { a: Alien; t: number; locked: boolean; hint: boolean }) {
+function Sprite({ a, t, locked, hint, focus }: { a: Alien; t: number; locked: boolean; hint: boolean; focus?: boolean }) {
   const meta = HEAT_META[a.heat];
   const isPhantom = a.variant === 'phantom';
   const isSwift = a.variant === 'swift';
@@ -32,8 +32,10 @@ function Sprite({ a, t, locked, hint }: { a: Alien; t: number; locked: boolean; 
   const h = (w / 11) * 8;
   const hpMax = a.maxHp;
 
+  // FIX: odak modunda dikkat dağılmasın — hedef dışı %40 sönük
+  const focusDim = focus && !hint && !locked ? 0.42 : 1;
   return (
-    <g opacity={a.dead ? 0 : cloak}>
+    <g opacity={a.dead ? 0 : cloak * focusDim}>
       {hint && (
         <>
           <rect x={a.laneX + 1} y={a.y - 16} width={a.laneW - 2} height={h + 46} rx={7}
@@ -76,7 +78,7 @@ function Sprite({ a, t, locked, hint }: { a: Alien; t: number; locked: boolean; 
 }
 
 /* ══════════ word plates — real HTML for crisp, always-legible type ══════════ */
-function Plates({ s, hintId, lockedId }: { s: GameState; hintId: string | null; lockedId: string | null }) {
+function Plates({ s, hintId, lockedId, focus }: { s: GameState; hintId: string | null; lockedId: string | null; focus?: boolean }) {
   return (
     <>
       {s.aliens.map(a => {
@@ -91,12 +93,14 @@ function Plates({ s, hintId, lockedId }: { s: GameState; hintId: string | null; 
         const len = a.word.foreign.length;
         const size = len > 34 ? 10.5 : len > 26 ? 11.5 : len > 18 ? 13 : len > 11 ? 15 : 17;
         const lines = len > 24 ? 3 : len > 12 ? 2 : 1;
+        const focusDim = focus && !isHint && !isLock ? 0.45 : 1;
         return (
           <div key={`p-${a.id}`}
             className="absolute -translate-x-1/2 pointer-events-none flex flex-col items-center justify-center"
             style={{
               left: cx,
               top: a.y + h + (a.isBoss ? 12 : 4),
+              opacity: focusDim,
               width: plateW,
               minHeight: Math.max(24, lines * (size + 3) + 8),
               padding: '4px 5px',
@@ -570,7 +574,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
 
             <line x1="0" y1={FLOOR_Y} x2={VW} y2={FLOOR_Y} stroke="#ff2e63" strokeWidth="1" strokeDasharray="4 7" opacity="0.3" />
 
-            {s.aliens.map(a => <Sprite key={a.id} a={a} t={s.gameTime} locked={a.id === api.lockedId} hint={a.id === api.hintId} />)}
+            {s.aliens.map(a => <Sprite key={a.id} a={a} t={s.gameTime} locked={a.id === api.lockedId} hint={a.id === api.hintId} focus={s.focusTimer > 0} />)}
 
             {s.focusTimer > 0 && [0, 1, 2, 3].map(i => (
               <ellipse key={`focus-${i}`} cx={VW / 2} cy={FLOOR_Y - 150} rx={58 + i * 52 + Math.sin(s.gameTime * 0.006 + i) * 7} ry={112 + i * 34}
@@ -621,7 +625,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
             <Ship x={s.shipX} over={s.overcharged} shield={s.shield} vx={s.shipVx} t={s.gameTime} reduceMotion={api.settings.reduceMotion} />
           </svg>
 
-          <Plates s={s} hintId={api.hintId} lockedId={api.lockedId} />
+          <Plates s={s} hintId={api.hintId} lockedId={api.lockedId} focus={s.focusTimer > 0} />
 
           {/* FIX: ekranda hiç yazı/pencere belirmesin — floats + waveBanner tamamen kapatıldı */}
           {false && s.floats.map(f => (

@@ -18,7 +18,7 @@ const HIT_H = SPRITE_H + PLATE_H + 6;
 const LASER_SPEED = 58;
 const COMBO_TO_OVERCHARGE = 5;
 const OVERCHARGE_MS = 9000;
-const FOCUS_MS = 2600;
+const FOCUS_MS = 4000; // FIX: odak 2.6→4s, konsantrasyon bozulmasın
 const BOSS_EVERY = 5;
 
 let idc = 0;
@@ -823,7 +823,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     // hit-stop: doğru vuruşta 45ms donma (göz yormadan tatmin)
     if (s.hitPause > 0) s.hitPause = Math.max(0, s.hitPause - dt);
     /* ── aliens descend; sway is cosmetic only ── */
-    const focusSlow = s.focusTimer > 0 ? 0.46 : 1;
+    const focusSlow = s.focusTimer > 0 ? 0.34 : 1; // FIX: odak yavaşlatma %46→%34 daha sakin
     const micSlow = s.micSlowTimer > 0 ? 0.28 : 1;
     const slow = Math.min(focusSlow, micSlow);
     const freeze = s.hitPause > 0 ? 0 : 1;
