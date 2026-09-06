@@ -629,7 +629,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
             <div className="absolute inset-x-0 top-[34%] z-20 text-center pointer-events-none"
               style={{ opacity: Math.min(1, s.waveBanner.t * 1.7) }}>
               <div className="font-orbitron text-[30px] font-black tracking-[0.14em]"
-                style={{ color: s.bossWave ? '#ffd166' : meta.core, textShadow: `0 0 22px ${s.bossWave ? '#ffd166' : meta.glow}` }}>
+                style={{ color: s.bossWave ? '#FFB347' : '#F2E8D5', textShadow: `0 0 8px ${s.bossWave ? 'rgba(255,179,71,0.32)' : 'rgba(79,179,167,0.28)'}` }}>
                 {s.waveBanner.text}
               </div>
               {s.waveBanner.sub && <div className="font-mono-tech text-[9px] tracking-[0.3em] text-white/55 mt-1">{s.waveBanner.sub}</div>}
@@ -644,20 +644,20 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
           style={{ opacity: Math.min(1, s.hitCard.t * 1.5), transform: `scale(${0.94 + Math.min(1, s.hitCard.t) * 0.06})` }}>
           <div className="rounded-2xl px-5 py-3 text-center max-w-full"
             style={{
-              background: s.hitCard.ok ? 'rgba(2,26,18,0.94)' : 'rgba(34,3,12,0.94)',
-              border: `1.6px solid ${s.hitCard.ok ? '#00ff9d' : '#ff2e63'}`,
-              boxShadow: `0 0 26px ${s.hitCard.ok ? 'rgba(0,255,157,0.4)' : 'rgba(255,46,99,0.4)'}`,
+              background: s.hitCard.ok ? 'rgba(11,20,16,0.96)' : 'rgba(26,10,12,0.96)',
+              border: `1.2px solid ${s.hitCard.ok ? '#8FB996' : '#D9827A'}`,
+              boxShadow: `0 0 14px ${s.hitCard.ok ? 'rgba(143,185,150,0.22)' : 'rgba(217,130,122,0.20)'}`,
               backdropFilter: 'blur(6px)',
             }}>
             <div className="font-mono-tech text-[8px] tracking-[0.3em] mb-1"
-              style={{ color: s.hitCard.ok ? 'rgba(0,255,157,0.75)' : 'rgba(255,143,168,0.8)' }}>
+              style={{ color: s.hitCard.ok ? '#8FB996' : '#D9827A' }}>
               {s.hitCard.ok ? '✓ DOĞRU' : '✕ YANLIŞ'}
             </div>
             <div className="font-orbitron font-black leading-tight break-words"
               style={{
                 fontSize: s.hitCard.foreign.length > 20 ? 17 : s.hitCard.foreign.length > 12 ? 21 : 26,
-                color: '#ffffff',
-                textShadow: `0 0 14px ${s.hitCard.ok ? '#00ff9d' : '#ff2e63'}`,
+                color: '#E8E8E8',
+                textShadow: `0 0 8px ${s.hitCard.ok ? 'rgba(143,185,150,0.35)' : 'rgba(217,130,122,0.30)'}`,
               }}>
               {s.hitCard.foreign}
             </div>
@@ -687,23 +687,23 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
         </div>
       )}
 
-      {/* ── tehlike vignette: göz yormayacak kadar hafif ── */}
+      {/* ── tehlike vignette: çok daha hafif — D9827A mat mercan ── */}
       {s.danger > 0.2 && (
         <div className="absolute inset-0 pointer-events-none z-24"
           style={{
-            background: `radial-gradient(ellipse at center, transparent 56%, rgba(255,46,99,${0.09 + s.danger * 0.14}) 100%)`,
-            opacity: 0.35 + Math.sin(s.gameTime * 0.014) * 0.18 * s.danger,
+            background: `radial-gradient(ellipse at center, transparent 62%, rgba(217,130,122,${0.05 + s.danger * 0.07}) 100%)`,
+            opacity: 0.22 + Math.sin(s.gameTime * 0.014) * 0.10 * s.danger,
           }} />
       )}
       {s.frenzy && (
         <div className="absolute inset-0 pointer-events-none z-24" style={{
-          background: 'linear-gradient(180deg, rgba(255,46,99,0.08) 0%, transparent 45%, rgba(0,255,208,0.06) 100%)',
-          opacity: 0.5 + Math.sin(s.gameTime * 0.012) * 0.25,
+          background: 'linear-gradient(180deg, rgba(217,130,122,0.045) 0%, transparent 45%, rgba(79,179,167,0.035) 100%)',
+          opacity: 0.30 + Math.sin(s.gameTime * 0.012) * 0.14,
         }} />
       )}
       {s.danger > 0.6 && (
         <div className="absolute top-[42%] left-1/2 -translate-x-1/2 z-26 pointer-events-none">
-          <div className="font-orbitron text-[10px] font-black tracking-[0.32em] animate-pulse" style={{ color: '#ff2e63', textShadow: '0 0 14px #ff2e63' }}>
+          <div className="font-orbitron text-[9px] font-bold tracking-[0.28em]" style={{ color: '#D9827A', textShadow: '0 0 6px rgba(217,130,122,0.28)' }}>
             {s.danger > 0.85 ? '● TEHLİKE ●' : '▲ YAKLAŞIYOR ▲'}
           </div>
         </div>
@@ -714,7 +714,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
       )}
       {s.flash && (
         <div className="absolute inset-0 pointer-events-none z-25 mix-blend-screen"
-          style={{ background: s.flash.color, opacity: s.flash.t * 0.14 }} />
+          style={{ background: s.flash.color, opacity: s.flash.t * 0.07 }} />
       )}
 
       <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} api={api} />
