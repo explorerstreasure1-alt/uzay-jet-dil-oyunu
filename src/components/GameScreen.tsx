@@ -594,10 +594,11 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
             ))}
 
 
+            {/* FIX: göz yormayan dalga — ince, sönük, mat */}
             {s.explosions.map(e => (
-              <g key={e.id} opacity={e.opacity}>
-                <circle cx={e.x} cy={e.y} r={e.radius} fill="none" stroke={e.color} strokeWidth="2" />
-                <circle cx={e.x} cy={e.y} r={e.radius * 0.5} fill={e.color} opacity="0.3" />
+              <g key={e.id} opacity={Math.min(0.65, e.opacity * 0.75)}>
+                <circle cx={e.x} cy={e.y} r={e.radius} fill="none" stroke={e.color} strokeWidth="1.2" opacity="0.85" />
+                <circle cx={e.x} cy={e.y} r={e.radius * 0.5} fill={e.color} opacity="0.14" />
               </g>
             ))}
 

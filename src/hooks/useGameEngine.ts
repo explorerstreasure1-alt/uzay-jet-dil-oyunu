@@ -886,8 +886,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
         a.hp -= b.power;
 
         if (a.hp > 0) {
-          s.explosions.push({ id: uid(), x: b.x, y: b.y, radius: 4, maxRadius: 26, opacity: 1, color: '#ffffff', isChain: false });
-          s.floats.push({ id: uid(), x: a.drawX, y: a.y - 6, text: `${a.hp} / ${a.maxHp}`, color: '#ffd166', life: 0.8, vy: -0.9 });
+          s.explosions.push({ id: uid(), x: b.x, y: b.y, radius: 3, maxRadius: 18, opacity: 0.52, color: '#F2E8D5', isChain: false });
+          s.floats.push({ id: uid(), x: a.drawX, y: a.y - 6, text: `${a.hp} / ${a.maxHp}`, color: '#FFB347', life: 0.7, vy: -0.7 });
           audio.tick(); haptic('tap', hap);
           break;
         }
@@ -945,16 +945,16 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             }
           }
 
-          // Adrenalin: combo ve frenzy ile patlama büyür
-          const frenzyBonus = s.frenzy ? 1.55 : 1;
-          const comboScale = 1 + Math.min(0.6, s.combo * 0.07);
-          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 6, maxRadius: (a.isBoss ? 120 : 66) * comboScale * frenzyBonus, opacity: 1, color: meta.core, isChain: false });
+          // FIX: göz yormayan patlama — %40 küçük, mat, sönük
+          const frenzyBonus = s.frenzy ? 1.25 : 1;
+          const comboScale = 1 + Math.min(0.35, s.combo * 0.05);
+          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 5, maxRadius: (a.isBoss ? 78 : 42) * comboScale * frenzyBonus, opacity: 0.62, color: meta.core, isChain: false });
           if (s.combo >= 3 || s.frenzy) {
-            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 2, maxRadius: 38 * comboScale, opacity: 0.9, color: '#ffffff', isChain: true });
+            s.explosions.push({ id: uid(), x: cx, y: cy, radius: 2, maxRadius: 26 * comboScale, opacity: 0.55, color: '#E8E8E8', isChain: true });
           }
-          s.floats.push({ id: uid(), x: cx, y: a.y - 4, text: `+${gained}`, color: meta.core, life: 1.15, vy: -1.5 });
-          s.flash = { color: meta.core, t: 0.22 + (s.frenzy ? 0.08 : 0) };
-          s.shake = Math.max(s.shake, s.frenzy ? 1.4 : s.combo >= 5 ? 0.9 : 0);
+          s.floats.push({ id: uid(), x: cx, y: a.y - 4, text: `+${gained}`, color: meta.core, life: 1.0, vy: -1.1 });
+          s.flash = { color: meta.core, t: 0.12 + (s.frenzy ? 0.04 : 0) };
+          s.shake = Math.max(s.shake, s.frenzy ? 0.7 : s.combo >= 5 ? 0.45 : 0);
           s.hitPause = 1.8;
           s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: true, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 1 };
 
@@ -995,7 +995,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
               .slice(0, 2);
             for (const o of near) {
               removed.add(o.id);
-              s.explosions.push({ id: uid(), x: o.drawX, y: o.y + SPRITE_H / 2, radius: 6, maxRadius: 58, opacity: 1, color: '#c77dff', isChain: true });
+              s.explosions.push({ id: uid(), x: o.drawX, y: o.y + SPRITE_H / 2, radius: 5, maxRadius: 36, opacity: 0.55, color: '#8FB996', isChain: true });
               s.score += Math.round(45 * diff.score);
             }
             if (near.length) audio.explode(false);
@@ -1008,18 +1008,18 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
           else {
             // seride can gitmesin — sadece uyar, öğrenme modu
             if (seriesFilterRef.current) {
-              s.floats.push({ id: uid(), x: cx, y: a.y - 12, text: `SERİDE CAN KORUNDU`, color: '#8be9ff', life: 1.0, vy: -0.8 });
+              s.floats.push({ id: uid(), x: cx, y: a.y - 12, text: `SERİDE CAN KORUNDU`, color: '#4FB3A7', life: 0.9, vy: -0.6 });
             } else {
               s.lives -= 1;
             }
           }
-          s.shake = 3.2;
-          s.flash = { color: '#ff2e63', t: 0.28 };
+          s.shake = 1.1;
+          s.flash = { color: '#D9827A', t: 0.14 };
           heatRef.current = applyResult(heatRef.current, a.word.id, false);
           statsRef.current = { ...statsRef.current, totalWrong: statsRef.current.totalWrong + 1 };
           flushSoon();
 
-          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 6, maxRadius: 56, opacity: 1, color: '#ff2e63', isChain: false });
+          s.explosions.push({ id: uid(), x: cx, y: cy, radius: 5, maxRadius: 36, opacity: 0.52, color: '#D9827A', isChain: false });
           s.hitCard = { foreign: a.word.foreign, native: a.word.native, ok: false, t: 1, seen: (heatRef.current[a.word.id]?.seen ?? 0), category: a.word.category, sessionSeen: sessionCountsRef.current.get(a.word.id) ?? 0 };
           s.floats.push({ id: uid(), x: cx, y: a.y + 18, text: `💡 ${a.word.foreign} → ${a.word.native}`, color: '#ffd166', life: 1.9, vy: -0.32 });
           if (absorbed) {
