@@ -205,6 +205,8 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   /** Seri filtresi: sadece bu 50 kelimelik serinin id'leri */
   const seriesFilterRef = useRef<Set<string> | null>(null);
   const seriesMetaRef = useRef<{ lang: LangCode; level: CEFRLevel; idx: number } | null>(null);
+  /** Seri içi öncelikli kelimeler — yıldızlılar çok sık çıksın */
+  const priorityRef = useRef<Set<string>>(new Set());
   const clozeModeRef = useRef(false);
   /** Koşu boyunca her hedefin kaç kez sorulduğu — en fazla 2 tekrar, sonra taze kelimeye geç. */
   const sessionCountsRef = useRef<Map<string, number>>(new Map());
@@ -304,6 +306,20 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     if (isRepeat && !wrongFilterRef.current) {
       const need = available.filter(w => heatOf(heatRef.current[w.id]) !== 'crimson');
       if (need.length >= 2) available = need;
+    }
+
+    // FIX: seri içi yıldızlı kelimeler çok sık çıksın — %72 öncelik
+    if (seriesFilterRef.current && priorityRef.current.size > 0) {
+      const prioAvail = available.filter(w => priorityRef.current.has(w.id));
+      if (prioAvail.length) {
+        if (Math.random() < 0.72 || prioAvail.length >= available.length * 0.5) {
+          available = prioAvail;
+        } else {
+          // karıştır ama yıldızlılar 3x ağırlık
+          const weighted = [...available, ...prioAvail, ...prioAvail];
+          available = weighted;
+        }
+      }
     }
 
     let target: VocabWord;
@@ -508,6 +524,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const words = getSeriesWords(lang, level, idx, customRef.current);
     seriesFilterRef.current = new Set(words.map(w => w.id));
     seriesMetaRef.current = { lang, level, idx };
+    try { priorityRef.current = store.loadPriority(lang, level, idx); } catch { priorityRef.current = new Set(); }
     wrongFilterRef.current = null;
     clozeModeRef.current = false;
     statsRef.current = { ...statsRef.current, sessionsPlayed: statsRef.current.sessionsPlayed + 1 };

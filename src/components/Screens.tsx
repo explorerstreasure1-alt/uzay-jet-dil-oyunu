@@ -506,6 +506,7 @@ function SeriesCard({ lang, level, idx, done, preview, count, onStart, onToggle 
 /* ══════════════════ SERIES (50'şer) ══════════════════ */
 export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api: EngineApi; lang: LangCode; level: CEFRLevel; onBack: () => void; onStartSeries: (idx: number) => void }) {
   const [, force] = useState(0);
+  const [detail, setDetail] = useState<number | null>(null);
   const total = getSeriesCount(lang, level, api.customWords);
   const allTicks = store.loadSeriesTicks();
   const toggle = (idx: number, done: boolean) => {
@@ -513,20 +514,62 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
     force(v => v + 1);
     audio.ui();
   };
+  if (detail !== null) {
+    const words = getSeriesWords(lang, level, detail, api.customWords);
+    const prio = store.loadPriority(lang, level, detail);
+    const starCount = prio.size;
+    return (
+      <Shell>
+        <BackBtn onClick={() => setDetail(null)} />
+        <div className="font-orbitron text-[14px] font-black tracking-[0.12em] text-white/90 mb-1">SERİ {detail+1} · 50 KELİME {starCount ? `· ⭐ ${starCount} öncelikli` : ''}</div>
+        <div className="font-mono-tech text-[7px] text-white/35 mb-2">Yıldızla işaretle — o kelimeler %72 sıklıkla çıkar. Tekrar tıkla kaldır.</div>
+        <div className="glass rounded-xl p-2 mb-3 max-h-[52vh] overflow-y-auto no-bar">
+          {words.map(w => {
+            const isStar = prio.has(w.id);
+            return (
+              <button key={w.id} onClick={() => { store.togglePriority(lang, level, detail, w.id); force(v=>v+1); audio.ui(); }}
+                className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg active:scale-[0.98] transition-all text-left"
+                style={{ background: isStar ? 'rgba(255,179,71,0.12)' : 'transparent', border: `1px solid ${isStar ? '#FFB347' : 'transparent'}` }}>
+                <span className="text-[13px] w-5 text-center" style={{ color: isStar ? '#FFB347' : 'rgba(255,255,255,0.22)', filter: isStar ? 'drop-shadow(0 0 5px #FFB347)' : undefined }}>{isStar ? '★' : '☆'}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="font-mono-tech text-[11px] font-bold truncate block" style={{ color: isStar ? '#F2E8D5' : '#E8E8E8' }}>{w.foreign}</span>
+                  <span className="font-mono-tech text-[9px] truncate block" style={{ color: isStar ? '#FFB347' : 'rgba(255,255,255,0.45)' }}>{w.native}</span>
+                </span>
+                <span className="font-mono-tech text-[6px] px-1.5 py-0.5 rounded" style={{ background: isStar ? '#FFB347' : 'rgba(255,255,255,0.08)', color: isStar ? '#0A0F1E' : 'rgba(255,255,255,0.35)' }}>{isStar ? 'SIK' : '—'}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => setDetail(null)} className="flex-1 glass rounded-xl py-3 active:scale-95 text-center"><span className="font-mono-tech text-[10px] tracking-[0.14em] text-white/60">◀ GERİ</span></button>
+          <button onClick={() => onStartSeries(detail)} className="flex-[1.6] rounded-xl py-3 active:scale-95 text-center" style={{ background: 'linear-gradient(135deg, rgba(255,179,71,0.32), rgba(255,140,0,0.18))', border: '1px solid #FFB347', boxShadow: '0 0 16px rgba(255,179,71,0.32)' }}><span className="font-orbitron text-[12px] font-black tracking-[0.14em] text-[#F2E8D5]">BAŞLAT {starCount ? `· ⭐${starCount}` : ''} ▶</span></button>
+        </div>
+      </Shell>
+    );
+  }
   return (
     <Shell>
       <BackBtn onClick={onBack} />
       <div className="font-orbitron text-[18px] font-black tracking-[0.12em] text-white/90 mb-1">{LANGUAGES.find(l=>l.code===lang)?.flag} {level} — 50'LİK SERİLER</div>
-      <div className="font-mono-tech text-[8px] text-white/35 mb-3">{total} seri × 50 kelime = {getWords(lang, level, 'all', api.customWords).length} kelime · Tikle ve sıradakine geç — 90 seri = 4500 kelime/dil</div>
+      <div className="font-mono-tech text-[8px] text-white/35 mb-3">{total} seri × 50 kelime = {getWords(lang, level, 'all', api.customWords).length} kelime · Kartın yıldızına dokun = detay, karta dokun = başlat</div>
       <div className="grid grid-cols-2 gap-2 pb-4">
         {Array.from({ length: total }, (_, i) => {
           const done = !!allTicks[`${lang}:${level}:${i}`];
           const words = getSeriesWords(lang, level, i, api.customWords);
           const preview = words.slice(0,3).map(w=>w.foreign).join(', ');
-          return <SeriesCard key={i} lang={lang} level={level} idx={i} done={done} preview={preview} count={words.length} onStart={onStartSeries} onToggle={toggle} />;
+          const prio = store.loadPriority(lang, level, i);
+          return (
+            <div key={i} className="relative">
+              <SeriesCard lang={lang} level={level} idx={i} done={done} preview={preview} count={words.length} onStart={() => setDetail(i)} onToggle={toggle} />
+              <button onClick={(e) => { e.stopPropagation(); setDetail(i); }} className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center active:scale-90" style={{ background: prio.size ? 'rgba(255,179,71,0.22)' : 'rgba(255,255,255,0.06)', border: `1px solid ${prio.size ? '#FFB347' : 'rgba(255,255,255,0.12)'}` }}>
+                <span className="text-[11px]" style={{ color: prio.size ? '#FFB347' : 'rgba(255,255,255,0.45)' }}>{prio.size ? '★' : '☆'}</span>
+              </button>
+              {prio.size > 0 && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: '#FFB347', color: '#0A0F1E', fontSize: 8, fontWeight: 900 }}>{prio.size}</div>}
+            </div>
+          );
         })}
       </div>
-      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Tıkla = başlat · Basılı tut (0.6s) = tik ekle/kaldır — otomatik 50/50 de tiklenir.</div>
+      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Karta tıkla = detay/yıldızla · Yıldız = 72% sık çıkar · Basılı tut = tik</div>
     </Shell>
   );
 }

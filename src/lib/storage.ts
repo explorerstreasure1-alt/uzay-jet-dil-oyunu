@@ -101,6 +101,25 @@ export const store = {
     for (const k of Object.keys(ticks)) if (k.startsWith(prefix)) delete ticks[k];
     write(K.series, ticks);
   },
+  // ── seri içi öncelikli kelimeler — yıldızla işaretle, çok sık çıksın ──
+  loadPriority: (lang: LangCode, level: CEFRLevel, idx: number): Set<string> => {
+    const key = `wi_priority_${lang}:${level}:${idx}`;
+    const arr = read<string[]>(key, []);
+    return new Set(arr);
+  },
+  togglePriority: (lang: LangCode, level: CEFRLevel, idx: number, wordId: string) => {
+    const key = `wi_priority_${lang}:${level}:${idx}`;
+    const arr = read<string[]>(key, []);
+    const set = new Set(arr);
+    if (set.has(wordId)) set.delete(wordId); else set.add(wordId);
+    write(key, [...set]);
+    return set;
+  },
+  isPriority: (lang: LangCode, level: CEFRLevel, idx: number, wordId: string) => {
+    const key = `wi_priority_${lang}:${level}:${idx}`;
+    const arr = read<string[]>(key, []);
+    return arr.includes(wordId);
+  },
 
   loadSettings: (): Settings => {
     const raw = read<Partial<Settings>>(K.settings, {});
