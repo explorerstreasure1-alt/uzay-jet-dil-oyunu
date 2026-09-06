@@ -398,6 +398,10 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const entries = shuffled.map(w => ({ w, heat: heatOf(heatRef.current[w.id]) }));
     const bossIndex = isBoss ? entries.findIndex(e => e.w.id === target.id) : -1;
     let aliens = layoutWave(entries, s.level, bossIndex, target.id, diff.speed, wave);
+    // FIX: serilerde %32 hız + donma önleyici — 10'lu seri hızlı ve akıcı
+    if (seriesFilterRef.current) {
+      for (const a of aliens) a.vy *= 1.32;
+    }
     if (isFrenzy) {
       for (const a of aliens) {
         if (!a.isBoss) { a.variant = 'swift'; a.vy *= 1.38; a.sway *= 1.45; }
