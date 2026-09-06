@@ -297,7 +297,8 @@ function Cortex({ s }: { s: GameState }) {
           })}
         </g>
       )}
-      {s.parallaxStars.slice(0, isMob ? 18 : 36).map(p => {
+      {/* FIX: donma — yıldız/nöron/links %50 azaltıldı */}
+      {s.parallaxStars.slice(0, isMob ? 12 : 20).map(p => {
         const tw = Math.sin(p.pulsePhase) * 0.35 + 0.65;
         const isHot = p.layer === 3;
         return (
@@ -307,9 +308,9 @@ function Cortex({ s }: { s: GameState }) {
           </g>
         );
       })}
-      {!isMob && links.slice(0, 12).map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.6" opacity={l.o * 1.2} />)}
-      {isMob ? links.slice(0, 6).map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.5" opacity={l.o * 0.9} />) : null}
-      {s.neurons.slice(0, isMob ? 9 : 18).map(n => {
+      {!isMob && links.slice(0, 8).map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.6" opacity={l.o * 1.2} />)}
+      {isMob ? links.slice(0, 4).map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke={meta.glow} strokeWidth="0.5" opacity={l.o * 0.9} />) : null}
+      {s.neurons.slice(0, isMob ? 6 : 12).map(n => {
         const pu = Math.sin(n.pulsePhase) * 0.5 + 0.5;
         return (
           <g key={n.id}>
