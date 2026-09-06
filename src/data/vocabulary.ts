@@ -69,11 +69,11 @@ export const LEVEL_CONFIG: Record<CEFRLevel, {
   label: string; short: string; color: string;
   lanes: number; speed: number; wavesToClear: number;
 }> = {
-  A1: { label: 'A1 — Başlangıç', short: 'A1', color: '#00d4ff', lanes: 3, speed: 0.88, wavesToClear: 40 },
-  A2: { label: 'A2 — Temel',     short: 'A2', color: '#00ffa3', lanes: 3, speed: 1.08, wavesToClear: 50 },
-  B1: { label: 'B1 — Orta',      short: 'B1', color: '#ffb300', lanes: 4, speed: 1.34, wavesToClear: 60 },
-  B2: { label: 'B2 — Üst Orta',  short: 'B2', color: '#ff6b1a', lanes: 4, speed: 1.62, wavesToClear: 70 },
-  C1: { label: 'C1 — İleri',     short: 'C1', color: '#ff2e63', lanes: 5, speed: 1.95, wavesToClear: 80 },
+  A1: { label: 'A1 — Başlangıç', short: 'A1', color: '#00d4ff', lanes: 3, speed: 1.32, wavesToClear: 40 },
+  A2: { label: 'A2 — Temel',     short: 'A2', color: '#00ffa3', lanes: 3, speed: 1.62, wavesToClear: 50 },
+  B1: { label: 'B1 — Orta',      short: 'B1', color: '#ffb300', lanes: 4, speed: 1.96, wavesToClear: 60 },
+  B2: { label: 'B2 — Üst Orta',  short: 'B2', color: '#ff6b1a', lanes: 4, speed: 2.38, wavesToClear: 70 },
+  C1: { label: 'C1 — İleri',     short: 'C1', color: '#ff2e63', lanes: 5, speed: 2.88, wavesToClear: 80 },
 };
 
 export const HEAT_META: Record<HeatLevel, {

@@ -97,7 +97,7 @@ function layoutWave(
   const n = entries.length;
   const laneW = VW / n;
   const ramp = Math.min(MAX_RAMP, 1 + (wave - 1) * WAVE_SPEED_RAMP);
-  const baseVy = cfg.speed * speedMul * ramp * 0.85;
+  const baseVy = cfg.speed * speedMul * ramp * 1.05;
   return entries.map((e, i) => {
     const laneX = laneW * i;
     const stagger = (i % 2) * 74;
