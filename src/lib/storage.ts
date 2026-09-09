@@ -83,16 +83,42 @@ export const store = {
     if (legacy && !out[legacy.lang]) out[legacy.lang] = legacy;
     return out;
   },
-  loadSeriesTicks: (): Record<string, boolean> => read<Record<string, boolean>>(K.series, {}),
-  isSeriesTicked: (lang: LangCode, level: CEFRLevel, idx: number) => {
-    const ticks = read<Record<string, boolean>>(K.series, {});
-    return !!ticks[`${lang}:${level}:${idx}`];
+  loadSeriesTicks: (): Record<string, number> => {
+    const raw = read<Record<string, number | boolean>>(K.series, {});
+    // geriye uyumluluk: eski boolean true -> 1 (yeşil tik)
+    const out: Record<string, number> = {};
+    for (const [k, v] of Object.entries(raw)) out[k] = v === true ? 1 : (typeof v === 'number' ? v : 0);
+    return out;
   },
-  setSeriesTick: (lang: LangCode, level: CEFRLevel, idx: number, done: boolean) => {
-    const ticks = read<Record<string, boolean>>(K.series, {});
+  /** 0=işaretsiz, 1=yeşil tik, 2=kırmızı glow */
+  getSeriesMark: (lang: LangCode, level: CEFRLevel, idx: number): 0 | 1 | 2 => {
+    const ticks = read<Record<string, number | boolean>>(K.series, {});
+    const v = ticks[`${lang}:${level}:${idx}`];
+    if (v === true || v === 1) return 1;
+    if (v === 2) return 2;
+    return 0;
+  },
+  isSeriesTicked: (lang: LangCode, level: CEFRLevel, idx: number) => {
+    const ticks = read<Record<string, number | boolean>>(K.series, {});
+    const v = ticks[`${lang}:${level}:${idx}`];
+    return v === true || v === 1 || v === 2;
+  },
+  setSeriesTick: (lang: LangCode, level: CEFRLevel, idx: number, done: boolean | number) => {
+    const ticks = read<Record<string, number>>(K.series, {});
     const key = `${lang}:${level}:${idx}`;
-    if (done) ticks[key] = true; else delete ticks[key];
+    const mark = typeof done === 'number' ? done : (done ? 1 : 0);
+    if (mark > 0) ticks[key] = mark; else delete ticks[key];
     write(K.series, ticks);
+  },
+  /** Basılı-tut döngüsü: 0 -> 1 (yeşil) -> 2 (kırmızı glow) -> 0 (temizle) */
+  cycleSeriesMark: (lang: LangCode, level: CEFRLevel, idx: number): 0 | 1 | 2 => {
+    const ticks = read<Record<string, number | boolean>>(K.series, {});
+    const key = `${lang}:${level}:${idx}`;
+    const cur = ticks[key] === true || ticks[key] === 1 ? 1 : ticks[key] === 2 ? 2 : 0;
+    const next = ((cur + 1) % 3) as 0 | 1 | 2;
+    if (next === 0) delete ticks[key]; else (ticks as Record<string, number>)[key] = next;
+    write(K.series, ticks);
+    return next;
   },
   clearSeriesTicks: (lang?: LangCode, level?: CEFRLevel) => {
     if (!lang) { try { localStorage.removeItem(K.series); } catch {} return; }

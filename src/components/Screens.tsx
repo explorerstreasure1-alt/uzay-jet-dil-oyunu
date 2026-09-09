@@ -471,7 +471,7 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries 
   );
 }
 
-function SeriesCard({ lang, level, idx, done, preview, count, onStart, onToggle }: { lang: LangCode; level: CEFRLevel; idx: number; done: boolean; preview: string; count: number; onStart: (i:number)=>void; onToggle: (i:number, done:boolean)=>void }) {
+function SeriesCard({ lang, level, idx, mark, preview, count, onStart, onToggle }: { lang: LangCode; level: CEFRLevel; idx: number; mark: 0 | 1 | 2; preview: string; count: number; onStart: (i:number)=>void; onToggle: (i:number)=>void }) {
   const holdRef = React.useRef<number | null>(null);
   const longRef = React.useRef(false);
   const down = (e: React.PointerEvent) => {
@@ -480,7 +480,7 @@ function SeriesCard({ lang, level, idx, done, preview, count, onStart, onToggle 
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
     holdRef.current = window.setTimeout(() => {
       longRef.current = true;
-      onToggle(idx, done);
+      onToggle(idx);
       try { navigator.vibrate?.(40); } catch {}
     }, 620);
   };
@@ -491,15 +491,21 @@ function SeriesCard({ lang, level, idx, done, preview, count, onStart, onToggle 
     onStart(idx);
   };
   const cancel = () => { if (holdRef.current) { window.clearTimeout(holdRef.current); holdRef.current = null; } };
+  const styleFor = mark === 2
+    ? { background: 'linear-gradient(135deg, rgba(255,46,99,0.22), rgba(180,0,50,0.12))', border: '1px solid #ff2e63', boxShadow: '0 0 14px rgba(255,46,99,0.55), inset 0 1px 0 rgba(255,255,255,0.14)' }
+    : mark === 1
+      ? { background: 'linear-gradient(135deg, rgba(0,255,163,0.18), rgba(0,180,120,0.10))', border: '1px solid #00ffa3', boxShadow: '0 0 10px rgba(0,255,163,0.25)' }
+      : { background: 'rgba(255,255,255,0.045)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: 'none' };
+  const accent = mark === 2 ? '#ff2e63' : mark === 1 ? '#00ffa3' : '#8be9ff';
   return (
     <div onPointerDown={down} onPointerUp={up} onPointerCancel={cancel} onPointerLeave={cancel}
-      className="rounded-xl px-3 py-3 text-left select-none touch-manipulation active:scale-[0.98] transition-all" style={{ background: done ? 'linear-gradient(135deg, rgba(0,255,163,0.18), rgba(0,180,120,0.10))' : 'rgba(255,255,255,0.045)', border: `1px solid ${done ? '#00ffa3' : 'rgba(255,255,255,0.12)'}`, boxShadow: done ? '0 0 10px rgba(0,255,163,0.25)' : 'none' }}>
+      className="rounded-xl px-3 py-3 text-left select-none touch-manipulation active:scale-[0.98] transition-all" style={styleFor}>
       <div className="flex items-center justify-between mb-1 pointer-events-none">
-        <span className="font-orbitron text-[12px] font-black" style={{ color: done ? '#00ffa3' : '#8be9ff' }}>SERİ {idx+1}</span>
-        <span className="font-mono-tech text-[10px]" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.25)' }}>{done ? '✓' : `${count}`}</span>
+        <span className="font-orbitron text-[12px] font-black" style={{ color: accent, textShadow: mark ? `0 0 8px ${accent}` : undefined }}>SERİ {idx+1}</span>
+        <span className="font-mono-tech text-[10px]" style={{ color: mark ? accent : 'rgba(255,255,255,0.25)' }}>{mark === 2 ? '!' : mark === 1 ? '✓' : `${count}`}</span>
       </div>
       <div className="font-mono-tech text-[7px] text-white/35 truncate pointer-events-none">{preview}</div>
-      <div className="font-mono-tech text-[6px] mt-1 pointer-events-none" style={{ color: done ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{done ? '✓ ÖĞRENİLDİ — basılı tut kaldır' : '10 kelime — basılı tut tikle'}</div>
+      <div className="font-mono-tech text-[6px] mt-1 pointer-events-none" style={{ color: mark === 2 ? '#ff2e63' : mark === 1 ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{mark === 2 ? '! KRİTİK — basılı tut temizle' : mark === 1 ? '✓ İŞARETLİ — basılı tut kırmızı yap' : '10 kelime — basılı tut işaretle'}</div>
     </div>
   );
 }
@@ -509,8 +515,8 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
   const [detail, setDetail] = useState<number | null>(null);
   const total = getSeriesCount(lang, level, api.customWords);
   const allTicks = store.loadSeriesTicks();
-  const toggle = (idx: number, done: boolean) => {
-    store.setSeriesTick(lang, level, idx, !done);
+  const toggle = (idx: number) => {
+    store.cycleSeriesMark(lang, level, idx);
     force(v => v + 1);
     audio.ui();
   };
@@ -554,13 +560,14 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
       <div className="font-mono-tech text-[8px] text-white/35 mb-3">{total} seri × 10 kelime = {getWords(lang, level, 'all', api.customWords).length} kelime · Kartın yıldızına dokun = detay, karta dokun = başlat</div>
       <div className="grid grid-cols-2 gap-2 pb-4">
         {Array.from({ length: total }, (_, i) => {
-          const done = !!allTicks[`${lang}:${level}:${i}`];
+          const v = allTicks[`${lang}:${level}:${i}`] ?? 0;
+          const mark: 0 | 1 | 2 = v === 2 ? 2 : v ? 1 : 0;
           const words = getSeriesWords(lang, level, i, api.customWords);
           const preview = words.slice(0,3).map(w=>w.foreign).join(', ');
           const prio = store.loadPriority(lang, level, i);
           return (
             <div key={i} className="relative">
-              <SeriesCard lang={lang} level={level} idx={i} done={done} preview={preview} count={words.length} onStart={() => setDetail(i)} onToggle={toggle} />
+              <SeriesCard lang={lang} level={level} idx={i} mark={mark} preview={preview} count={words.length} onStart={() => setDetail(i)} onToggle={toggle} />
               <button onClick={(e) => { e.stopPropagation(); setDetail(i); }} className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center active:scale-90" style={{ background: prio.size ? 'rgba(255,179,71,0.22)' : 'rgba(255,255,255,0.06)', border: `1px solid ${prio.size ? '#FFB347' : 'rgba(255,255,255,0.12)'}` }}>
                 <span className="text-[11px]" style={{ color: prio.size ? '#FFB347' : 'rgba(255,255,255,0.45)' }}>{prio.size ? '★' : '☆'}</span>
               </button>
@@ -569,7 +576,7 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
           );
         })}
       </div>
-      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Karta tıkla = detay/yıldızla · Yıldız = 72% sık çıkar · Basılı tut = tik</div>
+      <div className="font-mono-tech text-[7px] text-white/25 text-center pb-2">Karta tıkla = detay · Basılı tut 1× yeşil tik · 2× kırmızı glow · 3× temizle</div>
     </Shell>
   );
 }
