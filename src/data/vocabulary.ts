@@ -108,12 +108,17 @@ export function countWords(lang: LangCode, extra: VocabWord[] = []) {
 export function categoryCount(lang: LangCode, level: CEFRLevel, cat: CategoryId, extra: VocabWord[] = []) {
   return getWords(lang, level, cat, extra).length;
 }
+/** Seri boyu dile göre: İngilizce 50'lik, diğer diller 30'luk */
+export function getSeriesSize(lang: LangCode): number {
+  return lang === 'en' ? 50 : 30;
+}
 export function getSeriesCount(lang: LangCode, level: CEFRLevel, extra: VocabWord[] = []): number {
-  return Math.max(1, Math.ceil(getWords(lang, level, 'all', extra).length / 10));
+  return Math.max(1, Math.ceil(getWords(lang, level, 'all', extra).length / getSeriesSize(lang)));
 }
 export function getSeriesWords(lang: LangCode, level: CEFRLevel, idx: number, extra: VocabWord[] = []): VocabWord[] {
   const all = getWords(lang, level, 'all', extra);
-  return all.slice(idx * 10, idx * 10 + 10);
+  const size = getSeriesSize(lang);
+  return all.slice(idx * size, idx * size + size);
 }
 export function isSeriesCompleted(lang: LangCode, level: CEFRLevel, idx: number, heat: import('../types/game').HeatMap, extra: VocabWord[] = []): boolean {
   const words = getSeriesWords(lang, level, idx, extra);

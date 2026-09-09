@@ -202,7 +202,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   /** Yanlış defteri filtresi: sadece bu id'ler havuzda kalır */
   const wrongFilterRef = useRef<Set<string> | null>(null);
-  /** Seri filtresi: sadece bu 10 kelimelik serinin id'leri */
+  /** Seri filtresi: sadece bu serinin id'leri (EN 50'lik, diğer 30'luk) */
   const seriesFilterRef = useRef<Set<string> | null>(null);
   const seriesMetaRef = useRef<{ lang: LangCode; level: CEFRLevel; idx: number } | null>(null);
   /** Seri içi öncelikli kelimeler — yıldızlılar çok sık çıksın */
@@ -255,7 +255,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
   const spawnWave = useCallback((wave: number, banner?: string, sub?: string) => {
     const s = ref.current;
     let pool = getWords(s.lang, s.level, s.category, customRef.current);
-    // seri filtresi (10'luk bölüm) öncelikli
+    // seri filtresi (seçili bölüm) öncelikli
     if (seriesFilterRef.current) {
       const f = pool.filter(w => seriesFilterRef.current!.has(w.id));
       if (f.length >= 2) pool = f;
@@ -398,7 +398,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     const entries = shuffled.map(w => ({ w, heat: heatOf(heatRef.current[w.id]) }));
     const bossIndex = isBoss ? entries.findIndex(e => e.w.id === target.id) : -1;
     let aliens = layoutWave(entries, s.level, bossIndex, target.id, diff.speed, wave);
-    // FIX: serilerde %32 hız + donma önleyici — 10'lu seri hızlı ve akıcı
+    // FIX: serilerde %32 hız + donma önleyici — seri hızlı ve akıcı
     if (seriesFilterRef.current) {
       for (const a of aliens) a.vy *= 1.32;
     }
@@ -950,7 +950,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
             }
           }
           flushSoon();
-          // seri tik: 10 kelimenin hepsi en az 1 doğru yapıldıysa otomatik tik
+          // seri tik: serideki kelimelerin hepsi en az 1 doğru yapıldıysa otomatik tik
           if (seriesMetaRef.current && seriesFilterRef.current) {
             const { lang, level, idx } = seriesMetaRef.current;
             const words = getSeriesWords(lang, level, idx, customRef.current);

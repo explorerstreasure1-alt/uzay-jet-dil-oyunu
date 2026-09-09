@@ -4,7 +4,7 @@ import { VW } from '../hooks/useGameEngine';
 import type { GameState, HeatMap, Settings } from '../types/game';
 import type { CategoryId, CEFRLevel, LangCode } from '../data/vocabulary';
 import {
-  LANGUAGES, LEVEL_CONFIG, CATEGORIES, HEAT_META, getWords, countWords, allWords, WORDS_PER_LANGUAGE, getSeriesCount, getSeriesWords,
+  LANGUAGES, LEVEL_CONFIG, CATEGORIES, HEAT_META, getWords, countWords, allWords, WORDS_PER_LANGUAGE, getSeriesCount, getSeriesWords, getSeriesSize,
 } from '../data/vocabulary';
 import { heatBreakdown, highScoreKey, reviewSummary, streakInfo, getDailyChallenge, requestDailyPush, scheduleDailyPush, store } from '../lib/storage';
 import { NEON } from '../lib/theme';
@@ -464,7 +464,7 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries 
       )}
 
       <button onClick={() => onViewSeries?.(lang, lv)} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform" style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.22), rgba(0,102,255,0.14))', border: '1px solid #00d4ff', boxShadow: '0 0 16px rgba(0,212,255,0.32)' }}>
-        <span className="font-orbitron text-[12px] font-black tracking-[0.14em] text-[#e6faff]" style={{ textShadow: '0 0 8px #00d4ff' }}>📚 10'LUK SERİYE GİR</span>
+        <span className="font-orbitron text-[12px] font-black tracking-[0.14em] text-[#e6faff]" style={{ textShadow: '0 0 8px #00d4ff' }}>📚 {getSeriesSize(lang)}'LİK SERİYE GİR</span>
         <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55 block mt-0.5">{getSeriesCount(lang, lv, api.customWords)} seri · Bölüm seçince direkt başlar</span>
       </button>
     </Shell>
@@ -505,11 +505,11 @@ function SeriesCard({ lang, level, idx, mark, preview, count, onStart, onToggle 
         <span className="font-mono-tech text-[10px]" style={{ color: mark ? accent : 'rgba(255,255,255,0.25)' }}>{mark === 2 ? '!' : mark === 1 ? '✓' : `${count}`}</span>
       </div>
       <div className="font-mono-tech text-[7px] text-white/35 truncate pointer-events-none">{preview}</div>
-      <div className="font-mono-tech text-[6px] mt-1 pointer-events-none" style={{ color: mark === 2 ? '#ff2e63' : mark === 1 ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{mark === 2 ? '! KRİTİK — basılı tut temizle' : mark === 1 ? '✓ İŞARETLİ — basılı tut kırmızı yap' : '10 kelime — basılı tut işaretle'}</div>
+      <div className="font-mono-tech text-[6px] mt-1 pointer-events-none" style={{ color: mark === 2 ? '#ff2e63' : mark === 1 ? '#00ffa3' : 'rgba(255,255,255,0.30)' }}>{mark === 2 ? '! KRİTİK — basılı tut temizle' : mark === 1 ? '✓ İŞARETLİ — basılı tut kırmızı yap' : `${count} kelime — basılı tut işaretle`}</div>
     </div>
   );
 }
-/* ══════════════════ SERIES (10'ar) ══════════════════ */
+/* ══════════════════ SERIES (EN 50'lik, diğer 30'luk) ══════════════════ */
 export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api: EngineApi; lang: LangCode; level: CEFRLevel; onBack: () => void; onStartSeries: (idx: number) => void }) {
   const [, force] = useState(0);
   const [detail, setDetail] = useState<number | null>(null);
@@ -527,7 +527,7 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
     return (
       <Shell>
         <BackBtn onClick={() => setDetail(null)} />
-        <div className="font-orbitron text-[14px] font-black tracking-[0.12em] text-white/90 mb-1">SERİ {detail+1} · 10 KELİME {starCount ? `· ⭐ ${starCount} öncelikli` : ''}</div>
+        <div className="font-orbitron text-[14px] font-black tracking-[0.12em] text-white/90 mb-1">SERİ {detail+1} · {words.length} KELİME {starCount ? `· ⭐ ${starCount} öncelikli` : ''}</div>
         <div className="font-mono-tech text-[7px] text-white/35 mb-2">Yıldızla işaretle — o kelimeler %72 sıklıkla çıkar. Tekrar tıkla kaldır.</div>
         <div className="glass rounded-xl p-2 mb-3 max-h-[52vh] overflow-y-auto no-bar">
           {words.map(w => {
@@ -556,8 +556,8 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
   return (
     <Shell>
       <BackBtn onClick={onBack} />
-      <div className="font-orbitron text-[18px] font-black tracking-[0.12em] text-white/90 mb-1">{LANGUAGES.find(l=>l.code===lang)?.flag} {level} — 10'LUK SERİLER</div>
-      <div className="font-mono-tech text-[8px] text-white/35 mb-3">{total} seri × 10 kelime = {getWords(lang, level, 'all', api.customWords).length} kelime · Kartın yıldızına dokun = detay, karta dokun = başlat</div>
+      <div className="font-orbitron text-[18px] font-black tracking-[0.12em] text-white/90 mb-1">{LANGUAGES.find(l=>l.code===lang)?.flag} {level} — {getSeriesSize(lang)}'LİK SERİLER</div>
+      <div className="font-mono-tech text-[8px] text-white/35 mb-3">{total} seri × {getSeriesSize(lang)} kelime = {getWords(lang, level, 'all', api.customWords).length} kelime · Kartın yıldızına dokun = detay, karta dokun = başlat</div>
       <div className="grid grid-cols-2 gap-2 pb-4">
         {Array.from({ length: total }, (_, i) => {
           const v = allTicks[`${lang}:${level}:${i}`] ?? 0;
