@@ -108,9 +108,9 @@ export function countWords(lang: LangCode, extra: VocabWord[] = []) {
 export function categoryCount(lang: LangCode, level: CEFRLevel, cat: CategoryId, extra: VocabWord[] = []) {
   return getWords(lang, level, cat, extra).length;
 }
-/** Seri boyu dile göre: İngilizce 50'lik, diğer diller 30'luk */
-export function getSeriesSize(lang: LangCode): number {
-  return lang === 'en' ? 50 : 30;
+/** Seri boyu: tüm dillerde 150'lik */
+export function getSeriesSize(_lang: LangCode): number {
+  return 150;
 }
 export function getSeriesCount(lang: LangCode, level: CEFRLevel, extra: VocabWord[] = []): number {
   return Math.max(1, Math.ceil(getWords(lang, level, 'all', extra).length / getSeriesSize(lang)));

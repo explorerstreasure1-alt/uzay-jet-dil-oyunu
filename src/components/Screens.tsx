@@ -509,7 +509,7 @@ function SeriesCard({ lang, level, idx, mark, preview, count, onStart, onToggle 
     </div>
   );
 }
-/* ══════════════════ SERIES (EN 50'lik, diğer 30'luk) ══════════════════ */
+/* ══════════════════ SERIES (150'lik) ══════════════════ */
 export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api: EngineApi; lang: LangCode; level: CEFRLevel; onBack: () => void; onStartSeries: (idx: number) => void }) {
   const [, force] = useState(0);
   const [detail, setDetail] = useState<number | null>(null);

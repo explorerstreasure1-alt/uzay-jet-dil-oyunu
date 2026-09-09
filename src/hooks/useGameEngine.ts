@@ -202,7 +202,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
 
   /** Yanlış defteri filtresi: sadece bu id'ler havuzda kalır */
   const wrongFilterRef = useRef<Set<string> | null>(null);
-  /** Seri filtresi: sadece bu serinin id'leri (EN 50'lik, diğer 30'luk) */
+  /** Seri filtresi: sadece bu serinin id'leri (150'lik) */
   const seriesFilterRef = useRef<Set<string> | null>(null);
   const seriesMetaRef = useRef<{ lang: LangCode; level: CEFRLevel; idx: number } | null>(null);
   /** Seri içi öncelikli kelimeler — yıldızlılar çok sık çıksın */
