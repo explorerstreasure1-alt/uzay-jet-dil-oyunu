@@ -425,8 +425,8 @@ class AudioEngine {
    * Speak a word in its own language.
    * `delay` lets us duck under the explosion SFX so the word stays intelligible.
    */
-  /** user-tunable playback speed (0.7 … 1.3) */
-  ttsRate = 1.0;
+  /** user-tunable playback speed (0.7 … 1.3, orta 1.1) */
+  ttsRate = 1.1;
   private voiceFor = new Map<string, SpeechSynthesisVoice | null>();
 
   /**

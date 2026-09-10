@@ -25,7 +25,7 @@ function write(key: string, value: unknown) {
 
 export const DEFAULT_SETTINGS: Settings = {
   crt: false, music: true, sfx: true, tts: true, haptics: true, leftHanded: false,
-  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.0, bgmVolume: 0.02,
+  difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.1, bgmVolume: 0.02,
   fontScale: 1, highContrast: false, reduceMotion: false, dyslexia: false, eyeCare: false, eyeCareIntensity: 70,
 };
 export const DEFAULT_STATS: RunStats = {
@@ -152,7 +152,9 @@ export const store = {
     const merged = { ...DEFAULT_SETTINGS, ...raw } as Settings & { eyeComfort?: boolean };
     // müzik sesi her zaman 2'de sabit
     merged.bgmVolume = 0.02;
-    if (raw.bgmVolume !== 0.02) write(K.settings, merged);
+    // konuşma hızı ortası 1.0 -> 1.1: eski varsayılanda kalmış kayıtları yükselt
+    if (raw.ttsRate === 1) merged.ttsRate = 1.1;
+    if (raw.bgmVolume !== 0.02 || raw.ttsRate === 1) write(K.settings, merged);
     return merged as Settings;
   },
   saveSettings: (s: Settings) => write(K.settings, s),

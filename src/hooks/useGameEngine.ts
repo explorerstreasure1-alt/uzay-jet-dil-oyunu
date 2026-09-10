@@ -455,7 +455,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.setSfxEnabled(setRef.current.sfx);
     audio.setBgmVolume(setRef.current.bgmVolume ?? 0);
     audio.ttsOn = setRef.current.tts;
-    audio.setRate(setRef.current.ttsRate ?? 1);
+    audio.setRate(setRef.current.ttsRate ?? 1.1);
 
     clozeModeRef.current = cloze;
     statsRef.current = { ...statsRef.current, sessionsPlayed: statsRef.current.sessionsPlayed + 1 };
@@ -487,7 +487,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.setSfxEnabled(setRef.current.sfx);
     audio.setBgmVolume(setRef.current.bgmVolume ?? 0.16);
     audio.ttsOn = setRef.current.tts;
-    audio.setRate(setRef.current.ttsRate ?? 1);
+    audio.setRate(setRef.current.ttsRate ?? 1.1);
 
     wrongFilterRef.current = new Set(ids);
     const isDaily = ids.length === 10;
@@ -524,7 +524,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.setSfxEnabled(setRef.current.sfx);
     audio.setBgmVolume(setRef.current.bgmVolume ?? 0);
     audio.ttsOn = setRef.current.tts;
-    audio.setRate(setRef.current.ttsRate ?? 1);
+    audio.setRate(setRef.current.ttsRate ?? 1.1);
     const words = getSeriesWords(lang, level, idx, customRef.current);
     seriesFilterRef.current = new Set(words.map(w => w.id));
     seriesMetaRef.current = { lang, level, idx };
@@ -564,7 +564,7 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     audio.setSfxEnabled(setRef.current.sfx);
     audio.setBgmVolume(setRef.current.bgmVolume ?? 0);
     audio.ttsOn = setRef.current.tts;
-    audio.setRate(setRef.current.ttsRate ?? 1);
+    audio.setRate(setRef.current.ttsRate ?? 1.1);
     try {
       if (saved.sessionCounts) sessionCountsRef.current = new Map(saved.sessionCounts);
       if (saved.seriesQueue && saved.seriesKey) {
