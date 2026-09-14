@@ -110,7 +110,7 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
           })}
         </div>
         <div className="font-mono-tech text-[7px] text-white/25 mt-1.5 text-center">
-          4 dil × {WORDS_PER_LANGUAGE.toLocaleString('tr-TR')} = {(WORDS_PER_LANGUAGE * 4).toLocaleString('tr-TR')} giriş · hepsi çevrimdışı
+          {LANGUAGES.length} dil × {WORDS_PER_LANGUAGE.toLocaleString('tr-TR')} = {(WORDS_PER_LANGUAGE * LANGUAGES.length).toLocaleString('tr-TR')} giriş · hepsi çevrimdışı
         </div>
       </div>
 
@@ -152,7 +152,7 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
             {/* Haftalık ilerleme — nereye gittiğini gör */}
             {(() => {
               const seen = Object.keys(api.heat).length;
-              const total = 4500;
+              const total = WORDS_PER_LANGUAGE;
               const pctW = Math.min(100, (seen / total) * 100);
               const weeklyGoal = 50;
               const weekly = seen % weeklyGoal;

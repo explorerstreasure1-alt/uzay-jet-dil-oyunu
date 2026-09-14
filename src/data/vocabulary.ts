@@ -44,7 +44,7 @@ export const CATEGORIES: { id: CategoryId; label: string; icon: string }[] = [
   { id: 'slang',    label: 'Sokak Dili', icon: '✦' },
 ];
 
-/* ── lazily materialised per language (4.000 each, 16.000 total) ── */
+/* ── lazily materialised per language (7.500 each, 52.500 total) ── */
 const packs = new Map<LangCode, VocabWord[]>();
 export function wordsOf(lang: LangCode): VocabWord[] {
   const hit = packs.get(lang);
