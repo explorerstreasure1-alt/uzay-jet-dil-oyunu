@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { EngineApi } from '../hooks/useGameEngine';
 import { LANGUAGES, LEVEL_CONFIG, getWords } from '../data/vocabulary';
 import type { CEFRLevel, LangCode, VocabWord } from '../data/vocabulary';
-import { store } from '../lib/storage';
+import { store, DEFAULT_SPEAK } from '../lib/storage';
+import type { SpeakProgress } from '../lib/storage';
 import { audio, haptic } from '../lib/audio';
 import { listenOnce, speechSupported } from '../lib/speech';
 import { transliterate } from '../lib/pronounce';
@@ -32,9 +33,22 @@ type Phase = 'setup' | 'round' | 'done';
 interface Last { score: number; transcript: string; ok: boolean; note: string; }
 type Source = 'bank' | 'ai';
 
-export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => void }) {
-  const [lang, setLang] = useState<LangCode>('en');
-  const [level, setLevel] = useState<CEFRLevel>('A1');
+/** Doğru cevapta hedef dilde, A1 sadeliğinde övgü (rastgele biri seslenir). */
+const PRAISE: Record<LangCode, [string, string, string]> = {
+  en: ['Perfect!', 'Excellent!', 'Great job!'],
+  es: ['¡Perfecto!', '¡Excelente!', '¡Muy bien!'],
+  it: ['Perfetto!', 'Eccellente!', 'Bravissimo!'],
+  ru: ['Отлично!', 'Превосходно!', 'Молодец!'],
+  pt: ['Perfeito!', 'Excelente!', 'Muito bem!'],
+  fr: ['Parfait!', 'Excellent!', 'Très bien!'],
+  de: ['Perfekt!', 'Ausgezeichnet!', 'Sehr gut!'],
+};
+
+export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
+  api: EngineApi; onBack: () => void; initialLang?: LangCode; initialLevel?: CEFRLevel;
+}) {
+  const [lang, setLang] = useState<LangCode>(initialLang ?? 'en');
+  const [level, setLevel] = useState<CEFRLevel>(initialLevel ?? 'A1');
   const [phase, setPhase] = useState<Phase>('setup');
   const [deck, setDeck] = useState<VocabWord[]>([]);
   const [idx, setIdx] = useState(0);
@@ -44,11 +58,22 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
   const [boom, setBoom] = useState(false);
   const [source, setSource] = useState<Source>(() => (api.settings.groqKey ? 'ai' : 'bank'));
   const [genMsg, setGenMsg] = useState<string | null>(null);
+  const [praise, setPraise] = useState<string | null>(null);
   const [speed, setSpeed] = useState<SpeedId>(() => {
     try { const v = localStorage.getItem('wi_speak_rate'); return v === 'slow' || v === 'fast' ? v : 'mid'; }
     catch { return 'mid'; }
   });
   const groqKey = resolveGroqKey(api.settings.groqKey, viteGroqKey());
+
+  // Bölümde hafif arka plan melodisi; çıkınca susar
+  useEffect(() => {
+    try {
+      audio.unlock();
+      if (api.settings.music) audio.startMusic('ice');
+    } catch {}
+    return () => { try { audio.stopMusic(); } catch {} };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [results, setResults] = useState<boolean[]>([]);
   const supported = useMemo(() => speechSupported(), []);
   // İşletim sistemi azaltılmış hareket isterse düşme animasyonu yok → otomatik kaçırma da yok
@@ -56,7 +81,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
     try { return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches; }
     catch { return false; }
   }, []);
-  const progress = useMemo(() => { try { return store.loadSpeak(); } catch { return { runs: 0, ok: 0, total: 0, best: {} as Record<string, number> }; } }, [phase]);
+  const progress = useMemo((): SpeakProgress => { try { return store.loadSpeak(); } catch { return { ...DEFAULT_SPEAK }; } }, [phase]);
 
   const start = async () => {
     audio.unlock(); audio.ui();
@@ -69,7 +94,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
           id: `ai-${lang}-${level}-${Date.now()}-${i}`,
           foreign: it.foreign, native: it.native, lang, level, category: 'phrase' as const,
         }));
-        setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setResults([]);
+        setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setPraise(null); setResults([]);
         setGenMsg(null);
         setPhase('round');
       } catch {
@@ -77,7 +102,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
         setSource('bank');
         const d = buildDeck(lang, level, api.customWords);
         if (!d.length) { setGenMsg(null); return; }
-        setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setResults([]);
+        setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setPraise(null); setResults([]);
         setGenMsg(null);
         setPhase('round');
       }
@@ -85,7 +110,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
     }
     const d = buildDeck(lang, level, api.customWords);
     if (!d.length) return;
-    setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setResults([]);
+    setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setPraise(null); setResults([]);
     setGenMsg(null);
     setPhase('round');
   };
@@ -106,10 +131,17 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
       } catch { /* yerel puana düş */ }
     }
     if (ok) {
-      // canavar patlaması + ödül + yeşil parlama (anlam kartı zaten yeşil glow'lu)
+      // canavar patlaması + dalga sesi + ödül + yeşil parlama (anlam kartı zaten yeşil glow'lu)
       audio.explode(false);
+      audio.shockwave();
       audio.correct();
       haptic('hit', api.settings.haptics);
+      // hedef dilde A1 övgü (patlama bitince, seçili hızda)
+      const [p1, p2, p3] = PRAISE[lang];
+      const line = [p1, p2, p3][Math.floor(Math.random() * 3)];
+      setPraise(line);
+      const rate = speedRate(speed);
+      window.setTimeout(() => { try { audio.speakAt(line, lang, rate); } catch {} }, 700);
       setBoom(true);
       window.setTimeout(() => setBoom(false), 850);
     } else {
@@ -122,6 +154,19 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
   const next = () => {
     const r = [...results, last?.ok ?? false];
     setResults(r);
+    // kelime karnesi: bu turun kelimesini doğru/deneme ile işle
+    try {
+      const w = deck[idx];
+      if (w) {
+        const p0 = store.loadSpeak();
+        const wk = `${lang}:${level}:${w.id.startsWith('ai-') ? `t:${w.foreign}` : w.id}`;
+        const rec = p0.words[wk] ?? { f: w.foreign, n: w.native, ok: 0, total: 0 };
+        rec.total += 1;
+        if (last?.ok) rec.ok += 1;
+        store.saveSpeak({ ...p0, words: { ...p0.words, [wk]: rec } });
+      }
+    } catch {}
+    setPraise(null);
     if (idx + 1 >= deck.length) {
       const okCount = r.filter(Boolean).length;
       try {
@@ -132,6 +177,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
           ok: p.ok + okCount,
           total: p.total + r.length,
           best: { ...p.best, [key]: Math.max(p.best[key] ?? 0, okCount) },
+          words: p.words ?? {},
         });
       } catch {}
       audio.levelUp();
@@ -220,17 +266,44 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
             ? (groqKey ? 'Groq yazar + hakemlik yapar (internet gerekir)' : 'AI için Ayarlar → Groq anahtarı gerekli — şimdilik havuz çalışır')
             : 'Çevrimdışı oyun kelimeleriyle çalışır'}
         </div>
+        <button onClick={() => audio.preview(lang, speedRate(speed))} className="w-full glass rounded-xl py-2.5 mb-3 active:scale-95 transition-transform">
+          <span className="font-mono-tech text-[9px] tracking-[0.12em] text-white/60">🔊 SESİ DENE · {audio.voiceName(lang).slice(0, 28)}</span>
+        </button>
         {genMsg && (
           <div className="rounded-lg px-3 py-2 mb-3 font-mono-tech text-[9px] text-center"
             style={{ background: 'rgba(199,125,255,0.1)', border: '1px solid rgba(199,125,255,0.4)', color: '#d9b8ff' }}>
             {genMsg}
           </div>
         )}
-        <div className="glass rounded-xl px-3 py-2.5 mb-3">
-          <div className="font-mono-tech text-[8px] text-white/40 text-center">
-            {ROUNDS} cümle · {progress.runs} oturum · %{progress.total ? Math.round((progress.ok / progress.total) * 100) : 0} isabet
-          </div>
-        </div>
+        {(() => {
+          const pool = getWords(lang, level, 'all', api.customWords).length;
+          const prefix = `${lang}:${level}:`;
+          const mine = Object.entries(progress.words ?? {}).filter(([k]) => k.startsWith(prefix));
+          const learned = mine.filter(([, v]) => v.ok > 0).length;
+          const left = Math.max(0, pool - learned);
+          const recent = mine.filter(([, v]) => v.ok > 0).slice(-5).reverse();
+          return (
+            <div className="glass rounded-xl px-3 py-2.5 mb-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-mono-tech text-[8px] tracking-[0.2em] text-white/35">KARNE · {level}</span>
+                <span className="font-mono-tech text-[8px]" style={{ color: '#00ffa3' }}>{learned}/{pool} · {left} kaldı</span>
+              </div>
+              <div className="h-[6px] rounded-full bg-white/10 overflow-hidden mb-1.5">
+                <div className="h-full rounded-full" style={{ width: `${pool ? (learned / pool) * 100 : 0}%`, background: '#00ffa3', boxShadow: '0 0 6px #00ffa3' }} />
+              </div>
+              <div className="font-mono-tech text-[8px] text-white/40 text-center">
+                {ROUNDS} cümle · {progress.runs} oturum · %{progress.total ? Math.round((progress.ok / progress.total) * 100) : 0} isabet
+              </div>
+              {recent.length > 0 && (
+                <div className="mt-1.5 space-y-0.5">
+                  {recent.map(([k, v]) => (
+                    <div key={k} className="font-mono-tech text-[8px] text-white/50 truncate">✓ {v.f} <span className="text-white/30">= {v.n}</span></div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
         {!supported && (
           <div className="rounded-lg px-3 py-2 mb-3 font-mono-tech text-[9px]"
             style={{ background: 'rgba(255,179,0,0.1)', border: '1px solid rgba(255,179,0,0.4)', color: '#ffd166' }}>
@@ -258,6 +331,18 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
           </div>
           <div className="font-mono-tech text-[10px] text-white/50 mt-1">{okCount}/{results.length} doğru · {LANGUAGES.find(l => l.code === lang)?.flag} {level}</div>
         </div>
+        {(() => {
+          const good = deck.filter((_, i) => results[i]);
+          if (!good.length) return null;
+          return (
+            <div className="glass rounded-xl px-3 py-2.5 mt-3 max-h-[30vh] overflow-y-auto no-bar">
+              <div className="font-mono-tech text-[7px] tracking-[0.2em] text-center mb-1.5" style={{ color: '#00ffa3' }}>DOĞRU SÖYLEDİKLERİN</div>
+              {good.map(w => (
+                <div key={w.id} className="font-mono-tech text-[9px] text-white/65 py-0.5 truncate">✓ {w.foreign} <span className="text-white/30">= {w.native}</span></div>
+              ))}
+            </div>
+          );
+        })()}
         <div className="mt-auto space-y-2 pt-6">
           <button onClick={() => { setPhase('setup'); audio.ui(); }} className="w-full rounded-xl py-3 active:scale-[0.97] transition-transform"
             style={{ background: 'linear-gradient(135deg, rgba(0,255,163,0.26), rgba(0,180,120,0.12))', border: '1px solid #00ffa3' }}>
@@ -283,6 +368,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
   const retry = () => {
     audio.ui();
     setLast(null);
+    setPraise(null);
     setAttempt(a => a + 1);
   };
   return (
@@ -331,6 +417,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
           <div className="font-orbitron text-[18px] font-black" style={{ color: '#00ffa3', textShadow: '0 0 12px #00ffa3' }}>
             ✓ %{Math.round(last.score * 100)} PATLADI!
           </div>
+          {praise && <div className="font-orbitron text-[15px] font-black mt-1" style={{ color: '#ffd166', textShadow: '0 0 10px #ffd166' }}>{praise}</div>}
           <div className="font-mono-tech text-[9px] text-white/45 mt-1">{w.foreign}</div>
           <div className="font-orbitron text-[20px] font-black text-[#e6faff] mt-1">= {w.native} =</div>
           {last.note && <div className="font-mono-tech text-[8px] mt-1.5" style={{ color: '#c77dff' }}>🤖 {last.note}</div>}

@@ -320,6 +320,13 @@ class AudioEngine {
     this.voice({ f: big ? 150 : 190, to: 34, dur: big ? 0.42 : 0.26, type: 'square', vol: 0.12 });
     this.voice({ f: 70, to: 28, dur: 0.3, type: 'sine', vol: big ? 0.24 : 0.14 });
   }
+  /** Dalga sesi: şok halkalarıyla birlikte yükselen ıslık + yayılan uğultu. */
+  shockwave() {
+    if (!this.sfxOn) return;
+    this.voice({ f: 180, to: 920, dur: 0.55, type: 'sine', vol: 0.16, curve: 'lin', verb: 0.4 });
+    this.voice({ f: 90, to: 460, dur: 0.7, type: 'triangle', vol: 0.1, delay: 0.05, verb: 0.45 });
+    this.hiss({ dur: 0.6, vol: 0.12, lp: 5200, verb: 0.4 });
+  }
   /* reward — placed slightly LEFT (language hemisphere cue) */
   correct() {
     if (!this.sfxOn) return;
@@ -402,6 +409,16 @@ class AudioEngine {
 
     const BAD = /(compact|espeak|novelty|whisper|bells|organ|zarvox|trinoids|bubbles|cellos|bad news|good news|jester|boing|deranged|hysterical|bahh|albert|wobble|superstar)/;
     const GREAT = /(natural|neural|premium|enhanced|wavenet|studio|siri|multilingual)/;
+    // dile özel sevilen ses adları (cihaza göre değişir, tutan puan alır)
+    const PREF: Record<string, RegExp> = {
+      en: /(google us english|google uk english female|samantha|zira|david|aria|jenny|guy)/,
+      es: /(google espa|español|spanish|monica|jorge|helena|diego|lucia)/,
+      fr: /(google fran|français|french|audrey|marie|thomas|amelie|daniel)/,
+      de: /(google deutsch|deutsch|german|anna|katja|conrad|hedda|stefan)/,
+      it: /(google italiano|italiano|italian|alice|francesca|luca|elisa)/,
+      pt: /(google português|português|portuguese|joana|luciana|daniel|vitoria|felipe)/,
+      ru: /(google русский|русский|russian|milena|yuri|irina|pavel|anna)/,
+    };
 
     const score = (v: SpeechSynthesisVoice) => {
       const n = (v.name || '').toLowerCase();
@@ -410,6 +427,8 @@ class AudioEngine {
       if (l === want) s += 45;
       else if (l.startsWith(base)) s += 18;
       if (GREAT.test(n)) s += 34;
+      const pref = PREF[base];
+      if (pref && pref.test(n)) s += 26;
       if (n.includes('google')) s += 26;
       if (n.includes('microsoft')) s += 18;
       if (n.includes('apple')) s += 10;
@@ -419,6 +438,30 @@ class AudioEngine {
       return s;
     };
     return [...pool].sort((a, b) => score(b) - score(a))[0] ?? null;
+  }
+
+  /** Seçili dil için kullanılacak sesin adı (yoksa 'varsayılan'). */
+  voiceName(lang: LangCode): string {
+    try {
+      const tag = LANGUAGES.find(l => l.code === lang)?.tts ?? 'en-US';
+      return this.bestVoice(tag)?.name ?? 'varsayılan';
+    } catch {
+      return 'varsayılan';
+    }
+  }
+
+  /** Ses önizleme: örnek cümleyi seçili dil + hızda okur. */
+  preview(lang: LangCode, rate: number) {
+    const sample: Record<LangCode, string> = {
+      en: 'Hello, how are you?',
+      es: 'Hola, ¿cómo estás?',
+      it: 'Ciao, come stai?',
+      ru: 'Привет, как дела?',
+      pt: 'Olá, como vai você?',
+      fr: 'Salut, ça va bien ?',
+      de: 'Hallo, wie geht es dir?',
+    };
+    this.speakAt(sample[lang] ?? sample.en, lang, rate);
   }
 
   /**

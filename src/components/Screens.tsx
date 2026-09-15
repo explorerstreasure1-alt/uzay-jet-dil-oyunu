@@ -359,9 +359,9 @@ export function InstallScreen({ canInstall, installed, isIos, onInstall, onBack 
 }
 
 /* ══════════════════ SETUP WIZARD ══════════════════ */
-export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries }: {
+export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries, onViewSpeak }: {
   api: EngineApi; lang: LangCode; setLang: (l: LangCode) => void;
-  onStart: (l: LangCode, lv: CEFRLevel, c: CategoryId, cloze?: boolean) => void; onBack: () => void; onViewSeries?: (lang: LangCode, level: CEFRLevel) => void;
+  onStart: (l: LangCode, lv: CEFRLevel, c: CategoryId, cloze?: boolean) => void; onBack: () => void; onViewSeries?: (lang: LangCode, level: CEFRLevel) => void; onViewSpeak?: (lang: LangCode, level: CEFRLevel) => void;
 }) {
   const [lv, setLv] = useState<CEFRLevel>('A1');
   const [cat, setCat] = useState<CategoryId>('all');
@@ -466,6 +466,10 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries 
       <button onClick={() => onViewSeries?.(lang, lv)} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform" style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.22), rgba(0,102,255,0.14))', border: '1px solid #00d4ff', boxShadow: '0 0 16px rgba(0,212,255,0.32)' }}>
         <span className="font-orbitron text-[12px] font-black tracking-[0.14em] text-[#e6faff]" style={{ textShadow: '0 0 8px #00d4ff' }}>📚 {getSeriesSize(lang)}'LİK SERİYE GİR</span>
         <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55 block mt-0.5">{getSeriesCount(lang, lv, api.customWords)} seri · Bölüm seçince direkt başlar</span>
+      </button>
+      <button onClick={() => onViewSpeak?.(lang, lv)} className="w-full rounded-xl py-3.5 mt-2 active:scale-[0.97] transition-transform" style={{ background: 'linear-gradient(135deg, rgba(0,255,163,0.2), rgba(0,180,120,0.1))', border: '1px solid #00ffa3', boxShadow: '0 0 16px rgba(0,255,163,0.3)' }}>
+        <span className="font-orbitron text-[12px] font-black tracking-[0.14em] text-[#dcfff2]" style={{ textShadow: '0 0 8px #00ffa3' }}>🎤 KONUŞMA İLE DEVAM</span>
+        <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55 block mt-0.5">Mikrofonla cümle kur · Seri yerine konuşma</span>
       </button>
     </Shell>
   );

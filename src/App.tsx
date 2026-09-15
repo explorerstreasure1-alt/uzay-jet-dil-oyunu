@@ -27,6 +27,7 @@ export default function App() {
   });
   const [viewport, setViewport] = useState({ width: VW, height: VH, left: 0, top: 0, scale: 1 });
   const [seriesNav, setSeriesNav] = useState<{ lang: LangCode; level: CEFRLevel } | null>(null);
+  const [speakNav, setSpeakNav] = useState<{ lang: LangCode; level: CEFRLevel } | null>(null);
   const pwa = usePwaInstall();
   const [showTutorial, setShowTutorial] = useState(() => {
     try { return localStorage.getItem('wi_tutorial_seen') !== '1'; } catch { return true; }
@@ -135,8 +136,8 @@ export default function App() {
           <>
             <MenuBackdrop />
             {/* FIX #2: as any kaldırıldı — EngineApi'da tip mevcut */}
-            {view === 'menu' && <MenuScreen api={api} lang={uiLang} setLang={setUiLang} go={setView} pwa={pwa} onContinue={(l) => { const ok = l ? api.continueRun(l) : api.continueRun(); if (ok) { const s = api.state; setRun({ lang: s.lang, level: s.level, category: s.category }); setRoot('playing'); } }} />}
-            {view === 'setup' && <SetupScreen api={api} lang={uiLang} setLang={setUiLang} onStart={start} onBack={() => setView('menu')} onViewSeries={(lang, level) => { setSeriesNav({ lang, level }); setView('series'); }} />}
+            {view === 'menu' && <MenuScreen api={api} lang={uiLang} setLang={setUiLang} go={(v: MenuView) => { if (v === 'speak') setSpeakNav(null); setView(v); }} pwa={pwa} onContinue={(l) => { const ok = l ? api.continueRun(l) : api.continueRun(); if (ok) { const s = api.state; setRun({ lang: s.lang, level: s.level, category: s.category }); setRoot('playing'); } }} />}
+            {view === 'setup' && <SetupScreen api={api} lang={uiLang} setLang={setUiLang} onStart={start} onBack={() => setView('menu')} onViewSeries={(lang, level) => { setSeriesNav({ lang, level }); setView('series'); }} onViewSpeak={(lang, level) => { setSpeakNav({ lang, level }); setView('speak'); }} />}
             {view === 'series' && seriesNav && <SeriesScreen api={api} lang={seriesNav.lang} level={seriesNav.level} onBack={() => setView('setup')} onStartSeries={(idx) => { api.startSeries(seriesNav.lang, seriesNav.level, idx); setRun({ lang: seriesNav.lang, level: seriesNav.level, category: 'all' }); setRoot('playing'); }} />}
             {view === 'deck' && <DeckScreen api={api} onBack={() => setView('menu')} />}
             {view === 'daily' && <DailyChallengeScreen api={api} onBack={() => setView('menu')} onStart={(lang, lvl, ids) => { api.startWrongRun(lang, lvl, ids); setRun({ lang, level: lvl, category: 'all' }); setRoot('playing'); }} />}
@@ -145,7 +146,7 @@ export default function App() {
             {view === 'leaderboard' && <LeaderboardScreen api={api} onBack={() => setView('menu')} />}
             {view === 'campaign' && <CampaignScreen api={api} onBack={() => setView('menu')} onStart={(lang, lv) => start(lang, lv, 'all', false)} />}
             {view === 'teacher' && <TeacherScreen api={api} onBack={() => setView('menu')} />}
-            {view === 'speak' && <SpeakScreen api={api} onBack={() => setView('menu')} />}
+            {view === 'speak' && <SpeakScreen api={api} initialLang={speakNav?.lang} initialLevel={speakNav?.level} onBack={() => setView('menu')} />}
             {view === 'install' && (
               <InstallScreen
                 canInstall={pwa.canInstall}

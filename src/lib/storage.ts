@@ -42,8 +42,10 @@ export interface SpeakProgress {
   ok: number;
   total: number;
   best: Record<string, number>;
+  /** `${lang}:${level}:${id}` → doğru/deneme (anlam snapshot'lı) */
+  words: Record<string, { f: string; n: string; ok: number; total: number }>;
 }
-export const DEFAULT_SPEAK: SpeakProgress = { runs: 0, ok: 0, total: 0, best: {} };
+export const DEFAULT_SPEAK: SpeakProgress = { runs: 0, ok: 0, total: 0, best: {}, words: {} };
 
 const runKey = (lang: LangCode) => `${K.run}_${lang}`;
 export const store = {

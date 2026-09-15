@@ -66,24 +66,67 @@ export interface AiSentence { foreign: string; native: string; }
 
 const langName = (lang: LangCode): string => LANG_NAMES[lang] ?? 'English';
 
-/** Hedef dilde + seviyede n cümle üret (yabancı + Türkçe). Hata fırlatır. */
+/** Türkçe sızıntı dedektörü: tek isabet yeten güçlü + çift isabet isteyen zayıf kelimeler. */
+const TR_STRONG = [
+  'nerede', 'nasıl', 'neden', 'niçin', 'merhaba', 'selam', 'teşekkür', 'sağol',
+  'lütfen', 'pardon', 'günaydın', 'hoşça', 'güle', 'görüşürüz', 'buyurun', 'buyur',
+  'efendim', 'tamam', 'peki', 'belki', 'aslında', 'gerçekten', 'zaten', 'şey',
+  'kimse', 'herkes', 'burada', 'şurada', 'orada', 'şimdi', 'yarın', 'dün',
+  'bugün', 'kahvaltı', 'çok',
+];
+const TR_WEAK = [
+  've', 'bir', 'bu', 'şu', 'o', 'ne', 'mi', 'mı', 'mu', 'mü',
+  'de', 'da', 'ki', 'ya', 'hem', 'en', 'daha',
+];
+function looksTurkish(s: string): boolean {
+  const toks = s.toLowerCase().split(/[^\p{L}]+/u).filter(Boolean);
+  if (toks.some(t => TR_STRONG.includes(t))) return true;
+  return toks.filter(t => TR_WEAK.includes(t)).length >= 2;
+}
+
+/** Hedef dil kontrolü: yanlış dilde/boş cümle elenir. */
+function langOk(lang: LangCode, foreign: string): boolean {
+  if (!foreign || foreign.length > 140) return false;
+  if (looksTurkish(foreign)) return false;
+  if (lang === 'ru') return /[\u0400-\u04FF]/.test(foreign);
+  if (/[\u0400-\u04FF]/.test(foreign)) return false;
+  // ğ/ı/ş 7 hedefin hiçbirinde yok (fr ç'si hariç) → Türkçe sızıntısı
+  if (/[ğĞışŞ]/.test(foreign)) return false;
+  return true;
+}
+
+/** Hedef dilde + seviyede n cümle üret (yabancı + Türkçe). Tutana kadar 1 kez dener. Hata fırlatır. */
 export async function genSentences(key: string, lang: LangCode, level: CEFRLevel, n: number): Promise<AiSentence[]> {
   if (!key.trim()) throw new Error('no key');
   const L = langName(lang);
-  const content = await chat(
-    key, GEN_MODEL,
-    `You write short CEFR ${level} ${L} sentences for Turkish speakers learning ${L}. Reply ONLY with JSON, no other text: {"items":[{"foreign":"...","native":"..."}]}. Rules: foreign = one natural ${L} sentence, 4-12 words, strictly ${level} level, no quotes inside; native = its plain Turkish translation. Vary everyday topics.`,
-    `Write ${Math.max(1, Math.min(12, n))} sentences.`,
-    25000, 0.8,
-  );
-  const parsed = JSON.parse(content) as { items?: { foreign?: unknown; native?: unknown }[] };
-  const items = Array.isArray(parsed.items) ? parsed.items : [];
+  const count = Math.max(1, Math.min(12, n));
+  const system =
+    `You write short CEFR ${level} ${L} sentences for Turkish speakers learning ${L}. Reply ONLY with JSON, no other text: {"items":[{"foreign":"...","native":"..."}]}. ` +
+    `Rules: EVERY foreign sentence MUST be written in ${L} (never Turkish, never another language); 4-12 words, strictly ${level} level, no quotes inside; ` +
+    `native = its plain Turkish translation. Vary everyday topics.`;
   const out: AiSentence[] = [];
-  for (const it of items) {
-    const foreign = typeof it.foreign === 'string' ? it.foreign.trim() : '';
-    const native = typeof it.native === 'string' ? it.native.trim() : '';
-    if (foreign && native && foreign.length <= 140) out.push({ foreign, native });
-    if (out.length >= n) break;
+  const seen = new Set<string>();
+  for (let attempt = 0; attempt < 2 && out.length < count; attempt++) {
+    const content = await chat(
+      key, GEN_MODEL, system,
+      `Write ${count} sentences.`,
+      25000, 0.8,
+    );
+    let items: { foreign?: unknown; native?: unknown }[] = [];
+    try {
+      const parsed = JSON.parse(content) as { items?: { foreign?: unknown; native?: unknown }[] };
+      if (Array.isArray(parsed.items)) items = parsed.items;
+    } catch { /* tekrar dene */ }
+    for (const it of items) {
+      const foreign = typeof it.foreign === 'string' ? it.foreign.trim() : '';
+      const native = typeof it.native === 'string' ? it.native.trim() : '';
+      const k = foreign.toLowerCase();
+      if (foreign && native && langOk(lang, foreign) && !seen.has(k)) {
+        seen.add(k);
+        out.push({ foreign, native });
+      }
+      if (out.length >= count) break;
+    }
   }
   if (!out.length) throw new Error('groq empty items');
   return out;
