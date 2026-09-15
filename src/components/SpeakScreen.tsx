@@ -104,7 +104,7 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
       setAiError(
         msg.includes('groq 401') || msg.includes('groq 403')
           ? 'Groq anahtarı geçersiz (401/403) — Ayarlar’dan sil ya da düzelt, ücretsiz motorla devam eder.'
-          : 'AI cümle üretemedi — interneti kontrol edip tekrar dene.'
+          : `AI cümle üretemedi — interneti kontrol edip tekrar dene.${msg ? ` [${msg.slice(0, 60)}]` : ''}`
       );
     }
   };
@@ -242,7 +242,7 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
         <div className="rounded-xl px-3 py-2.5 mb-1.5"
           style={{ background: groqKey ? 'rgba(199,125,255,0.1)' : 'rgba(0,255,163,0.08)', border: `1px solid ${groqKey ? 'rgba(199,125,255,0.4)' : 'rgba(0,255,163,0.4)'}` }}>
           <div className="font-mono-tech text-[9px] tracking-[0.1em] text-center" style={{ color: groqKey ? '#d9b8ff' : '#00ffa3' }}>
-            {groqKey ? `🤖 AI MOTORU: GROQ · ${ROUNDS} cümle + hakemlik` : `🤖 AI MOTORU: ÜCRETSİZ · ${ROUNDS} cümle, anahtar gerekmez`}
+            {groqKey ? `🤖 AI MOTORU: GROQ · ${ROUNDS} cümle + hakemlik` : `🤖 AI MOTORU: OTOMATİK · ${ROUNDS} cümle, anahtar gerekmez`}
           </div>
           <div className="font-mono-tech text-[7px] text-white/30 mt-1 text-center">
             {groqKey ? 'Groq yazar + hakemlik (internet gerekir) · müziksiz telaffuz' : 'Anahtarsız çalışır · müziksiz telaffuz'}
@@ -363,7 +363,7 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
       <BackBtn onClick={onBack} />
       <div className="flex items-center justify-between mb-2">
         <span className="font-mono-tech text-[8px] tracking-[0.2em] text-white/35">CÜMLE {idx + 1}/{deck.length} · 🤖 AI</span>
-        <span className="font-mono-tech text-[8px] tracking-[0.14em]" style={{ color: LEVEL_CONFIG[level].color }}>{LANGUAGES.find(l => l.code === lang)?.flag} {level} · {engine === 'groq' ? 'Groq' : 'free'}{aiOk && generatedAt ? ' ✓' : ''}</span>
+        <span className="font-mono-tech text-[8px] tracking-[0.14em]" style={{ color: LEVEL_CONFIG[level].color }}>{LANGUAGES.find(l => l.code === lang)?.flag} {level} · {engine === 'groq' ? 'Groq' : engine === 'free' ? 'free' : 'oto'}{aiOk && generatedAt ? ' ✓' : ''}</span>
       </div>
       <div className="h-[6px] rounded-full bg-white/10 overflow-hidden mb-3">
         <div className="h-full rounded-full transition-all" style={{ width: `${((idx) / deck.length) * 100}%`, background: '#00ffa3', boxShadow: '0 0 8px #00ffa3' }} />

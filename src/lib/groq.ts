@@ -266,7 +266,89 @@ function parseJudge(content: string): JudgeResult {
   };
 }
 
-export type AiEngine = 'groq' | 'free';
+export type AiEngine = 'groq' | 'free' | 'auto';
+
+/* ── 3. KADEME: OTOMATİK ŞABLON + ÇEVİRİ (asla ölmez) ──
+   Türkçe ham cümleler cihaza gömülü, hedef dile Google çeviriyle döner.
+   native her zaman doğru Türkçedir (orijinalin ta kendisi). */
+const TR_BANK: Record<CEFRLevel, string[]> = {
+  A1: [
+    'Ben her sabah kahvaltı yaparım.', 'Kedim süt içmeyi çok sever.', 'Annem lezzetli yemekler pişirir.',
+    'Okuluma yürüyerek gidiyorum.', 'Hava bugün çok güzel.', 'Babam arabayla işe gider.',
+    'Kardeşim parkta oynuyor.', 'Biz akşam yemek yeriz.', 'Öğretmenim çok nazik.', 'Suyunu içmeyi unutma.',
+  ],
+  A2: [
+    'Yarın arkadaşlarımla sinemaya gideceğim.', 'Marketten ekmek ve süt aldım.', 'Tatil için para biriktiriyorum.',
+    'Dün akşam yağmur yağdı.', 'Yeni bir telefon almak istiyorum.', 'Dişlerimi her gün fırçalarım.',
+    'Babam bana bisiklet sürmeyi öğretti.', 'Komşumuz bize kek getirdi.', 'Hafta sonu pikniğe gideceğiz.', 'Kedim bahçede uyuyor.',
+  ],
+  B1: [
+    'Eğer erken kalkarsam parka yürüyüşe giderim.', 'Sınavı geçtiğim için çok mutluyum.', 'Yeni taşındığımız evi çok sevdik.',
+    'Hasta olduğum için bugün evde dinleniyorum.', 'Seyahat etmeyi seviyorum çünkü yeni insanlar tanıyorum.',
+    'Film başlamadan önce mısır aldık.', 'Bütçemizi dikkatli planlıyoruz.', 'Çocuklar bahçede saklambaç oynuyor.',
+  ],
+  B2: [
+    'Yoğun tempoya rağmen sporu bırakmadım.', 'Teknoloji geliştikçe hayatımız kolaylaşıyor.',
+    'Toplantı ertelendiği için raporu bitirdim.', 'Doğayı korumak hepimizin sorumluluğu.',
+    'Yeni bir dil öğrenmek sabır gerektirir.', 'Kitap okumak kelime hazinemi genişletti.',
+  ],
+  C1: [
+    'Küreselleşmenin kültürel etkileri tartışılmaya devam ediyor.', 'Yapay zeka eğitimde fırsatlar kadar riskler de barındırıyor.',
+    'Sürdürülebilirlik artık bir tercih değil zorunluluktur.', 'Tarihi eserlerin restorasyonu büyük özen gerektirir.',
+    'Göç olgusu toplumsal yapıyı derinden değiştiriyor.',
+  ],
+};
+const TL: Record<LangCode, string> = { en: 'en', es: 'es', it: 'it', ru: 'ru', pt: 'pt', fr: 'fr', de: 'de' };
+
+async function translateTr(text: string, to: LangCode, timeoutMs: number): Promise<string> {
+  const ctrl = new AbortController();
+  const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=${TL[to]}&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) throw new Error(`mt ${res.status}`);
+    const data = await res.json() as unknown as [[string, string][]];
+    const out = data[0].map(s => s[0]).join('').trim();
+    if (!out) throw new Error('mt empty');
+    return out;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+async function templateSentences(lang: LangCode, level: CEFRLevel, count: number): Promise<{ items: AiSentence[]; engine: AiEngine }> {
+  const order: CEFRLevel[] =
+    level === 'A1' ? ['A1'] : level === 'A2' ? ['A2', 'A1'] : level === 'B1' ? ['B1', 'A2']
+    : level === 'B2' ? ['B2', 'B1'] : ['C1', 'B2'];
+  const pool: string[] = [];
+  for (const lv of order) {
+    for (const s of [...TR_BANK[lv]].sort(() => Math.random() - 0.5)) {
+      if (!pool.includes(s)) pool.push(s);
+      if (pool.length >= count) break;
+    }
+    if (pool.length >= count) break;
+  }
+  const picked = pool.slice(0, count);
+  const results = await Promise.all(picked.map(async (tr) => {
+    try {
+      const foreign = await translateTr(tr, lang, 12000);
+      return { foreign, native: tr };
+    } catch {
+      return null;
+    }
+  }));
+  const out: AiSentence[] = [];
+  const seen = new Set<string>();
+  for (const r of results) {
+    if (!r) continue;
+    if (validPair(lang, r.foreign, r.native, seen)) {
+      seen.add(r.foreign.toLowerCase());
+      out.push(r);
+    }
+  }
+  if (out.length < 4) throw new Error('mt failed');
+  return { items: out, engine: 'auto' };
+}
 
 /** Anahtar varsa Groq, yoksa ücretsiz motor. Başarısızlıkta hata fırlatır. */
 export async function genSentencesAuto(groqKey: string, lang: LangCode, level: CEFRLevel, n: number): Promise<{ items: AiSentence[]; engine: AiEngine }> {
@@ -285,6 +367,7 @@ export async function genSentencesAuto(groqKey: string, lang: LangCode, level: C
     `native = its plain natural Turkish translation (never the same as foreign). Vary everyday topics.`;
   const out: AiSentence[] = [];
   const seen = new Set<string>();
+  try {
   for (let attempt = 0; attempt < 2 && out.length < count; attempt++) {
     const need = count - out.length;
     const topicSlice = [...TOPICS].sort(() => Math.random() - 0.5).slice(0, Math.min(4, need)).join(', ');
@@ -299,8 +382,10 @@ export async function genSentencesAuto(groqKey: string, lang: LangCode, level: C
       if (out.length >= count) break;
     }
   }
-  if (!out.length) throw new Error('ai empty items');
-  return { items: out, engine: 'free' };
+  } catch { /* serbest motor patladı — şablon motora düş */ }
+  if (out.length >= 4) return { items: out, engine: 'free' };
+  // Serbest motor yetersiz kaldı — otomatik şablon motora düş (asla boş dönmez)
+  return templateSentences(lang, level, count);
 }
 
 /** Anahtar varsa Groq hakem, yoksa ücretsiz hakem. Başarısızlıkta hata fırlatır (çağıran yerele düşer). */

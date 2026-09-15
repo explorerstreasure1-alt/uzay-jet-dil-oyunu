@@ -12,7 +12,7 @@ import { audio } from '../lib/audio';
 import { hasEmbeddedGroqKey } from '../lib/groq';
 
 /** Canlıda hangi derlemenin koştuğunu ayırt etme etiketi — her sürümde yükseltilir. */
-const BUILD_TAG = '2026-09-15-02';
+const BUILD_TAG = '2026-09-15-03';
 
 const btn = (color: string, strong = false): React.CSSProperties => ({
   background: strong ? `linear-gradient(135deg, ${color}38, ${color}18)` : 'rgba(255,255,255,0.045)',
@@ -1003,7 +1003,7 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
         <div className="font-mono-tech text-[7px] mt-1.5" style={{ color: '#00ffa3' }}>
           {(api.settings.groqKey ?? '') !== '' || hasEmbeddedGroqKey()
             ? '● AI AKTİF (Groq) — cümle + hakem'
-            : '● AI HAZIR (ücretsiz motor) — anahtar gerekmez'}
+            : '● AI HAZIR (otomatik motor) — anahtar gerekmez'}
         </div>
         <div className="font-mono-tech text-[7px] text-white/25 mt-1">derleme: {BUILD_TAG}</div>
       </div>
