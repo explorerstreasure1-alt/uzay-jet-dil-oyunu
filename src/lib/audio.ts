@@ -85,7 +85,24 @@ class AudioEngine {
     return this.ctx;
   }
 
-  unlock() { this.ensure(); void this.voices(); this.warmTTS(); }
+  unlock() {
+    this.ensure();
+    this.voices();
+    this.preloadVoices();
+    this.warmTTS();
+  }
+
+  /** 7 dilin sesini önden seç — ilk telaffuzda ses arama beklemesi olmasın. */
+  private preloadVoices() {
+    try {
+      for (const l of LANGUAGES) {
+        if (!this.voiceFor.has(l.tts)) {
+          const v = this.bestVoice(l.tts);
+          if (v) this.voiceFor.set(l.tts, v);
+        }
+      }
+    } catch { /* noop */ }
+  }
 
   private pan(v: number): AudioNode | null {
     const ctx = this.ensure(); if (!ctx) return null;
@@ -379,10 +396,13 @@ class AudioEngine {
   private voices(): SpeechSynthesisVoice[] {
     if (typeof window === 'undefined' || !window.speechSynthesis) return [];
     const v = window.speechSynthesis.getVoices();
-    if (v.length) this.cache = v;
-    else if (!this.cache.length) {
+    if (v.length && v.length !== this.cache.length) {
+      this.cache = v;
+      this.voiceFor.clear(); // sesler geç geldiyse eski kötü seçim çöpe
+    } else if (!this.cache.length) {
       window.speechSynthesis.onvoiceschanged = () => {
         this.cache = window.speechSynthesis.getVoices();
+        this.voiceFor.clear();
       };
     }
     return this.cache;
@@ -485,11 +505,13 @@ class AudioEngine {
       this.speakTimer = null;
       try {
         const synth = window.speechSynthesis;
-        synth.cancel();                                  // never queue up a backlog
         const u = new SpeechSynthesisUtterance(text);
         u.lang = tag;
-        if (!this.voiceFor.has(tag)) this.voiceFor.set(tag, this.bestVoice(tag));
-        const v = this.voiceFor.get(tag);
+        let v = this.voiceFor.get(tag) ?? null;
+        if (!v) {
+          v = this.bestVoice(tag);
+          if (v) this.voiceFor.set(tag, v); // null asla önbelleğe girmez — ses geç gelirse tekrar dene
+        }
         if (v) u.voice = v;
         /* Natural conversational pace — short items get a touch more air. */
         const long = text.length > 14;
@@ -500,8 +522,14 @@ class AudioEngine {
         this.duck(0.34, 0.7);
         u.onend = () => this.duck(0.85, 0.25);
         u.onerror = () => this.duck(0.85, 0.25);
-        synth.speak(u);
-        window.setTimeout(() => { try { if (synth.paused) synth.resume(); } catch { /* noop */ } }, 90);
+        synth.cancel(); // never queue up a backlog
+        // Chrome: cancel sonrası anında speak yutulur — 60ms nefes payı
+        window.setTimeout(() => {
+          try {
+            synth.speak(u);
+            window.setTimeout(() => { try { if (synth.paused) synth.resume(); } catch { /* noop */ } }, 90);
+          } catch { /* noop */ }
+        }, 60);
       } catch { /* noop */ }
     };
 
