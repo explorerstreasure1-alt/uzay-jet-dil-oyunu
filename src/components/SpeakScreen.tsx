@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { EngineApi } from '../hooks/useGameEngine';
-import { LANGUAGES, LEVEL_CONFIG, getWords } from '../data/vocabulary';
+import { LANGUAGES, LEVEL_CONFIG } from '../data/vocabulary';
 import type { CEFRLevel, LangCode, VocabWord } from '../data/vocabulary';
 import { store, DEFAULT_SPEAK } from '../lib/storage';
 import type { SpeakProgress } from '../lib/storage';
@@ -20,18 +20,8 @@ const SPEEDS = [
 type SpeedId = typeof SPEEDS[number]['id'];
 const speedRate = (id: SpeedId): number => SPEEDS.find(s => s.id === id)?.rate ?? 1.0;
 
-/** Cümle öncelikli deste: önce çok kelimeliler, yetmezse tekiller. */
-function buildDeck(lang: LangCode, level: CEFRLevel, extra: VocabWord[]): VocabWord[] {
-  const pool = getWords(lang, level, 'all', extra);
-  const sh = (a: VocabWord[]) => [...a].sort(() => Math.random() - 0.5);
-  const multi = sh(pool.filter(w => w.foreign.includes(' ')));
-  const single = sh(pool.filter(w => !w.foreign.includes(' ')));
-  return [...multi, ...single].slice(0, ROUNDS);
-}
-
 type Phase = 'setup' | 'round' | 'done';
 interface Last { score: number; transcript: string; ok: boolean; note: string; }
-type Source = 'bank' | 'ai';
 
 /** Doğru cevapta hedef dilde, A1 sadeliğinde övgü (rastgele biri seslenir). */
 const PRAISE: Record<LangCode, [string, string, string]> = {
@@ -56,8 +46,11 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
   const [last, setLast] = useState<Last | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [boom, setBoom] = useState(false);
-  const [source, setSource] = useState<Source>(() => (api.settings.groqKey ? 'ai' : 'bank'));
+  const source = 'ai' as const;
   const [genMsg, setGenMsg] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiOk, setAiOk] = useState(false);
+  const [generatedAt, setGeneratedAt] = useState<number | null>(null);
   const [praise, setPraise] = useState<string | null>(null);
   const [speed, setSpeed] = useState<SpeedId>(() => {
     try { const v = localStorage.getItem('wi_speak_rate'); return v === 'slow' || v === 'fast' ? v : 'mid'; }
@@ -65,13 +58,14 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
   });
   const groqKey = resolveGroqKey(api.settings.groqKey, viteGroqKey());
 
-  // Bölümde hafif arka plan melodisi; çıkınca susar
+  // Telaffuz bölümünde müzik YOK — sessiz odak. Girince sustur, çıkınca dokunma.
   useEffect(() => {
     try {
       audio.unlock();
-      if (api.settings.music) audio.startMusic('ice');
+      audio.stopMusic();
+      audio.stopSpeech();
     } catch {}
-    return () => { try { audio.stopMusic(); } catch {} };
+    return () => { try { audio.stopMusic(); audio.stopSpeech(); } catch {} };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [results, setResults] = useState<boolean[]>([]);
@@ -85,34 +79,39 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
 
   const start = async () => {
     audio.unlock(); audio.ui();
-    // AI modu: Groq cümle yazar; hata/anahtarsızlıkta oyun havuzuna düş
-    if (source === 'ai' && groqKey) {
-      setGenMsg('AI cümle yazıyor…');
-      try {
-        const items = await genSentences(groqKey, lang, level, ROUNDS);
-        const d: VocabWord[] = items.map((it, i) => ({
-          id: `ai-${lang}-${level}-${Date.now()}-${i}`,
-          foreign: it.foreign, native: it.native, lang, level, category: 'phrase' as const,
-        }));
-        setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setPraise(null); setResults([]);
-        setGenMsg(null);
-        setPhase('round');
-      } catch {
-        // AI düşerse sessizce oyun havuzuna geç (kullanıcı takılmaz)
-        setSource('bank');
-        const d = buildDeck(lang, level, api.customWords);
-        if (!d.length) { setGenMsg(null); return; }
-        setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setPraise(null); setResults([]);
-        setGenMsg(null);
-        setPhase('round');
-      }
+    // DAİMA AI: Groq yazar. Anahtar yoksa ya da üretim başarısızsa BAŞLATMA — havuza düşme yok.
+    if (!groqKey) {
+      setAiError('AI anahtarı yok — Ayarlar → Groq anahtarını yapıştır (gsk_...), sonra tekrar dene. Bu bölüm daima AI ile çalışır.');
+      setAiOk(false);
       return;
     }
-    const d = buildDeck(lang, level, api.customWords);
-    if (!d.length) return;
-    setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setPraise(null); setResults([]);
-    setGenMsg(null);
-    setPhase('round');
+    setAiError(null);
+    setAiOk(false);
+    setGenMsg('AI cümle yazıyor…');
+    try {
+      const items = await genSentences(groqKey, lang, level, ROUNDS);
+      if (!items.length) throw new Error('groq empty items');
+      const d: VocabWord[] = items.map((it, i) => ({
+        id: `ai-${lang}-${level}-${Date.now()}-${i}`,
+        foreign: it.foreign, native: it.native, lang, level, category: 'phrase' as const,
+      }));
+      setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setPraise(null); setResults([]);
+      setGeneratedAt(Date.now());
+      setAiOk(true);
+      setGenMsg(null);
+      setPhase('round');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '';
+      setAiOk(false);
+      setGenMsg(null);
+      setAiError(
+        msg.includes('groq 401') || msg.includes('groq 403')
+          ? 'Anahtar geçersiz (401/403) — Ayarlar → Groq anahtarını kontrol et, tekrar dene.'
+          : msg.includes('Failed to fetch') || msg.includes('Network')
+            ? 'İnternet/Groq erişilemedi — bağlantını kontrol et, tekrar dene.'
+            : 'AI cümle üretemedi — tekrar dene. Sorun sürerse anahtarı kontrol et.'
+      );
+    }
   };
 
   const speak = async () => {
@@ -228,43 +227,31 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
           ))}
         </div>
 
-        <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">SEVİYE</div>
+        <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">SEVİYE · AI ÜRETİR</div>
         <div className="space-y-1.5 mb-3">
           {(['A1', 'A2', 'B1', 'B2', 'C1'] as CEFRLevel[]).map(l => {
             const c = LEVEL_CONFIG[l];
             const on = level === l;
-            const n = getWords(lang, l, 'all', api.customWords).length;
             return (
               <button key={l} onClick={() => { setLevel(l); audio.ui(); }}
                 className="w-full rounded-lg px-3 py-2 flex items-center gap-3 active:scale-[0.98] transition-all"
                 style={{ background: on ? `${c.color}26` : 'rgba(255,255,255,0.045)', border: `1px solid ${on ? c.color : 'rgba(255,255,255,0.14)'}` }}>
                 <span className="font-orbitron text-[15px] font-black w-7" style={{ color: on ? c.color : 'rgba(255,255,255,0.4)' }}>{l}</span>
                 <span className="font-mono-tech text-[9px] text-white/50 flex-1 text-left">{c.label.split('— ')[1]}</span>
-                <span className="font-mono-tech text-[8px] text-white/30">{n} kelime</span>
+                <span className="font-mono-tech text-[8px] text-white/30">🤖 AI</span>
               </button>
             );
           })}
         </div>
 
-        <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">CÜMLE KAYNAĞI</div>
-        <div className="grid grid-cols-2 gap-1.5 mb-1.5">
-          {([['bank', 'OYUN HAVUZU'], ['ai', 'AI CÜMLELER']] as const).map(([k, label]) => {
-            const on = source === k;
-            const c = k === 'ai' ? '#c77dff' : '#00d4ff';
-            return (
-              <button key={k} onClick={() => { setSource(k); audio.ui(); }}
-                className="rounded-lg py-2.5 active:scale-95 transition-all"
-                style={{ background: on ? `${c}26` : 'rgba(255,255,255,0.045)', border: `1px solid ${on ? c : 'rgba(255,255,255,0.14)'}` }}>
-                <span className="font-mono-tech text-[9px] tracking-[0.1em]"
-                  style={{ color: on ? c : 'rgba(255,255,255,0.4)' }}>{label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="font-mono-tech text-[7px] text-white/30 mb-3">
-          {source === 'ai'
-            ? (groqKey ? 'Groq yazar + hakemlik yapar (internet gerekir)' : 'AI için Ayarlar → Groq anahtarı gerekli — şimdilik havuz çalışır')
-            : 'Çevrimdışı oyun kelimeleriyle çalışır'}
+        <div className="rounded-xl px-3 py-2.5 mb-1.5"
+          style={{ background: groqKey ? 'rgba(199,125,255,0.1)' : 'rgba(255,179,0,0.08)', border: `1px solid ${groqKey ? 'rgba(199,125,255,0.4)' : 'rgba(255,179,0,0.4)'}` }}>
+          <div className="font-mono-tech text-[9px] tracking-[0.1em] text-center" style={{ color: groqKey ? '#d9b8ff' : '#ffd166' }}>
+            {groqKey ? `🤖 AI CÜMLE MOTORU AKTİF · ${ROUNDS} cümle yazılır + hakemlik` : '⚠ AI ANAHTARI YOK — bu bölüm daima AI ile çalışır'}
+          </div>
+          <div className="font-mono-tech text-[7px] text-white/30 mt-1 text-center">
+            {groqKey ? 'Groq yazar + hakemlik yapar (internet gerekir) · müziksiz sessiz telaffuz' : 'Ayarlar → Groq anahtarını yapıştır (gsk_...), sonra BAŞLA. Havuz kullanılmaz.'}
+          </div>
         </div>
         <button onClick={() => audio.preview(lang, speedRate(speed))} className="w-full glass rounded-xl py-2.5 mb-3 active:scale-95 transition-transform">
           <span className="font-mono-tech text-[9px] tracking-[0.12em] text-white/60">🔊 SESİ DENE · {audio.voiceName(lang).slice(0, 28)}</span>
@@ -275,24 +262,29 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
             {genMsg}
           </div>
         )}
+        {aiError && (
+          <div className="rounded-lg px-3 py-2 mb-3 font-mono-tech text-[9px] text-center"
+            style={{ background: 'rgba(255,46,99,0.1)', border: '1px solid rgba(255,46,99,0.45)', color: '#ff8fa8' }}>
+            {aiError}
+            <button onClick={start} className="block w-full mt-1.5 rounded-lg py-2 active:scale-95 transition-transform"
+              style={{ background: 'rgba(255,46,99,0.16)', border: '1px solid rgba(255,46,99,0.5)' }}>
+              <span className="font-mono-tech text-[9px] tracking-[0.14em] text-[#ffe3ea]">↻ TEKRAR DENE</span>
+            </button>
+          </div>
+        )}
         {(() => {
-          const pool = getWords(lang, level, 'all', api.customWords).length;
           const prefix = `${lang}:${level}:`;
           const mine = Object.entries(progress.words ?? {}).filter(([k]) => k.startsWith(prefix));
           const learned = mine.filter(([, v]) => v.ok > 0).length;
-          const left = Math.max(0, pool - learned);
           const recent = mine.filter(([, v]) => v.ok > 0).slice(-5).reverse();
           return (
             <div className="glass rounded-xl px-3 py-2.5 mb-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="font-mono-tech text-[8px] tracking-[0.2em] text-white/35">KARNE · {level}</span>
-                <span className="font-mono-tech text-[8px]" style={{ color: '#00ffa3' }}>{learned}/{pool} · {left} kaldı</span>
-              </div>
-              <div className="h-[6px] rounded-full bg-white/10 overflow-hidden mb-1.5">
-                <div className="h-full rounded-full" style={{ width: `${pool ? (learned / pool) * 100 : 0}%`, background: '#00ffa3', boxShadow: '0 0 6px #00ffa3' }} />
+                <span className="font-mono-tech text-[8px] tracking-[0.2em] text-white/35">KARNE · {level} · 🤖 AI</span>
+                <span className="font-mono-tech text-[8px]" style={{ color: '#00ffa3' }}>{learned} doğru cümle</span>
               </div>
               <div className="font-mono-tech text-[8px] text-white/40 text-center">
-                {ROUNDS} cümle · {progress.runs} oturum · %{progress.total ? Math.round((progress.ok / progress.total) * 100) : 0} isabet
+                {ROUNDS} AI cümle · {progress.runs} oturum · %{progress.total ? Math.round((progress.ok / progress.total) * 100) : 0} isabet
               </div>
               {recent.length > 0 && (
                 <div className="mt-1.5 space-y-0.5">
@@ -312,7 +304,7 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
         )}
         <button onClick={start} disabled={genMsg === 'AI cümle yazıyor…'} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform disabled:opacity-60"
           style={{ background: 'linear-gradient(135deg, rgba(0,255,163,0.26), rgba(0,180,120,0.12))', border: '1px solid #00ffa3', boxShadow: '0 0 18px rgba(0,255,163,0.35)' }}>
-          <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#dcfff2]">{genMsg === 'AI cümle yazıyor…' ? '…YAZIYOR' : '🎤 BAŞLA'}</span>
+          <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#dcfff2]">{genMsg === 'AI cümle yazıyor…' ? '…YAZIYOR' : groqKey ? '🎤 BAŞLA · AI YAZAR' : '🔑 ANAHTAR GEREKLİ'}</span>
         </button>
       </Shell>
     );
@@ -324,7 +316,7 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
     return (
       <Shell>
         <div className="text-center pt-6">
-          <div className="font-mono-tech text-[8px] tracking-[0.4em] text-white/35">KONUŞMA TURU BİTTİ</div>
+          <div className="font-mono-tech text-[8px] tracking-[0.4em] text-white/35">KONUŞMA TURU BİTTİ · 🤖 AI ÜRETTİ ✓</div>
           <div className="font-orbitron text-[44px] font-black mt-1"
             style={{ color: pct >= 70 ? '#00ffa3' : pct >= 40 ? '#ffd166' : '#ff8fa8', textShadow: '0 0 18px currentColor' }}>
             %{pct}
@@ -375,8 +367,8 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
     <Shell>
       <BackBtn onClick={onBack} />
       <div className="flex items-center justify-between mb-2">
-        <span className="font-mono-tech text-[8px] tracking-[0.2em] text-white/35">CÜMLE {idx + 1}/{deck.length}</span>
-        <span className="font-mono-tech text-[8px] tracking-[0.14em]" style={{ color: LEVEL_CONFIG[level].color }}>{LANGUAGES.find(l => l.code === lang)?.flag} {level}</span>
+        <span className="font-mono-tech text-[8px] tracking-[0.2em] text-white/35">CÜMLE {idx + 1}/{deck.length} · 🤖 AI</span>
+        <span className="font-mono-tech text-[8px] tracking-[0.14em]" style={{ color: LEVEL_CONFIG[level].color }}>{LANGUAGES.find(l => l.code === lang)?.flag} {level}{aiOk && generatedAt ? ' · ✓' : ''}</span>
       </div>
       <div className="h-[6px] rounded-full bg-white/10 overflow-hidden mb-3">
         <div className="h-full rounded-full transition-all" style={{ width: `${((idx) / deck.length) * 100}%`, background: '#00ffa3', boxShadow: '0 0 8px #00ffa3' }} />

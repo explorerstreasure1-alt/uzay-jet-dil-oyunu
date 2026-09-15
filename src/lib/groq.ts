@@ -95,22 +95,43 @@ function langOk(lang: LangCode, foreign: string): boolean {
   return true;
 }
 
-/** Hedef dilde + seviyede n cümle üret (yabancı + Türkçe). Tutana kadar 1 kez dener. Hata fırlatır. */
+/** Seviyeye göre uzunluk + yapı rehberi — AI kalitesiz/sapık cümle kurmasın. */
+const LEVEL_GUIDE: Record<CEFRLevel, string> = {
+  A1: '4-7 words, only present simple, SVO order, no subordinate clauses, top-500 everyday words (family, food, home, school)',
+  A2: '6-9 words, present + going-to future, one time/place complement, everyday situations (shopping, travel, weather)',
+  B1: '8-12 words, past + future + connectors (because, when, if, but), one coherent scene per sentence',
+  B2: '10-14 words, varied tenses + relative clause or passive allowed, opinions and reasons',
+  C1: '12-16 words, natural complex sentences, idiom-free but native-like, nuanced but clear',
+};
+
+const TOPICS = [
+  'morning routine and breakfast', 'family and friends', 'food and drinks',
+  'school and learning', 'travel and directions', 'weather and seasons',
+  'shopping and prices', 'health and sport', 'home and daily chores',
+  'work and free time', 'city life and transport', 'hobbies and cinema',
+];
+
+/** Hedef dilde + seviyede n cümle üret (yabancı + Türkçe). Tutana kadar 3 kez dener. Hata fırlatır. */
 export async function genSentences(key: string, lang: LangCode, level: CEFRLevel, n: number): Promise<AiSentence[]> {
   if (!key.trim()) throw new Error('no key');
   const L = langName(lang);
   const count = Math.max(1, Math.min(12, n));
+  const guide = LEVEL_GUIDE[level] ?? LEVEL_GUIDE.A1;
   const system =
     `You write short CEFR ${level} ${L} sentences for Turkish speakers learning ${L}. Reply ONLY with JSON, no other text: {"items":[{"foreign":"...","native":"..."}]}. ` +
-    `Rules: EVERY foreign sentence MUST be written in ${L} (never Turkish, never another language); 4-12 words, strictly ${level} level, no quotes inside; ` +
-    `native = its plain Turkish translation. Vary everyday topics.`;
+    `Rules: EVERY foreign sentence MUST be written in ${L} (never Turkish, never another language); ${guide}; ` +
+    `no quotes inside sentences; start with capital letter, end with ./?/!; ` +
+    `each sentence ONE complete meaningful everyday situation (no fragments, no word salad, no repeated sentence patterns); ` +
+    `native = its plain natural Turkish translation (never the same as foreign). Vary everyday topics, no two sentences about the same scene.`;
   const out: AiSentence[] = [];
   const seen = new Set<string>();
-  for (let attempt = 0; attempt < 2 && out.length < count; attempt++) {
+  for (let attempt = 0; attempt < 3 && out.length < count; attempt++) {
+    const need = count - out.length;
+    const topicSlice = [...TOPICS].sort(() => Math.random() - 0.5).slice(0, Math.min(4, need)).join(', ');
     const content = await chat(
       key, GEN_MODEL, system,
-      `Write ${count} sentences.`,
-      25000, 0.8,
+      `Write ${need} NEW ${level} sentences (topics: ${topicSlice}). Do not repeat previous patterns.`,
+      25000, 0.9,
     );
     let items: { foreign?: unknown; native?: unknown }[] = [];
     try {
@@ -121,10 +142,15 @@ export async function genSentences(key: string, lang: LangCode, level: CEFRLevel
       const foreign = typeof it.foreign === 'string' ? it.foreign.trim() : '';
       const native = typeof it.native === 'string' ? it.native.trim() : '';
       const k = foreign.toLowerCase();
-      if (foreign && native && langOk(lang, foreign) && !seen.has(k)) {
-        seen.add(k);
-        out.push({ foreign, native });
-      }
+      if (!foreign || !native) continue;
+      if (foreign.toLowerCase() === native.toLowerCase()) continue;
+      if (native.length > 180) continue;
+      if (!langOk(lang, foreign)) continue;
+      if (seen.has(k)) continue;
+      const wc = foreign.split(/\s+/).filter(Boolean).length;
+      if (wc < 3 || wc > 18) continue;
+      seen.add(k);
+      out.push({ foreign, native });
       if (out.length >= count) break;
     }
   }

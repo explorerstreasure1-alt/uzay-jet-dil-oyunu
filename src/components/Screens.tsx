@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { EngineApi } from '../hooks/useGameEngine';
 import { VW } from '../hooks/useGameEngine';
-import type { GameState, HeatMap, Settings } from '../types/game';
+import type { GameState, Settings } from '../types/game';
 import type { CategoryId, CEFRLevel, LangCode } from '../data/vocabulary';
 import {
   LANGUAGES, LEVEL_CONFIG, CATEGORIES, HEAT_META, getWords, countWords, allWords, WORDS_PER_LANGUAGE, getSeriesCount, getSeriesWords, getSeriesSize,
@@ -1054,7 +1054,7 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
 
       <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">GROQ ANAHTARI (AI KONUŞMA)</div>
       <div className="glass rounded-xl px-3 py-2.5 mb-4">
-        <div className="font-mono-tech text-[7px] text-white/30 mb-1.5">Boşsa AI kapalı — oyun havuzu çalışır. Anahtar bu cihazda durur, repoya gitmez.</div>
+        <div className="font-mono-tech text-[7px] text-white/30 mb-1.5">Konuşma bölümü daima AI ile çalışır — anahtarsız başlamaz. Anahtar bu cihazda durur, repoya gitmez.</div>
         <div className="flex gap-2">
           <input type="password" placeholder="gsk_..." value={api.settings.groqKey ?? ''}
             onChange={e => api.updateSettings({ groqKey: e.target.value.trim() } as never)}
@@ -1069,7 +1069,7 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
           )}
         </div>
         <div className="font-mono-tech text-[7px] mt-1.5" style={{ color: (api.settings.groqKey ?? '') !== '' ? '#00ffa3' : 'rgba(255,255,255,0.3)' }}>
-          {(api.settings.groqKey ?? '') !== '' ? '● AI AKTİF — konuşma bölümünde AI cümle + hakem' : '○ AI KAPALI — anahtarı yapıştır ya da .env dosyasına VITE_GROQ_API_KEY ekle'}
+          {(api.settings.groqKey ?? '') !== '' ? '● AI AKTİF — konuşma bölümünde AI cümle + hakem' : '○ AI EKSİK — konuşma başlamaz, anahtarı yapıştır ya da .env dosyasına VITE_GROQ_API_KEY ekle'}
         </div>
       </div>
 
@@ -1310,7 +1310,18 @@ export function CampaignScreen({ api, onBack, onStart }: { api: EngineApi; onBac
 
 /* ══════════════════ TEACHER PANEL ══════════════════ */
 export function TeacherScreen({ api, onBack }: { api: EngineApi; onBack: ()=>void }) {
-  const [code] = useState(()=> Math.random().toString(36).slice(2,8).toUpperCase());
+  // Sınıf kodu cihazda sabit — her açılışta değişmesin
+  const [code] = useState(() => {
+    try {
+      const prev = localStorage.getItem('wi_class_code');
+      if (prev) return prev;
+      const c = Math.random().toString(36).slice(2, 8).toUpperCase();
+      localStorage.setItem('wi_class_code', c);
+      return c;
+    } catch {
+      return Math.random().toString(36).slice(2, 8).toUpperCase();
+    }
+  });
   const csv = useMemo(()=>{
     const header='dil,seviye,toplamDogru,toplamYanlis,boss,waves,seri';
     const row=`all,all,${api.stats.totalCorrect},${api.stats.totalWrong},${api.stats.bossesKilled},${api.stats.wavesTotal},${api.stats.bestStreak ?? 0}`;
@@ -1332,7 +1343,7 @@ export function TeacherScreen({ api, onBack }: { api: EngineApi; onBack: ()=>voi
         <div className="font-mono-tech text-[7px] text-white/30">Öğrenciler giriş ekranında bu kodu girsin (yakında).</div>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-3">
-        {[['Öğrenci','—','—'],['Ödev','50 kelime','Haftalık']].map(([k,v,s])=>(
+        {[[`TOPLAM DOĞRU`, `${api.stats.totalCorrect}`, 'vuruş'], [`OTURUM`, `${api.stats.sessionsPlayed}`, 'oynanan'], [`KONUŞMA`, `${api.stats.speechCount ?? 0}`, 'bonus'], [`EN İYİ SERİ`, `${api.stats.bestStreak ?? 0}`, 'gün']].map(([k, v, s]) => (
           <div key={k as string} className="glass rounded-lg px-3 py-2">
             <div className="font-mono-tech text-[7px] text-white/30">{k}</div>
             <div className="font-orbitron text-[14px] font-black" style={{color:'#00d4ff'}}>{v as string}</div>
@@ -1349,4 +1360,3 @@ export function TeacherScreen({ api, onBack }: { api: EngineApi; onBack: ()=>voi
 }
 
 export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'daily' | 'leaderboard' | 'campaign' | 'teacher' | 'series' | 'speak';
-export function heatOfUnused(h: HeatMap) { void h; }

@@ -144,7 +144,7 @@ export default function App() {
             {view === 'stats' && <StatsScreen api={api} onBack={() => setView('menu')} />}
             {view === 'settings' && <SettingsScreen api={api} onBack={() => setView('menu')} />}
             {view === 'leaderboard' && <LeaderboardScreen api={api} onBack={() => setView('menu')} />}
-            {view === 'campaign' && <CampaignScreen api={api} onBack={() => setView('menu')} onStart={(lang, lv) => start(lang, lv, 'all', false)} />}
+            {view === 'campaign' && <CampaignScreen api={api} onBack={() => setView('menu')} onStart={(_lang, lv) => start(uiLang, lv, 'all', false)} />}
             {view === 'teacher' && <TeacherScreen api={api} onBack={() => setView('menu')} />}
             {view === 'speak' && <SpeakScreen api={api} initialLang={speakNav?.lang} initialLevel={speakNav?.level} onBack={() => setView('menu')} />}
             {view === 'install' && (

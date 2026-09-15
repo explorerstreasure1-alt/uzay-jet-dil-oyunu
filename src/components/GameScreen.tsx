@@ -729,7 +729,7 @@ export function GameScreen({ api, crt }: { api: EngineApi; crt: boolean }) {
       )}
 
       <Hud s={s} onPause={api.pause} onRepeat={api.toggleRepeat} api={api} />
-      {false && s.micSlowTimer > 0 && (
+      {s.micSlowTimer > 0 && (
         <>
           <div className="absolute inset-0 pointer-events-none z-24" style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(0,255,163,0.08) 0%, transparent 62%)', opacity: 0.7 }} />
           <div className="absolute top-[56px] left-1/2 -translate-x-1/2 z-30 pointer-events-none">
