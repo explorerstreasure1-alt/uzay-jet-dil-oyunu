@@ -1,15 +1,23 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { EngineApi } from '../hooks/useGameEngine';
 import { LANGUAGES, LEVEL_CONFIG, getWords } from '../data/vocabulary';
 import type { CEFRLevel, LangCode, VocabWord } from '../data/vocabulary';
 import { store } from '../lib/storage';
-import { audio } from '../lib/audio';
+import { audio, haptic } from '../lib/audio';
 import { listenOnce, speechSupported } from '../lib/speech';
 import { transliterate } from '../lib/pronounce';
 import { genSentences, judgeSpeaking, resolveGroqKey, viteGroqKey } from '../lib/groq';
 import { BackBtn, Shell } from './Screens';
 
 const ROUNDS = 10;
+
+const SPEEDS = [
+  { id: 'slow', label: '🐢 YAVAŞ', rate: 0.7 },
+  { id: 'mid', label: '▶ ORTA', rate: 1.0 },
+  { id: 'fast', label: '🐇 HIZLI', rate: 1.3 },
+] as const;
+type SpeedId = typeof SPEEDS[number]['id'];
+const speedRate = (id: SpeedId): number => SPEEDS.find(s => s.id === id)?.rate ?? 1.0;
 
 /** Cümle öncelikli deste: önce çok kelimeliler, yetmezse tekiller. */
 function buildDeck(lang: LangCode, level: CEFRLevel, extra: VocabWord[]): VocabWord[] {
@@ -36,9 +44,18 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
   const [boom, setBoom] = useState(false);
   const [source, setSource] = useState<Source>(() => (api.settings.groqKey ? 'ai' : 'bank'));
   const [genMsg, setGenMsg] = useState<string | null>(null);
+  const [speed, setSpeed] = useState<SpeedId>(() => {
+    try { const v = localStorage.getItem('wi_speak_rate'); return v === 'slow' || v === 'fast' ? v : 'mid'; }
+    catch { return 'mid'; }
+  });
   const groqKey = resolveGroqKey(api.settings.groqKey, viteGroqKey());
   const [results, setResults] = useState<boolean[]>([]);
   const supported = useMemo(() => speechSupported(), []);
+  // İşletim sistemi azaltılmış hareket isterse düşme animasyonu yok → otomatik kaçırma da yok
+  const staticFall = useMemo(() => {
+    try { return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches; }
+    catch { return false; }
+  }, []);
   const progress = useMemo(() => { try { return store.loadSpeak(); } catch { return { runs: 0, ok: 0, total: 0, best: {} as Record<string, number> }; } }, [phase]);
 
   const start = async () => {
@@ -89,11 +106,15 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
       } catch { /* yerel puana düş */ }
     }
     if (ok) {
+      // canavar patlaması + ödül + yeşil parlama (anlam kartı zaten yeşil glow'lu)
+      audio.explode(false);
       audio.correct();
+      haptic('hit', api.settings.haptics);
       setBoom(true);
       window.setTimeout(() => setBoom(false), 850);
     } else {
       audio.wrong();
+      haptic('miss', api.settings.haptics);
     }
     setLast({ score, transcript: res.transcript, ok, note });
   };
@@ -120,6 +141,27 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
       audio.ui();
     }
   };
+
+  /** Seçili hızda seslendir (genel oyun hızını değiştirmez). */
+  const playForeign = (w: VocabWord) => {
+    audio.unlock();
+    audio.speakAt(w.foreign, lang, speedRate(speed));
+  };
+
+  const pickSpeed = (id: SpeedId) => {
+    setSpeed(id);
+    try { localStorage.setItem('wi_speak_rate', id); } catch {}
+    audio.ui();
+  };
+
+  // Tur açılınca (ve tekrarda) önce uygulama okur, sonra kullanıcı söyler
+  const roundWord = phase === 'round' ? (deck[idx] ?? null) : null;
+  useEffect(() => {
+    if (phase !== 'round' || !roundWord || last || listening) return;
+    const t = window.setTimeout(() => playForeign(roundWord), 250);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, idx, attempt, deck, last, listening, lang, speed]);
 
   if (phase === 'setup') {
     return (
@@ -235,7 +277,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
   const missed = () => {
     if (!last && !listening) {
       audio.wrong();
-      setLast({ score: 0, transcript: '', ok: false });
+      setLast({ score: 0, transcript: '', ok: false, note: '' });
     }
   };
   const retry = () => {
@@ -255,7 +297,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
       </div>
 
       {(!last || !last.ok) && (
-        <div key={`${idx}-${attempt}`} className="speak-fall" onAnimationEnd={missed}>
+        <div key={`${idx}-${attempt}`} className={staticFall ? undefined : 'speak-fall'} onAnimationEnd={staticFall ? undefined : missed}>
           <div className="glass rounded-2xl px-4 py-5 mb-2 text-center"
             style={{ border: '1px solid rgba(0,212,255,0.35)', boxShadow: '0 0 22px rgba(0,212,255,0.25)' }}>
             <div className="font-mono-tech text-[7px] tracking-[0.24em] text-white/30 mb-2">OKU VE SESLENDİR</div>
@@ -267,9 +309,19 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
       )}
 
       {boom && (
-        <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center">
-          <div className="absolute inset-0 speak-flash" style={{ background: 'radial-gradient(circle, rgba(0,255,163,0.55), transparent 70%)' }} />
-          <div className="font-orbitron text-[64px] font-black speak-boom" style={{ color: '#00ffa3', textShadow: '0 0 30px #00ffa3' }}>💥</div>
+        <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 speak-flash" style={{ background: 'radial-gradient(circle, rgba(0,255,163,0.5), transparent 70%)' }} />
+          {[0, 1, 2].map(i => (
+            <div key={i} className="absolute rounded-full speak-ring"
+              style={{
+                width: 240, height: 240,
+                border: `2px solid ${i === 1 ? '#8be9ff' : '#00ffa3'}`,
+                boxShadow: `0 0 22px ${i === 1 ? '#8be9ff88' : '#00ffa388'}, inset 0 0 18px rgba(0,255,163,0.25)`,
+                animationDelay: `${i * 0.16}s`,
+              }} />
+          ))}
+          <div className="absolute rounded-full speak-ring"
+            style={{ width: 120, height: 120, background: 'rgba(0,255,163,0.22)', animationDelay: '0.05s' }} />
         </div>
       )}
 
@@ -307,9 +359,20 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
                 {listening ? '● DİNLİYOR…' : '🎤 SÖYLE'}
               </span>
             </button>
-            <button onClick={() => { audio.speak(w.foreign, lang); }} className="w-full glass rounded-xl py-2.5 active:scale-95 transition-transform">
-              <span className="font-mono-tech text-[10px] tracking-[0.14em] text-white/60">🔊 DİNLE</span>
-            </button>
+            <div className="flex gap-2">
+              <button onClick={() => playForeign(w)} disabled={listening} className="flex-[1.4] glass rounded-xl py-2.5 active:scale-95 transition-transform disabled:opacity-50">
+                <span className="font-mono-tech text-[10px] tracking-[0.14em] text-white/60">🔊 DİNLE</span>
+              </button>
+              {SPEEDS.map(s => {
+                const on = speed === s.id;
+                return (
+                  <button key={s.id} onClick={() => pickSpeed(s.id)} className="flex-1 rounded-xl py-2.5 active:scale-95 transition-transform"
+                    style={{ background: on ? 'rgba(0,212,255,0.18)' : 'rgba(255,255,255,0.045)', border: `1px solid ${on ? '#00d4ff' : 'rgba(255,255,255,0.14)'}` }}>
+                    <span className="font-mono-tech text-[8px] tracking-[0.08em]" style={{ color: on ? '#8be9ff' : 'rgba(255,255,255,0.4)' }}>{s.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </>
         ) : last.ok ? (
           <button onClick={next} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform"

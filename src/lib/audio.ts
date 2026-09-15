@@ -476,6 +476,36 @@ class AudioEngine {
 
   setRate(r: number) { this.ttsRate = r; }
 
+  /** Tek seferlik hızla seslendir — genel ttsRate değişmez (konuşma bölümü hız seçimi). */
+  speakAt(text: string, lang: LangCode, rate: number) {
+    const prev = this.ttsRate;
+    this.ttsRate = Math.max(0.6, Math.min(1.4, rate));
+    try {
+      this.hush(true);
+      this.speak(text, lang);
+      // konuşma bitince müziği geri aç (uzunluğa göre tahmin)
+      const ms = 1200 + text.length * (110 / this.ttsRate);
+      if (typeof window !== 'undefined') window.setTimeout(() => this.hush(false), ms);
+      else this.hush(false);
+    } finally {
+      this.ttsRate = prev;
+    }
+  }
+
+  /** Derin sessizlik: TTS okurken müziği neredeyse kapat, sonra geri aç. */
+  hush(on: boolean) {
+    try {
+      const ctx = this.ctx;
+      if (!ctx || !this.music) return;
+      const t = ctx.currentTime;
+      if (on) {
+        this.music.gain.setTargetAtTime(0.02, t, 0.2);
+      } else {
+        this.music.gain.setTargetAtTime(this.musicOn ? this.bgmVol * 1.15 : 0, t, 0.4);
+      }
+    } catch { /* noop */ }
+  }
+
   stopSpeech() {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
     if (this.speakTimer !== null) { window.clearTimeout(this.speakTimer); this.speakTimer = null; }
