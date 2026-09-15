@@ -1048,6 +1048,27 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
         <div className="font-mono-tech text-[7px] text-white/30 mt-1">Sabit 2 — değiştirelemez, hafif arka plan.</div>
       </div>
 
+      <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">GROQ ANAHTARI (AI KONUŞMA)</div>
+      <div className="glass rounded-xl px-3 py-2.5 mb-4">
+        <div className="font-mono-tech text-[7px] text-white/30 mb-1.5">Boşsa AI kapalı — oyun havuzu çalışır. Anahtar bu cihazda durur, repoya gitmez.</div>
+        <div className="flex gap-2">
+          <input type="password" placeholder="gsk_..." value={api.settings.groqKey ?? ''}
+            onChange={e => api.updateSettings({ groqKey: e.target.value.trim() } as never)}
+            className="flex-1 min-w-0 rounded-lg px-2.5 py-2 font-mono-tech text-[11px] text-white/80 placeholder:text-white/25 outline-none"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)' }}
+            autoComplete="off" spellCheck={false} />
+          {(api.settings.groqKey ?? '') !== '' && (
+            <button onClick={() => { api.updateSettings({ groqKey: '' } as never); audio.ui(); }}
+              className="rounded-lg px-2.5 py-2 active:scale-95 transition-transform glass shrink-0">
+              <span className="font-mono-tech text-[9px] tracking-[0.1em] text-white/55">SİL</span>
+            </button>
+          )}
+        </div>
+        <div className="font-mono-tech text-[7px] mt-1.5" style={{ color: (api.settings.groqKey ?? '') !== '' ? '#00ffa3' : 'rgba(255,255,255,0.3)' }}>
+          {(api.settings.groqKey ?? '') !== '' ? '● AI AKTİF — konuşma bölümünde AI cümle + hakem' : '○ AI KAPALI — anahtarı yapıştır ya da .env dosyasına VITE_GROQ_API_KEY ekle'}
+        </div>
+      </div>
+
       <div className="space-y-1.5 mb-4">
         {rows.map(([k, label, sub]) => {
           const on = Boolean(api.settings[k]);

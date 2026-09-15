@@ -164,6 +164,8 @@ export interface Settings {
   dyslexia: boolean;
   eyeCare: boolean;
   eyeCareIntensity: number;
+  /** Groq API anahtarı (AI cümle + hakem) — boşsa AI kapalı, localStorage'da durur */
+  groqKey: string;
 }
 
 export interface HitCard {

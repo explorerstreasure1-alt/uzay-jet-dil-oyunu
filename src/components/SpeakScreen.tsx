@@ -5,6 +5,8 @@ import type { CEFRLevel, LangCode, VocabWord } from '../data/vocabulary';
 import { store } from '../lib/storage';
 import { audio } from '../lib/audio';
 import { listenOnce, speechSupported } from '../lib/speech';
+import { transliterate } from '../lib/pronounce';
+import { genSentences, judgeSpeaking, resolveGroqKey, viteGroqKey } from '../lib/groq';
 import { BackBtn, Shell } from './Screens';
 
 const ROUNDS = 10;
@@ -19,7 +21,8 @@ function buildDeck(lang: LangCode, level: CEFRLevel, extra: VocabWord[]): VocabW
 }
 
 type Phase = 'setup' | 'round' | 'done';
-interface Last { score: number; transcript: string; ok: boolean; }
+interface Last { score: number; transcript: string; ok: boolean; note: string; }
+type Source = 'bank' | 'ai';
 
 export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => void }) {
   const [lang, setLang] = useState<LangCode>('en');
@@ -29,16 +32,44 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
   const [idx, setIdx] = useState(0);
   const [listening, setListening] = useState(false);
   const [last, setLast] = useState<Last | null>(null);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [boom, setBoom] = useState(false);
+  const [source, setSource] = useState<Source>(() => (api.settings.groqKey ? 'ai' : 'bank'));
+  const [genMsg, setGenMsg] = useState<string | null>(null);
+  const groqKey = resolveGroqKey(api.settings.groqKey, viteGroqKey());
   const [results, setResults] = useState<boolean[]>([]);
   const supported = useMemo(() => speechSupported(), []);
   const progress = useMemo(() => { try { return store.loadSpeak(); } catch { return { runs: 0, ok: 0, total: 0, best: {} as Record<string, number> }; } }, [phase]);
 
-  const start = () => {
+  const start = async () => {
+    audio.unlock(); audio.ui();
+    // AI modu: Groq cümle yazar; hata/anahtarsızlıkta oyun havuzuna düş
+    if (source === 'ai' && groqKey) {
+      setGenMsg('AI cümle yazıyor…');
+      try {
+        const items = await genSentences(groqKey, lang, level, ROUNDS);
+        const d: VocabWord[] = items.map((it, i) => ({
+          id: `ai-${lang}-${level}-${Date.now()}-${i}`,
+          foreign: it.foreign, native: it.native, lang, level, category: 'phrase' as const,
+        }));
+        setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setResults([]);
+        setGenMsg(null);
+        setPhase('round');
+      } catch {
+        // AI düşerse sessizce oyun havuzuna geç (kullanıcı takılmaz)
+        setSource('bank');
+        const d = buildDeck(lang, level, api.customWords);
+        if (!d.length) { setGenMsg(null); return; }
+        setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setResults([]);
+        setGenMsg(null);
+        setPhase('round');
+      }
+      return;
+    }
     const d = buildDeck(lang, level, api.customWords);
     if (!d.length) return;
-    audio.unlock(); audio.ui();
-    setDeck(d); setIdx(0); setLast(null); setShowAnswer(false); setResults([]);
+    setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setResults([]);
+    setGenMsg(null);
     setPhase('round');
   };
 
@@ -49,8 +80,22 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
     setListening(true); setLast(null);
     const res = await listenOnce(lang, w.foreign, 10000);
     setListening(false);
-    if (res.ok) audio.correct(); else audio.wrong();
-    setLast({ score: res.score, transcript: res.transcript, ok: res.ok });
+    // AI hakem: anahtar + AI turu + duyulan metin varsa Groq karar verir, yoksa yerel puan
+    let score = res.score, ok = res.ok, note = '';
+    if (source === 'ai' && groqKey && res.transcript.trim()) {
+      try {
+        const j = await judgeSpeaking(groqKey, lang, w.foreign, res.transcript);
+        score = j.score / 100; ok = j.ok; note = j.note;
+      } catch { /* yerel puana düş */ }
+    }
+    if (ok) {
+      audio.correct();
+      setBoom(true);
+      window.setTimeout(() => setBoom(false), 850);
+    } else {
+      audio.wrong();
+    }
+    setLast({ score, transcript: res.transcript, ok, note });
   };
 
   const next = () => {
@@ -71,7 +116,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
       audio.levelUp();
       setPhase('done');
     } else {
-      setIdx(idx + 1); setLast(null); setShowAnswer(false);
+      setIdx(idx + 1); setLast(null); setAttempt(0);
       audio.ui();
     }
   };
@@ -81,7 +126,7 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
       <Shell>
         <BackBtn onClick={onBack} />
         <div className="font-orbitron text-[20px] font-black tracking-[0.14em] text-white/90 mb-1">🎤 KONUŞMA</div>
-        <div className="font-mono-tech text-[8px] text-white/35 mb-3">Türkçeyi oku → hedef dilde sesli söyle → puanla. A1'den C1'e.</div>
+        <div className="font-mono-tech text-[8px] text-white/35 mb-3">Yabancı cümleyi oku → sesli söyle → patlat, anlamı gör. A1'den C1'e.</div>
 
         <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">DİL</div>
         <div className="flex gap-1.5 mb-3">
@@ -113,6 +158,32 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
           })}
         </div>
 
+        <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">CÜMLE KAYNAĞI</div>
+        <div className="grid grid-cols-2 gap-1.5 mb-1.5">
+          {([['bank', 'OYUN HAVUZU'], ['ai', 'AI CÜMLELER']] as const).map(([k, label]) => {
+            const on = source === k;
+            const c = k === 'ai' ? '#c77dff' : '#00d4ff';
+            return (
+              <button key={k} onClick={() => { setSource(k); audio.ui(); }}
+                className="rounded-lg py-2.5 active:scale-95 transition-all"
+                style={{ background: on ? `${c}26` : 'rgba(255,255,255,0.045)', border: `1px solid ${on ? c : 'rgba(255,255,255,0.14)'}` }}>
+                <span className="font-mono-tech text-[9px] tracking-[0.1em]"
+                  style={{ color: on ? c : 'rgba(255,255,255,0.4)' }}>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="font-mono-tech text-[7px] text-white/30 mb-3">
+          {source === 'ai'
+            ? (groqKey ? 'Groq yazar + hakemlik yapar (internet gerekir)' : 'AI için Ayarlar → Groq anahtarı gerekli — şimdilik havuz çalışır')
+            : 'Çevrimdışı oyun kelimeleriyle çalışır'}
+        </div>
+        {genMsg && (
+          <div className="rounded-lg px-3 py-2 mb-3 font-mono-tech text-[9px] text-center"
+            style={{ background: 'rgba(199,125,255,0.1)', border: '1px solid rgba(199,125,255,0.4)', color: '#d9b8ff' }}>
+            {genMsg}
+          </div>
+        )}
         <div className="glass rounded-xl px-3 py-2.5 mb-3">
           <div className="font-mono-tech text-[8px] text-white/40 text-center">
             {ROUNDS} cümle · {progress.runs} oturum · %{progress.total ? Math.round((progress.ok / progress.total) * 100) : 0} isabet
@@ -124,9 +195,9 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
             Bu tarayıcı konuşma tanımıyor — Chrome/Edge ile aç. Dinleme yine çalışır.
           </div>
         )}
-        <button onClick={start} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform"
+        <button onClick={start} disabled={genMsg === 'AI cümle yazıyor…'} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform disabled:opacity-60"
           style={{ background: 'linear-gradient(135deg, rgba(0,255,163,0.26), rgba(0,180,120,0.12))', border: '1px solid #00ffa3', boxShadow: '0 0 18px rgba(0,255,163,0.35)' }}>
-          <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#dcfff2]">🎤 BAŞLA</span>
+          <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#dcfff2]">{genMsg === 'AI cümle yazıyor…' ? '…YAZIYOR' : '🎤 BAŞLA'}</span>
         </button>
       </Shell>
     );
@@ -160,6 +231,18 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
 
   const w = deck[idx];
   if (!w) return <Shell><BackBtn onClick={onBack} /></Shell>;
+  const reading = transliterate(lang, w.foreign);
+  const missed = () => {
+    if (!last && !listening) {
+      audio.wrong();
+      setLast({ score: 0, transcript: '', ok: false });
+    }
+  };
+  const retry = () => {
+    audio.ui();
+    setLast(null);
+    setAttempt(a => a + 1);
+  };
   return (
     <Shell>
       <BackBtn onClick={onBack} />
@@ -171,21 +254,46 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
         <div className="h-full rounded-full transition-all" style={{ width: `${((idx) / deck.length) * 100}%`, background: '#00ffa3', boxShadow: '0 0 8px #00ffa3' }} />
       </div>
 
-      <div className="glass rounded-2xl px-4 py-5 mb-3 text-center">
-        <div className="font-mono-tech text-[7px] tracking-[0.24em] text-white/30 mb-2">TÜRKÇESİNİ SÖYLE</div>
-        <div className="font-orbitron text-[20px] font-black text-[#e6faff] leading-snug">{w.native}</div>
-        {showAnswer && (
-          <div className="font-mono-tech text-[13px] mt-2" style={{ color: '#8be9ff' }}>{w.foreign}</div>
-        )}
-      </div>
-
-      {last && (
-        <div className="rounded-xl px-3 py-2.5 mb-3 text-center"
-          style={{ background: last.ok ? 'rgba(0,255,163,0.1)' : 'rgba(255,46,99,0.1)', border: `1px solid ${last.ok ? 'rgba(0,255,163,0.45)' : 'rgba(255,46,99,0.45)'}` }}>
-          <div className="font-orbitron text-[18px] font-black" style={{ color: last.ok ? '#00ffa3' : '#ff8fa8' }}>
-            {last.ok ? '✓' : '✕'} %{Math.round(last.score * 100)}
+      {(!last || !last.ok) && (
+        <div key={`${idx}-${attempt}`} className="speak-fall" onAnimationEnd={missed}>
+          <div className="glass rounded-2xl px-4 py-5 mb-2 text-center"
+            style={{ border: '1px solid rgba(0,212,255,0.35)', boxShadow: '0 0 22px rgba(0,212,255,0.25)' }}>
+            <div className="font-mono-tech text-[7px] tracking-[0.24em] text-white/30 mb-2">OKU VE SESLENDİR</div>
+            <div className="font-orbitron text-[19px] font-black text-[#e6faff] leading-snug">{w.foreign}</div>
+            <div className="font-mono-tech text-[13px] mt-2" style={{ color: '#ffd166' }}>{reading}</div>
+            <div className="font-mono-tech text-[6px] tracking-[0.2em] text-white/25 mt-1">YAKLAŞIK OKUNUŞ</div>
           </div>
-          {last.transcript && <div className="font-mono-tech text-[9px] text-white/50 mt-0.5">“{last.transcript}”</div>}
+        </div>
+      )}
+
+      {boom && (
+        <div className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center">
+          <div className="absolute inset-0 speak-flash" style={{ background: 'radial-gradient(circle, rgba(0,255,163,0.55), transparent 70%)' }} />
+          <div className="font-orbitron text-[64px] font-black speak-boom" style={{ color: '#00ffa3', textShadow: '0 0 30px #00ffa3' }}>💥</div>
+        </div>
+      )}
+
+      {last?.ok && !boom && (
+        <div className="glass rounded-2xl px-4 py-4 mb-3 text-center"
+          style={{ border: '1px solid #00ffa3', boxShadow: '0 0 22px rgba(0,255,163,0.35)' }}>
+          <div className="font-orbitron text-[18px] font-black" style={{ color: '#00ffa3', textShadow: '0 0 12px #00ffa3' }}>
+            ✓ %{Math.round(last.score * 100)} PATLADI!
+          </div>
+          <div className="font-mono-tech text-[9px] text-white/45 mt-1">{w.foreign}</div>
+          <div className="font-orbitron text-[20px] font-black text-[#e6faff] mt-1">= {w.native} =</div>
+          {last.note && <div className="font-mono-tech text-[8px] mt-1.5" style={{ color: '#c77dff' }}>🤖 {last.note}</div>}
+        </div>
+      )}
+
+      {last && !last.ok && (
+        <div className="rounded-xl px-3 py-2.5 mb-3 text-center"
+          style={{ background: 'rgba(255,46,99,0.1)', border: '1px solid rgba(255,46,99,0.45)' }}>
+          <div className="font-orbitron text-[16px] font-black" style={{ color: '#ff8fa8' }}>
+            {last.transcript ? `✕ %{Math.round(last.score * 100)}` : '✕ KAÇTI!'}
+          </div>
+          <div className="font-mono-tech text-[9px] text-white/50 mt-0.5">
+            {last.transcript ? `“${last.transcript}” — tekrar dene` : 'cümle tabana ulaştı — tekrar dene ya da geç'}
+          </div>
         </div>
       )}
 
@@ -199,22 +307,27 @@ export function SpeakScreen({ api, onBack }: { api: EngineApi; onBack: () => voi
                 {listening ? '● DİNLİYOR…' : '🎤 SÖYLE'}
               </span>
             </button>
-            <div className="flex gap-2">
-              <button onClick={() => { audio.speak(w.foreign, lang); }} className="flex-1 glass rounded-xl py-2.5 active:scale-95 transition-transform">
-                <span className="font-mono-tech text-[10px] tracking-[0.14em] text-white/60">🔊 DİNLE</span>
-              </button>
-              <button onClick={() => setShowAnswer(v => !v)} className="flex-1 glass rounded-xl py-2.5 active:scale-95 transition-transform">
-                <span className="font-mono-tech text-[10px] tracking-[0.14em] text-white/60">{showAnswer ? 'CEVABI GİZLE' : 'CEVABI GÖR'}</span>
-              </button>
-            </div>
+            <button onClick={() => { audio.speak(w.foreign, lang); }} className="w-full glass rounded-xl py-2.5 active:scale-95 transition-transform">
+              <span className="font-mono-tech text-[10px] tracking-[0.14em] text-white/60">🔊 DİNLE</span>
+            </button>
           </>
-        ) : (
+        ) : last.ok ? (
           <button onClick={next} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform"
             style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,102,255,0.16))', border: '1px solid #00d4ff', boxShadow: '0 0 18px rgba(0,212,255,0.4)' }}>
             <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#e6faff]">
               {idx + 1 >= deck.length ? 'SONUCU GÖR ▶' : 'SONRAKİ ▶'}
             </span>
           </button>
+        ) : (
+          <div className="flex gap-2">
+            <button onClick={retry} className="flex-1 rounded-xl py-3 active:scale-95 transition-transform"
+              style={{ background: 'rgba(255,179,0,0.14)', border: '1px solid #ffb300' }}>
+              <span className="font-mono-tech text-[10px] tracking-[0.14em] text-[#ffd166]">↻ TEKRAR DENE</span>
+            </button>
+            <button onClick={next} className="flex-1 glass rounded-xl py-3 active:scale-95 transition-transform">
+              <span className="font-mono-tech text-[10px] tracking-[0.14em] text-white/55">PAS GEÇ ▶</span>
+            </button>
+          </div>
         )}
       </div>
     </Shell>

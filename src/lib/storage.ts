@@ -28,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   crt: false, music: true, sfx: true, tts: true, haptics: true, leftHanded: false,
   difficulty: 'normal', assist: 'always', echo: true, ttsRate: 1.1, bgmVolume: 0.02,
   fontScale: 1, highContrast: false, reduceMotion: false, dyslexia: false, eyeCare: false, eyeCareIntensity: 70,
+  groqKey: '',
 };
 export const DEFAULT_STATS: RunStats = {
   highScores: {}, totalCorrect: 0, totalWrong: 0, wavesTotal: 0, bossesKilled: 0, sessionsPlayed: 0,
