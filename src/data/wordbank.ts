@@ -973,7 +973,7 @@ const DATA: Record<LangCode, { N: Noun[]; A: Adj[]; V: Verb[]; P: string }> = {
   de: { N: [...N_DE, ...nouns((EXT_N as any).de ?? '')], A: [...A_DE, ...adjs((EXT_A as any).de ?? '')], V: [...V_DE, ...verbs((EXT_V as any).de ?? '')], P: P_DE + ((EXT_P as any).de ?? '') },
 };
 
-export const WORDS_PER_LANGUAGE = 7500;
+export const WORDS_PER_LANGUAGE = 11500;
 const TARGET = WORDS_PER_LANGUAGE;
 const cache = new Map<LangCode, Entry[]>();
 

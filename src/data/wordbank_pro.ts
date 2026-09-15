@@ -5,8 +5,8 @@
    Formatlar wordbank.ts ile aynı: N → nouns(), A/P → adjs(), V → verbs().
    P satırları `f=n|lv` biçimindedir (adjs ayrıştırıcısı seviyeyi korur).
    ──────────────────────────────────────────────────────────────────────
-   Hedef: dil başına 7500 ( honest ). Bölüm 13 tekil + çekim + şablon +
-   çapraz kollokasyon üretir; TARGET dilimi fazlayı keser.
+    Hedef: dil başına 11500 ( honest ). Bölüm 13 tekil + çekim + şablon +
+    çapraz kollokasyon üretir; TARGET dilimi fazlayı keser.
    ══════════════════════════════════════════════════════════════════════ */
 
 import type { LangCode } from './wordbank';
@@ -128,6 +128,40 @@ nostalgia=nostalji:n|B2|emotion; boredom=can sıkıntısı:n|B1|emotion; anxiety
 despair=umutsuzluk:n|B2|emotion; serenity=huzur:n|B2|emotion; sympathy=sempati:n|B1|emotion; empathy=empati:n|B2|emotion;
 compassion=merhamet:n|B1|emotion; kindness=iyilik:n|A2|emotion; generosity=cömertlik:n|B1|emotion; honesty=dürüstlük:n|B1|emotion;
 loyalty=sadakat:n|B1|emotion; betrayal=ihanet:n|B2|emotion; grudge=kin:n|B2|emotion; mood=ruh hali:n|B1|emotion;
+hypothesis=hipotez:n|C1|business; theory=teori:n|B2|business; phenomenon=olgu:n|C1|business; paradigm=paradigma:n|C1|business;
+concept=kavram:n|B2|business; notion=anlayış:n|B2|business; framework=çerçeve:n|B2|business; methodology=yöntembilim:n|C1|business;
+method=yöntem:n|B2|business; analysis=analiz:n|B2|business; synthesis=sentez:n|C1|business; data=veri:n|B2|business;
+evidence=kanıt:n|B2|business; sample=örneklem:n|B2|business; variable=değişken:n|B2|business; correlation=bağıntı:n|C1|business;
+causation=nedensellik:n|C1|business; bias=yanlılık:n|B2|business; assumption=varsayım:n|B2|business; premise=öncül:n|C1|business;
+conclusion=sonuç:n|B2|business; inference=çıkarım:n|C1|business; deduction=tümdengelim:n|C1|business; induction=tümevarım:n|C1|business;
+thesis=tez:n|B2|business; dissertation=doktora tezi:n|C1|business; publication=yayın:n|B2|business; citation=alıntı:n|B2|business;
+bibliography=kaynakça:n|B2|business; appendix=ek:n|B2|business; abstract=özet:n|B2|business; critique=eleştiri:n|B2|business;
+perspective=bakış açısı:n|B2|business; standpoint=görüş noktası:n|B2|business; discourse=söylem:n|C1|business; narrative=anlatı:n|B2|business;
+context=bağlam:n|B2|business; subtext=alt metin:n|C1|business; irony=ironi:n|B2|business; paradox=paradoks:n|C1|business;
+dichotomy=ikilik:n|C1|business; spectrum=yelpaze:n|C1|business; hierarchy=hiyerarşi:n|B2|business; structure=yapı:n|B2|business;
+function=işlev:n|B2|business; system=sistem:n|B2|business; model=model:n|B2|business; prototype=prototip:n|B2|business;
+archetype=arketip:n|C1|business; trend=eğilim:n|B2|business; tendency=yönelim:n|B2|business; pattern=örüntü:n|B2|business;
+anomaly=aykırılık:n|C1|business; norm=norm:n|B2|business; criterion=ölçüt:n|C1|business; observation=gözlem:n|B2|business;
+experiment=deney:n|B2|business; survey=anket:n|B2|business; questionnaire=anket formu:n|B2|business; statistic=istatistik:n|B2|business;
+probability=olasılık:n|B2|business; significance=anlamlılık:n|C1|business; deviation=sapma:n|C1|business; average=ortalama:n|B2|business;
+median=ortanca:n|C1|business; range=aralık:n|B2|business; scope=kapsam:n|B2|business; dimension=boyut:n|B2|business;
+aspect=yön:n|B2|business; factor=etken:n|B2|business; element=öge:n|B2|business; component=bileşen:n|B2|business;
+feature=özellik:n|B2|business; characteristic=ayırıcı nitelik:n|B2|business; trait=huy:n|B2|business; property=nitelik:n|B2|business;
+quality=kalite:n|B2|business; quantity=miktar:n|B2|business; magnitude=büyüklük:n|C1|business; intensity=yoğunluk:n|B2|business;
+frequency=sıklık:n|B2|business; duration=süre:n|B2|business; sequence=sıralama:n|B2|business; process=süreç:n|B2|business;
+procedure=prosedür:n|B2|business; protocol=protokol:n|B2|business; guideline=yönerge:n|B2|business; principle=ilke:n|B2|business;
+regulation=düzenleme:n|B2|business; policy=politika:n|B2|business; tactic=taktik:n|B2|business; approach=yaklaşım:n|B2|business;
+technique=teknik:n|B2|business; instrument=aygıt:n|B2|business; mechanism=mekanizma:n|B2|business; philosophy=felsefe:n|B2|business;
+ethics=etik:n|B2|business; aesthetics=estetik:n|C1|business; logic=mantık:n|B2|business; rhetoric=retorik:n|C1|business;
+metaphor=mecaz:n|B2|business; analogy=analoji:n|B2|business; allegory=alegori:n|C1|business; satire=yergi:n|B2|business;
+tragedy=trajedi:n|B2|business; comedy=komedi:n|B2|business; epic=destan:n|B2|business; prose=düzyazı:n|B2|business;
+verse=dize:n|B2|business; stanza=kıta:n|B2|business; paragraph=paragraf:n|B2|business; clause=yan cümlecik:n|B2|business;
+term=terim:n|B2|business; definition=tanım:n|B2|business; reference=referans:n|B2|business; connotation=çağrışım:n|C1|business;
+society=toplum:n|B2|business; culture=kültür:n|B2|business; civilization=uygarlık:n|B2|business; tradition=gelenek:n|B2|business;
+custom=görenek:n|B2|business; ritual=ritüel:n|B2|business; belief=inanış:n|B2|business; ideology=ideoloji:n|B2|business;
+doctrine=öğreti:n|C1|business; reform=reform:n|B2|business; revolution=devrim:n|B2|business; evolution=evrim:n|B2|business;
+progress=ilerleme:n|B2|business; decline=düşüş:n|B2|business; crisis=kriz:n|B2|business; conflict=çatışma:n|B2|business;
+consensus=fikir birliği:n|B2|business; cooperation=iş birliği:n|B2|business;
 `,
     A: `
 hungry=aç|A2; thirsty=susuz|A2; tired=yorgun|A2; sleepy=uykulu|B1; sick=hasta|A2; healthy=sağlıklı|B1;
@@ -156,6 +190,24 @@ notorious=kötü ünlü|C1; renowned=ünlü|C1; mediocre=vasat|C1; lavish=göste
 flawless=hatasız|C1; detrimental=zararlı|C1; beneficial=faydalı|C1; crucial=çok önemli|B2; trivial=önemsiz|B2;
 absurd=saçma|B2; hilarious=çok komik|B2; witty=esprili|B2; sarcastic=iğneleyici|B2; naive=saf|B2;
 stubborn=inatçı|B1; arrogant=kibirli|B2; humble=alçakgönüllü|B2; charismatic=karizmatik|C1; eloquent=etkili konuşan|C1;
+empirical=ampirik|C1; theoretical=kuramsal|C1; hypothetical=varsayımsal|C1; analytical=çözümsel|C1;
+critical=eleştirel|B2; rigorous=tavizsiz|C1; systematic=sistematik|B2; methodical=metodik|B2;
+objective=nesnel|B2; subjective=öznel|B2; impartial=tarafsız|B2; explicit=apaçık|B2;
+implicit=örtük|C1; exhaustive=eksiksiz|C1; comprehensive=kapsamlı|B2; coherent=tutarlı|B2;
+consistent=istikrarlı|B2; contradictory=çelişkili|B2; controversial=tartışmalı|B2; debatable=tartışmaya açık|C1;
+dubious=kuşkulu|C1; plausible=akla yatkın|C1; credible=itibarlı|B2; valid=geçerli|B2;
+invalid=geçersiz|B2; stringent=çok sıkı|C1; drastic=sert (köklü)|C1; radical=radikal|B2;
+moderate=ılımlı|B2; gradual=kademeli|B2; abrupt=ani|B2; spontaneous=kendiliğinden|B2;
+simultaneous=eş zamanlı|B2; chronic=kronik|B2; acute=akut|C1; static=statik|B2;
+dynamic=dinamik|B2; kinetic=kinetik|C1; potential=potansiyel|B2; latent=gizli|C1;
+inherent=yapısal (öz)|C1; intrinsic=içsel|C1; extrinsic=dışsal|C1; tacit=zımni|C1;
+overt=aşikâr|C1; covert=örtülü|C1; obscure=az bilinen|C1; concise=kısa ve öz|B2;
+verbose=sözü uzatan|C1; articulate=tane tane konuşan|B2; fluent=akıcı|B2; seminal=öncü (eser)|C1;
+pivotal=belirleyici|C1; paramount=aşırı önemli|C1; indispensable=vazgeçilmez|C1; inexorable=engellenemez|C1;
+immutable=değişmez|C1; irreversible=geri döndürülemez|C1; irrefutable=çürütülemez|C1; undeniable=yadsınamaz|C1;
+aesthetic=estetik|B2; ethical=ahlaki|B2; moral=erdemli|B2; philosophical=felsefi|B2;
+rhetorical=cevabı beklenmeyen|C1; poetic=şiirsel|B2; lyrical=lirik|B2; dramatic=dramatik|B2;
+tragic=trajik|B2; satirical=hicivli|B2;
 `,
     V: `
 cook=yemek pişirmek>I cook>you cook>I cooked|B1; bake=fırında pişirmek>I bake>you bake>I baked|B1;
@@ -193,6 +245,34 @@ search=aramak>I search>you search>I searched|A2; chase=kovalamak>I chase>you cha
 follow=takip etmek>I follow>you follow>I followed|A2; lead=yol göstermek>I lead>you lead>I led|B1; guide=rehberlik etmek>I guide>you guide>I guided|B1;
 carry=taşımak>I carry>you carry>I carried|A2; transport=taşımak>I transport>you transport>I transported|B1; fix=tamir etmek>I fix>you fix>I fixed|A2;
 repair=tamir etmek>I repair>you repair>I repaired|A2;
+analyze=analiz etmek>I analyze>you analyze>I analyzed|B2; synthesize=sentezlemek>I synthesize>you synthesize>I synthesized|C1;
+hypothesize=hipotez kurmak>I hypothesize>you hypothesize>I hypothesized|C1; theorize=teori üretmek>I theorize>you theorize>I theorized|C1;
+postulate=varsaymak>I postulate>you postulate>I postulated|C1; posit=ileri sürmek>I posit>you posit>I posited|C1;
+deduce=çıkarsamak>I deduce>you deduce>I deduced|C1; infer=sonuç çıkarmak>I infer>you infer>I inferred|B2;
+imply=ima etmek>I imply>you imply>I implied|B2; denote=göstermek>I denote>you denote>I denoted|C1;
+define=tanımlamak>I define>you define>I defined|B2; classify=sınıflandırmak>I classify>you classify>I classified|B2;
+categorize=sınıflara ayırmak>I categorize>you categorize>I categorized|B2; compare=mukayese etmek>I compare>you compare>I compared|B2;
+contrast=karşıt göstermek>I contrast>you contrast>I contrasted|C1; differentiate=farklılaştırmak>I differentiate>you differentiate>I differentiated|C1;
+distinguish=farkını görmek>I distinguish>you distinguish>I distinguished|B2; evaluate=değerlendirmek>I evaluate>you evaluate>I evaluated|B2;
+assess=değer biçmek>I assess>you assess>I assessed|B2; critique=tenkit etmek>I critique>you critique>I critiqued|B2;
+cite=alıntı yapmak>I cite>you cite>I cited|B2; quote=doğrudan aktarmak>I quote>you quote>I quoted|B2;
+reference=kaynak göstermek>I reference>you reference>I referenced|B2; publish=yayımlamak>I publish>you publish>I published|B2;
+edit=redakte etmek>I edit>you edit>I edited|B2; revise=gözden geçirmek>I revise>you revise>I revised|B2;
+draft=taslak hazırlamak>I draft>you draft>I drafted|B2; outline=ana hatlarını çizmek>I outline>you outline>I outlined|B2;
+summarize=özetlemek>I summarize>you summarize>I summarized|B2; paraphrase=yeniden ifade etmek>I paraphrase>you paraphrase>I paraphrased|C1;
+argue=gerekçeyle savunmak>I argue>you argue>I argued|B2; assert=iddia etmek>I assert>you assert>I asserted|B2;
+claim=hak talep etmek>I claim>you claim>I claimed|B2; maintain=görüşünü korumak>I maintain>you maintain>I maintained|B2;
+refute=çürütmek>I refute>you refute>I refuted|C1; concede=kerhen kabul etmek>I concede>you concede>I conceded|C1;
+acknowledge=minnetle anmak>I acknowledge>you acknowledge>I acknowledged|B2; assume=varsaymak>I assume>you assume>I assumed|B2;
+presume=farz etmek>I presume>you presume>I presumed|C1; suppose=sanmak>I suppose>you suppose>I supposed|B2;
+observe=gözlemlemek>I observe>you observe>I observed|B2; calculate=hesaplamak>I calculate>you calculate>I calculated|B2;
+compute=işlemle hesaplamak>I compute>you compute>I computed|B2; estimate=yaklaşık hesaplamak>I estimate>you estimate>I estimated|B2;
+extrapolate=eğilimi uzatarak tahmin>I extrapolate>you extrapolate>I extrapolated|C1; verify=doğrulamak>I verify>you verify>I verified|B2;
+validate=geçerli kılmak>I validate>you validate>I validated|B2; falsify=yanlışlamak>I falsify>you falsify>I falsified|C1;
+replicate=deneyi yinelemek>I replicate>you replicate>I replicated|C1; conduct=yürütmek>I conduct>you conduct>I conducted|B2;
+administer=test uygulamak>I administer>you administer>I administered|B2; compile=derlemek>I compile>you compile>I compiled|B2;
+tabulate=tablolaştırmak>I tabulate>you tabulate>I tabulated|C1; plot=grafiğini çizmek>I plot>you plot>I plotted|B2;
+simulate=simüle etmek>I simulate>you simulate>I simulated|B2; probe=yoklayarak incelemek>I probe>you probe>I probed|C1;
 `,
     P: `
 see you tomorrow=yarın görüşürüz|A2; have a nice day=iyi günler|A2; good luck=iyi şanslar|A2; take care=kendine iyi bak|A2;
@@ -229,6 +309,19 @@ window shopping=vitrin gezmek|B1; return an item=ürün iade etmek|B1; stand in 
 catch the bus=otobüse yetişmek|A2; split the bill=hesabı bölüşmek|B1; leave a tip=bahşiş bırakmak|A2; order takeout=paket sipariş etmek|B1;
 make a reservation=rezervasyon yaptırmak|B1; check in=otel girişi yapmak|A2; check out=otel çıkışı yapmak|A2; extend your stay=konaklamayı uzatmak|B1;
 ask for directions=yol sormak|A2; get lost=kaybolmak|A2; find your way=yolunu bulmak|B1; take a shortcut=kestirmeden gitmek|B1;
+furthermore=ayrıca (resmi dil)|C1; moreover=buna ek olarak|C1; nevertheless=yine de (resmi)|C1; notwithstanding=rağmen (resmi edat)|C1;
+albeit=olsa da (resmi)|C1; whereas=buna karşılık|C1; whereby=aracılığıyla|C1; hereby=işbu belgeyle|C1;
+thereof=bahsi geçenin|C1; herein=bu belgede|C1; hitherto=bugüne kadar|C1; henceforth=bundan böyle|C1;
+consequently=sonuç olarak|B2; subsequently=ardından (süreç)|B2; conversely=tersine|B2; likewise=benzer şekilde|B2;
+namely=yani (şunlar)|B2; in light of=ışığında|B2; with regard to=-e dair|B2; as far as concerned=söz konusu olunca|B2;
+it is worth noting=belirtmeye değer|B2; broadly speaking=genel anlamda|B2; strictly speaking=tam anlamıyla|B2; on the other hand=öte yandan|B2;
+on the contrary=tam tersine|B2; by contrast=buna karşılık|B2; in contrast=kıyasla|B2; in conclusion=sonuç bölümünde|B2;
+to sum up=özetlemek gerekirse|B2; all things considered=her şey göz önüne alınınca|C1; taken together=birlikte ele alınınca|C1; on the whole=bütüne bakınca|B2;
+for the most part=büyük ölçüde|B2; to some extent=bir ölçüde|B2; to a large extent=büyük oranda|B2; at first glance=ilk bakışta|B2;
+on closer inspection=yakından bakınca|C1; in retrospect=geriye dönüp bakınca|C1; per se=bizzat kendisi|C1; vice versa=tam tersi de geçerli|C1;
+de facto=fiilen|C1; de jure=hukuken|C1; ad hoc=özel duruma yönelik|C1; a priori=önsel|C1;
+a posteriori=sonsal|C1; status quo=mevcut durum|C1; prima facie=ilk görünüşte|C1; I take your point=dediğini anlıyorum|B2;
+that begs the question=asıl soruyu doğuruyor|C1; the jury is still out=henüz belli değil|C1;
 `,
   },
   /* ── diğer diller: sıradaki adımlarda doldurulacak (şu an boş = §13 atlar) ── */
@@ -346,6 +439,39 @@ nostalgia=nostalji:f|B2|emotion; aburrimiento=can sıkıntısı:m|B1|emotion; an
 desesperación=umutsuzluk:f|B2|emotion; serenidad=huzur:f|B2|emotion; simpatía=sempati:f|B1|emotion; empatía=empati:f|B2|emotion;
 compasión=merhamet:f|B1|emotion; bondad=iyilik:f|A2|emotion; generosidad=cömertlik:f|B1|emotion; honradez=dürüstlük:f|B1|emotion;
 lealtad=sadakat:f|B1|emotion; traición=ihanet:f|B2|emotion; rencor=kin:m|B2|emotion; humor=ruh hali:m|B1|emotion;
+hipótesis=hipotez:f|C1|business; teoría=teori:f|B2|business; fenómeno=olgu:m|C1|business; paradigma=paradigma:m|C1|business;
+concepto=kavram:m|B2|business; noción=anlayış:f|B2|business; marco=çerçeve:m|B2|business; metodología=yöntembilim:f|C1|business;
+método=yöntem:m|B2|business; análisis=analiz:m|B2|business; síntesis=sentez:f|C1|business; dato=veri:m|B2|business;
+evidencia=kanıt:f|B2|business; muestra=örneklem:f|B2|business; variable=değişken:f|B2|business; correlación=bağıntı:f|C1|business;
+causalidad=nedensellik:f|C1|business; sesgo=yanlılık:m|B2|business; supuesto=varsayım:m|B2|business; premisa=öncül:f|C1|business;
+conclusión=sonuç:f|B2|business; inferencia=çıkarım:f|C1|business; deducción=tümdengelim:f|C1|business; inducción=tümevarım:f|C1|business;
+tesis=tez:f|B2|business; publicación=yayın:f|B2|business; cita=alıntı:f|B2|business; bibliografía=kaynakça:f|B2|business;
+apéndice=ek:m|B2|business; resumen=özet:m|B2|business; crítica=eleştiri:f|B2|business; perspectiva=bakış açısı:f|B2|business;
+punto de vista=görüş noktası:m|B2|business; discurso=söylem:m|C1|business; narrativa=anlatı:f|B2|business; contexto=bağlam:m|B2|business;
+ironía=ironi:f|B2|business; paradoja=paradoks:f|C1|business; dicotomía=ikilik:f|C1|business; espectro=yelpaze:m|C1|business;
+jerarquía=hiyerarşi:f|B2|business; estructura=yapı:f|B2|business; función=işlev:f|B2|business; sistema=sistem:m|B2|business;
+modelo=model:m|B2|business; prototipo=prototip:m|B2|business; arquetipo=arketip:m|C1|business; tendencia=eğilim:f|B2|business;
+orientación=yönelim:f|B2|business; patrón=örüntü:m|B2|business; anomalía=aykırılık:f|C1|business; norma=norm:f|B2|business;
+criterio=ölçüt:m|C1|business; observación=gözlem:f|B2|business; experimento=deney:m|B2|business; encuesta=anket:f|B2|business;
+estadística=istatistik:f|B2|business; probabilidad=olasılık:f|B2|business; significación=anlamlılık:f|C1|business; desviación=sapma:f|C1|business;
+promedio=ortalama:m|B2|business; mediana=ortanca:f|C1|business; rango=aralık:m|B2|business; alcance=kapsam:m|B2|business;
+dimensión=boyut:f|B2|business; aspecto=yön:m|B2|business; factor=etken:m|B2|business; elemento=öge:m|B2|business;
+componente=bileşen:m|B2|business; rasgo=özellik:m|B2|business; peculiaridad=huy:f|B2|business; calidad=kalite:f|B2|business;
+cantidad=miktar:f|B2|business; magnitud=büyüklük:f|C1|business; intensidad=yoğunluk:f|B2|business; frecuencia=sıklık:f|B2|business;
+duración=süre:f|B2|business; secuencia=sıralama:f|B2|business; proceso=süreç:m|B2|business; procedimiento=prosedür:m|B2|business;
+protocolo=protokol:m|B2|business; directriz=yönerge:f|B2|business; principio=ilke:m|B2|business; regulación=düzenleme:f|B2|business;
+política=politika:f|B2|business; táctica=taktik:f|B2|business; enfoque=yaklaşım:m|B2|business; técnica=teknik:f|B2|business;
+mecanismo=mekanizma:m|B2|business; filosofía=felsefe:f|B2|business; ética=etik:f|B2|business; estética=estetik:f|C1|business;
+lógica=mantık:f|B2|business; retórica=retorik:f|C1|business; metáfora=mecaz:f|B2|business; analogía=analoji:f|B2|business;
+alegoría=alegori:f|C1|business; sátira=yergi:f|B2|business; tragedia=trajedi:f|B2|business; comedia=komedi:f|B2|business;
+epopeya=destan:f|B2|business; prosa=düzyazı:f|B2|business; verso=dize:m|B2|business; estrofa=kıta:f|B2|business;
+párrafo=paragraf:m|B2|business; término=terim:m|B2|business; definición=tanım:f|B2|business; referencia=referans:f|B2|business;
+connotación=çağrışım:f|C1|business; sociedad=toplum:f|B2|business; cultura=kültür:f|B2|business; civilización=uygarlık:f|B2|business;
+tradición=gelenek:f|B2|business; costumbre=görenek:f|B2|business; ritual=ritüel:m|B2|business; creencia=inanış:f|B2|business;
+ideología=ideoloji:f|B2|business; doctrina=öğreti:f|C1|business; reforma=reform:f|B2|business; revolución=devrim:f|B2|business;
+evolución=evrim:f|B2|business; progreso=ilerleme:m|B2|business; decadencia=düşüş:f|B2|business; crisis=kriz:f|B2|business;
+conflicto=çatışma:m|B2|business; consenso=fikir birliği:m|B2|business; cooperación=iş birliği:f|B2|business; ensayo=deneme yazısı:m|B2|business;
+glosario=terimler sözlüğü:m|B2|business; índice=dizin:m|B2|business; prólogo=önsöz:m|B2|business; epílogo=sonsöz:m|B2|business;
 `,
     A: `
 hambriento=aç|A2; sediento=susuz|A2; cansado=yorgun|A2; somnoliento=uykulu|B1; enfermo=hasta|A2; sano=sağlıklı|B1;
@@ -373,6 +499,24 @@ mediocre=vasat|C1; lujoso=gösterişli|C1; impecable=kusursuz|C1; perjudicial=za
 crucial=çok önemli|B2; trivial=önemsiz|B2; absurdo=saçma|B2; ingenioso=esprili|B2; sarcástico=iğneleyici|B2;
 ingenuo=saf|B2; testarudo=inatçı|B1; arrogante=kibirli|B2; humilde=alçakgönüllü|B2; carismático=karizmatik|C1;
 elocuente=etkili konuşan|C1;
+empírico=ampirik|C1; teórico=kuramsal|C1; hipotético=varsayımsal|C1; analítico=çözümsel|C1;
+crítico=eleştirel|B2; riguroso=ödünsüz|C1; sistemático=sistematik|B2; metódico=metodik|B2;
+objetivo=nesnel|B2; subjetivo=öznel|B2; imparcial=tarafsız|B2; explícito=apaçık|B2;
+implícito=örtük|C1; exhaustivo=eksiksiz|C1; integral=kapsamlı|B2; coherente=tutarlı|B2;
+consistente=istikrarlı|B2; contradictorio=çelişkili|B2; polémico=tartışmalı|B2; discutible=tartışmaya açık|C1;
+dudoso=kuşkulu|C1; verosímil=akla yatkın|C1; creíble=itibarlı|B2; válido=geçerli|B2;
+inválido=geçersiz|B2; estricto=çok sıkı|C1; drástico=sert (köklü)|C1; radical=radikal|B2;
+moderado=ılımlı|B2; gradual=kademeli|B2; abrupto=ani|B2; espontáneo=kendiliğinden|B2;
+simultáneo=eş zamanlı|B2; crónico=kronik|B2; agudo=akut|C1; estático=statik|B2;
+dinámico=dinamik|B2; cinético=kinetik|C1; potencial=potansiyel|B2; latente=gizli|C1;
+inherente=yapısal (öz)|C1; intrínseco=içsel|C1; extrínseco=dışsal|C1; tácito=zımni|C1;
+manifiesto=aşikâr|C1; encubierto=örtülü|C1; oscuro=az bilinen|C1; conciso=kısa ve öz|B2;
+prolijo=sözü uzatan|C1; fluido=akıcı|B2; seminal=öncü (eser)|C1; decisivo=belirleyici|C1;
+sumo=aşırı önemli|C1; imprescindible=vazgeçilmez|C1; inexorable=engellenemez|C1; inmutable=değişmez|C1;
+irreversible=geri döndürülemez|C1; irrefutable=çürütülemez|C1; innegable=yadsınamaz|C1; estético=estetik|B2;
+ético=ahlaki|B2; moral=erdemli|B2; filosófico=felsefi|B2; retórico=cevabı beklenmeyen|C1;
+poético=şiirsel|B2; lírico=lirik|B2; dramático=dramatik|B2; trágico=trajik|B2;
+satírico=hicivli|B2;
 `,
     V: `
 cocinar=yemek pişirmek>cocino>cocinas>cociné|B1; hornear=fırında pişirmek>horneo>horneas>horneé|B1; freír=kızartmak>frío>fríes>freí|A2;
@@ -404,6 +548,33 @@ darse prisa=acele etmek>me doy prisa>te das prisa>me di prisa|A2; esconderse=sak
 perseguir=kovalamak>persigo>persigues>perseguí|B1; escapar=kaçmak>escapo>escapas>escapé|B1; seguir=takip etmek>sigo>sigues>seguí|A2;
 guiar=yol göstermek>guío>guías>guié|B1; llevar=taşımak>llevo>llevas>llevé|A2; transportar=taşımak>transporto>transportas>transporté|B1;
 arreglar=tamir etmek>arreglo>arreglas>arreglé|A2; reparar=tamir etmek>reparo>reparas>reparé|A2;
+analizar=analiz etmek>analizo>analizas>analicé|B2; sintetizar=sentezlemek>sintetizo>sintetizas>sinteticé|C1;
+hipotetizar=hipotez kurmak>hipotetizo>hipotetizas>hipoteticé|C1; teorizar=teori üretmek>teorizo>teorizas>teoricé|C1;
+postular=varsaymak>postulo>postulas>postulé|C1; plantear=ileri sürmek>planteo>planteas>planteé|C1;
+deducir=çıkarsamak>deduzco>deduces>deduje|C1; inferir=sonuç çıkarmak>infiero>infieres>inferí|B2;
+implicar=ima etmek>implico>implicas>impliqué|B2; denotar=göstermek>denoto>denotas>denoté|C1;
+definir=tanımlamak>defino>defines>definí|B2; clasificar=sınıflandırmak>clasifico>clasificas>clasifiqué|B2;
+comparar=mukayese etmek>comparo>comparas>comparé|B2; contrastar=karşıt göstermek>contrasto>contrastas>contrasté|C1;
+diferenciar=farklılaştırmak>diferencio>diferencias>diferencié|C1; distinguir=farkını görmek>distingo>distingues>distinguí|B2;
+evaluar=değerlendirmek>evalúo>evalúas>evalué|B2; tasar=değer biçmek>taso>tasas>tasé|B2;
+criticar=tenkit etmek>critico>criticas>critiqué|B2; citar=alıntı yapmak>cito>citas>cité|B2;
+reproducir=doğrudan aktarmak>reproduzco>reproduces>reproduje|B2; publicar=yayımlamak>publico>publicas>publiqué|B2;
+redactar=redakte etmek>redacto>redactas>redacté|B2; revisar=gözden geçirmek>reviso>revisas>revisé|B2;
+esbozar=taslak hazırlamak>esbozo>esbozas>esbocé|B2; resumir=özetlemek>resumo>resumes>resumí|B2;
+parafrasear=yeniden ifade etmek>parafraseo>parafraseas>parafraseé|C1; argumentar=gerekçeyle savunmak>argumento>argumentas>argumenté|B2;
+afirmar=iddia etmek>afirmo>afirmas>afirmé|B2; reclamar=hak talep etmek>reclamo>reclamas>reclamé|B2;
+sostener=görüşünü korumak>sostengo>sostienes>sostuve|B2; refutar=çürütmek>refuto>refutas>refuté|C1;
+conceder=kerhen kabul etmek>concedo>concedes>concedí|C1; reconocer=minnetle anmak>reconozco>reconoces>reconocí|B2;
+suponer=varsaymak>supongo>supones>supuse|B2; presuponer=farz etmek>presupongo>presupones>presupuse|C1;
+creer=sanmak>creo>crees>creí|B2; observar=gözlemlemek>observo>observas>observé|B2;
+calcular=hesaplamak>calculo>calculas>calculé|B2; computar=işlemle hesaplamak>computo>computas>computé|B2;
+estimar=yaklaşık hesaplamak>estimo>estimas>estimé|B2; extrapolar=eğilimi uzatarak tahmin>extrapolo>extrapolas>extrapolé|C1;
+verificar=doğrulamak>verifico>verificas>verifiqué|B2; validar=geçerli kılmak>valido>validas>validé|B2;
+falsear=yanlışlamak>falseo>falseas>falseé|C1; replicar=deneyi yinelemek>replico>replicas>repliqué|C1;
+llevar a cabo=yürütmek>llevo a cabo>llevas a cabo>llevé a cabo|B2; aplicar=test uygulamak>aplico>aplicas>apliqué|B2;
+compilar=derlemek>compilo>compilas>compilé|B2; tabular=tablolaştırmak>tabulo>tabulas>tabulé|C1;
+graficar=grafiğini çizmek>grafico>graficas>grafiqué|B2; simular=simüle etmek>simulo>simulas>simulé|B2;
+indagar=yoklayarak incelemek>indago>indagas>indagué|C1;
 `,
     P: `
 nos vemos mañana=yarın görüşürüz|A2; que tengas un buen día=iyi günler|A2; buena suerte=iyi şanslar|A2; cuídate=kendine iyi bak|A2;
@@ -437,6 +608,19 @@ hacer recados=dışarıdaki işleri halletmek|B1; ir de escaparates=vitrin gezme
 perder el autobús=otobüsü kaçırmak|A2; coger el autobús=otobüse yetişmek|A2; dividir la cuenta=hesabı bölüşmek|B1; dejar propina=bahşiş bırakmak|A2;
 pedir para llevar=paket sipariş etmek|B1; hacer una reserva=rezervasyon yaptırmak|B1; registrarse=otel girişi yapmak|A2; pedir direcciones=yol sormak|A2;
 perderse=kaybolmak|A2; atajar=kestirmeden gitmek|B1;
+además=ayrıca (resmi dil)|C1; asimismo=buna ek olarak|C1; no obstante=yine de (resmi)|C1; pese a=rağmen (resmi edat)|C1;
+aunque sea=olsa da (resmi)|C1; mientras que=buna karşılık|C1; por medio de=aracılığıyla|C1; por la presente=işbu belgeyle|C1;
+del citado=bahsi geçenin|C1; en este documento=bu belgede|C1; hasta la fecha=bugüne kadar|C1; en adelante=bundan böyle|C1;
+por consiguiente=sonuç olarak|B2; posteriormente=ardından (süreç)|B2; inversamente=tersine|B2; del mismo modo=benzer şekilde|B2;
+es decir=yani (açıklama)|B2; a la luz de=ışığında|B2; con respecto a=-e dair|B2; en cuanto a=söz konusu olunca|B2;
+cabe destacar=belirtmeye değer|B2; en términos generales=genel anlamda|B2; en sentido estricto=tam anlamıyla|B2; por otro lado=öte yandan|B2;
+todo lo contrario=tam tersine|B2; por contraste=buna karşılık|B2; en comparación=kıyasla|B2; en conclusión=sonuç bölümünde|B2;
+en resumen=özetlemek gerekirse|B2; teniendo todo en cuenta=her şey göz önüne alınınca|C1; en conjunto=birlikte ele alınınca|C1; en general=bütüne bakınca|B2;
+en su mayor parte=büyük ölçüde|B2; en cierta medida=bir ölçüde|B2; en gran medida=büyük oranda|B2; a primera vista=ilk bakışta|B2;
+mirado de cerca=yakından bakınca|C1; en retrospectiva=geriye dönüp bakınca|C1; per se=bizzat kendisi|C1; viceversa=tam tersi de geçerli|C1;
+de facto=fiilen|C1; de jure=hukuken|C1; ad hoc=özel duruma yönelik|C1; a priori=önsel|C1;
+a posteriori=sonsal|C1; statu quo=mevcut durum|C1; prima facie=ilk görünüşte|C1; totalmente de acuerdo=tamamen katılıyorum|B2;
+entiendo tu punto=dediğini anlıyorum|B2; no está nada claro=henüz belli değil|C1;
 `,
   },
   it: {
@@ -552,6 +736,40 @@ nostalgia=nostalji:f|B2|emotion; noia=can sıkıntısı:f|B1|emotion; ansia=kayg
 disperazione=umutsuzluk:f|B2|emotion; serenità=huzur:f|B2|emotion; simpatia=sempati:f|B1|emotion; empatia=empati:f|B2|emotion;
 compassione=merhamet:f|B1|emotion; bontà=iyilik:f|A2|emotion; generosità=cömertlik:f|B1|emotion; onestà=dürüstlük:f|B1|emotion;
 lealtà=sadakat:f|B1|emotion; tradimento=ihanet:m|B2|emotion; rancore=kin:m|B2|emotion; umore=ruh hali:m|B1|emotion;
+ipotesi=hipotez:f|C1|business; teoria=teori:f|B2|business; fenomeno=olgu:m|C1|business; paradigma=paradigma:m|C1|business;
+concetto=kavram:m|B2|business; nozione=anlayış:f|B2|business; quadro=çerçeve:m|B2|business; metodologia=yöntembilim:f|C1|business;
+metodo=yöntem:m|B2|business; analisi=analiz:f|B2|business; sintesi=sentez:f|C1|business; dato=veri:m|B2|business;
+evidenza=kanıt:f|B2|business; campione=örneklem:m|B2|business; variabile=değişken:f|B2|business; correlazione=bağıntı:f|C1|business;
+causalità=nedensellik:f|C1|business; distorsione=yanlılık:f|B2|business; assunto=varsayım:m|B2|business; premessa=öncül:f|C1|business;
+conclusione=sonuç:f|B2|business; inferenza=çıkarım:f|C1|business; deduzione=tümdengelim:f|C1|business; induzione=tümevarım:f|C1|business;
+tesi=tez:f|B2|business; pubblicazione=yayın:f|B2|business; citazione=alıntı:f|B2|business; bibliografia=kaynakça:f|B2|business;
+appendice=ek:f|B2|business; riassunto=özet:m|B2|business; critica=eleştiri:f|B2|business; prospettiva=bakış açısı:f|B2|business;
+punto di vista=görüş noktası:m|B2|business; discorso=söylem:m|C1|business; narrazione=anlatı:f|B2|business; contesto=bağlam:m|B2|business;
+sottotesto=alt metin:m|C1|business; ironia=ironi:f|B2|business; paradosso=paradoks:m|C1|business; dicotomia=ikilik:f|C1|business;
+spettro=yelpaze:m|C1|business; gerarchia=hiyerarşi:f|B2|business; struttura=yapı:f|B2|business; funzione=işlev:f|B2|business;
+sistema=sistem:m|B2|business; modello=model:m|B2|business; prototipo=prototip:m|B2|business; archetipo=arketip:m|C1|business;
+tendenza=eğilim:f|B2|business; orientamento=yönelim:m|B2|business; schema=örüntü:m|B2|business; anomalia=aykırılık:f|C1|business;
+norma=norm:f|B2|business; criterio=ölçüt:m|C1|business; osservazione=gözlem:f|B2|business; esperimento=deney:m|B2|business;
+sondaggio=anket:m|B2|business; statistica=istatistik:f|B2|business; probabilità=olasılık:f|B2|business; significatività=anlamlılık:f|C1|business;
+deviazione=sapma:f|C1|business; media=ortalama:f|B2|business; mediana=ortanca:f|C1|business; gamma=aralık:f|B2|business;
+portata=kapsam:f|B2|business; dimensione=boyut:f|B2|business; aspetto=yön:m|B2|business; fattore=etken:m|B2|business;
+elemento=öge:m|B2|business; componente=bileşen:m|B2|business; tratto=özellik:m|B2|business; peculiarità=huy:f|B2|business;
+qualità=kalite:f|B2|business; quantità=miktar:f|B2|business; grandezza=büyüklük:f|C1|business; intensità=yoğunluk:f|B2|business;
+frequenza=sıklık:f|B2|business; durata=süre:f|B2|business; sequenza=sıralama:f|B2|business; processo=süreç:m|B2|business;
+procedura=prosedür:f|B2|business; protocollo=protokol:m|B2|business; linea guida=yönerge:f|B2|business; principio=ilke:m|B2|business;
+regolamento=düzenleme:m|B2|business; politica=politika:f|B2|business; tattica=taktik:f|B2|business; approccio=yaklaşım:m|B2|business;
+tecnica=teknik:f|B2|business; meccanismo=mekanizma:m|B2|business; filosofia=felsefe:f|B2|business; etica=etik:f|B2|business;
+estetica=estetik:f|C1|business; logica=mantık:f|B2|business; retorica=retorik:f|C1|business; metafora=mecaz:f|B2|business;
+analogia=analoji:f|B2|business; allegoria=alegori:f|C1|business; satira=yergi:f|B2|business; tragedia=trajedi:f|B2|business;
+commedia=komedi:f|B2|business; epopea=destan:f|B2|business; prosa=düzyazı:f|B2|business; verso=dize:m|B2|business;
+strofa=kıta:f|B2|business; paragrafo=paragraf:m|B2|business; termine=terim:m|B2|business; definizione=tanım:f|B2|business;
+riferimento=referans:m|B2|business; connotazione=çağrışım:f|C1|business; società=toplum:f|B2|business; cultura=kültür:f|B2|business;
+civiltà=uygarlık:f|B2|business; tradizione=gelenek:f|B2|business; usanza=görenek:f|B2|business; rituale=ritüel:m|B2|business;
+convinzione=inanış:f|B2|business; ideologia=ideoloji:f|B2|business; dottrina=öğreti:f|C1|business; riforma=reform:f|B2|business;
+rivoluzione=devrim:f|B2|business; evoluzione=evrim:f|B2|business; progresso=ilerleme:m|B2|business; declino=düşüş:m|B2|business;
+crisi=kriz:f|B2|business; conflitto=çatışma:m|B2|business; consenso=fikir birliği:m|B2|business; cooperazione=iş birliği:f|B2|business;
+saggio=deneme yazısı:m|B2|business; glossario=terimler sözlüğü:m|B2|business; indice=dizin:m|B2|business; prefazione=önsöz:f|B2|business;
+postfazione=sonsöz:f|B2|business;
 `,
     A: `
 affamato=aç|A2; assetato=susuz|A2; stanco=yorgun|A2; assonnato=uykulu|B1; malato=hasta|A2; sano=sağlıklı|B1;
@@ -579,6 +797,24 @@ notorio=kötü ünlü|C1; mediocre=vasat|C1; lussuoso=gösterişli|C1; impeccabi
 benefico=faydalı|C1; cruciale=çok önemli|B2; banale=önemsiz|B2; assurdo=saçma|B2; spiritoso=esprili|B2;
 sarcastico=iğneleyici|B2; ingenuo=saf|B2; testardo=inatçı|B1; arrogante=kibirli|B2; umile=alçakgönüllü|B2;
 carismatico=karizmatik|C1; eloquente=etkili konuşan|C1;
+empirico=ampirik|C1; teorico=kuramsal|C1; ipotetico=varsayımsal|C1; analitico=çözümsel|C1;
+critico=eleştirel|B2; rigoroso=ödünsüz|C1; sistematico=sistematik|B2; metodico=metodik|B2;
+obiettivo=nesnel|B2; soggettivo=öznel|B2; imparziale=tarafsız|B2; esplicito=apaçık|B2;
+implicito=örtük|C1; esauriente=eksiksiz|C1; completo=kapsamlı|B2; coerente=tutarlı|B2;
+costante=istikrarlı|B2; contraddittorio=çelişkili|B2; controverso=tartışmalı|B2; discutibile=tartışmaya açık|C1;
+dubbio=kuşkulu|C1; verosimile=akla yatkın|C1; credibile=itibarlı|B2; valido=geçerli|B2;
+invalido=geçersiz|B2; severo=çok sıkı|C1; drastico=sert (köklü)|C1; radicale=radikal|B2;
+moderato=ılımlı|B2; graduale=kademeli|B2; brusco=ani|B2; spontaneo=kendiliğinden|B2;
+simultaneo=eş zamanlı|B2; cronico=kronik|B2; acuto=akut|C1; statico=statik|B2;
+dinamico=dinamik|B2; cinetico=kinetik|C1; potenziale=potansiyel|B2; latente=gizli|C1;
+inerente=yapısal (öz)|C1; intrinseco=içsel|C1; estrinseco=dışsal|C1; tacito=zımni|C1;
+manifesto=aşikâr|C1; occulto=örtülü|C1; oscuro=az bilinen|C1; conciso=kısa ve öz|B2;
+prolisso=sözü uzatan|C1; scorrevole=akıcı|B2; seminale=öncü (eser)|C1; decisivo=belirleyici|C1;
+sommo=aşırı önemli|C1; imprescindibile=vazgeçilmez|C1; inesorabile=engellenemez|C1; immutabile=değişmez|C1;
+irreversibile=geri döndürülemez|C1; inconfutabile=çürütülemez|C1; innegabile=yadsınamaz|C1; estetico=estetik|B2;
+etico=ahlaki|B2; morale=erdemli|B2; filosofico=felsefi|B2; retorico=cevabı beklenmeyen|C1;
+poetico=şiirsel|B2; lirico=lirik|B2; drammatico=dramatik|B2; tragico=trajik|B2;
+satirico=hicivli|B2;
 `,
     V: `
 cucinare=yemek pişirmek>cucino>cucini>ho cucinato|B1; cuocere al forno=fırında pişirmek>cuocio al forno>cuoci al forno>ho cotto al forno|B1; friggere=kızartmak>friggo>friggi>ho fritto|A2;
@@ -610,6 +846,33 @@ sbrigarsi=acele etmek>mi sbrigo>ti sbrighi>mi sono sbrigato|A2; nascondersi=sakl
 inseguire=kovalamak>inseguo>insegui>ho inseguito|B1; scappare=kaçmak>scappo>scappi>sono scappato|B1; seguire=takip etmek>seguo>segui>ho seguito|A2;
 guidare=yol göstermek>guido>guidi>ho guidato|B1; portare in giro=taşımak>porto in giro>porti in giro>ho portato in giro|A2; trasportare=taşımak>trasporto>trasporti>ho trasportato|B1;
 aggiustare=tamir etmek>aggiusto>aggiusti>ho aggiustato|A2; riparare=tamir etmek>riparo>ripari>ho riparato|A2;
+analizzare=analiz etmek>analizzo>analizzi>ho analizzato|B2; sintetizzare=sentezlemek>sintetizzo>sintetizzi>ho sintetizzato|C1;
+ipotizzare=hipotez kurmak>ipotizzo>ipotizzi>ho ipotizzato|C1; teorizzare=teori üretmek>teorizzo>teorizzi>ho teorizzato|C1;
+postulare=varsaymak>postulo>postuli>ho postulato|C1; porre=ileri sürmek>pongo>poni>ho posto|C1;
+dedurre=çıkarsamak>deduco>deduci>ho dedotto|C1; inferire=sonuç çıkarmak>inferisco>inferisci>ho inferito|B2;
+implicare=ima etmek>implico>implichi>ho implicato|B2; denotare=göstermek>denoto>denoti>ho denotato|C1;
+definire=tanımlamak>definisco>definisci>ho definito|B2; classificare=sınıflandırmak>classifico>classifichi>ho classificato|B2;
+comparare=mukayese etmek>comparo>compari>ho comparato|B2; contrapporre=karşıt göstermek>contrappongo>contrapponi>ho contrapposto|C1;
+differenziare=farklılaştırmak>differenzio>differenzi>ho differenziato|C1; distinguere=farkını görmek>distinguo>distingui>ho distinto|B2;
+valutare=değerlendirmek>valuto>valuti>ho valutato|B2; stimare=değer biçmek>stimo>stimi>ho stimato|B2;
+recensire=tenkit etmek>recensisco>recensisci>ho recensito|B2; citare=alıntı yapmak>cito>citi>ho citato|B2;
+riportare=doğrudan aktarmak>riporto>riporti>ho riportato|B2; pubblicare=yayımlamak>pubblico>pubblichi>ho pubblicato|B2;
+redigere=redakte etmek>redigo>redigi>ho redatto|B2; rivedere=gözden geçirmek>rivedo>rivedi>ho rivisto|B2;
+abbozzare=taslak hazırlamak>abbozzo>abbozzi>ho abbozzato|B2; riassumere=özetlemek>riassumo>riassumi>ho riassunto|B2;
+parafrasare=yeniden ifade etmek>parafraso>parafrasi>ho parafrasato|C1; argomentare=gerekçeyle savunmak>argomento>argomenti>ho argomentato|B2;
+asserire=iddia etmek>asserisco>asserisci>ho asserito|B2; reclamare=hak talep etmek>reclamo>reclami>ho reclamato|B2;
+sostenere=görüşünü korumak>sostengo>sostieni>ho sostenuto|B2; confutare=çürütmek>confuto>confuti>ho confutato|C1;
+concedere=kerhen kabul etmek>concedo>concedi>ho concesso|C1; riconoscere=minnetle anmak>riconosco>riconosci>ho riconosciuto|B2;
+supporre=varsaymak>suppongo>supponi>ho supposto|B2; presumere=farz etmek>presumo>presumi>ho presunto|C1;
+ritenere=sanmak>ritengo>ritieni>ho ritenuto|B2; osservare=gözlemlemek>osservo>osservi>ho osservato|B2;
+calcolare=hesaplamak>calcolo>calcoli>ho calcolato|B2; computare=işlemle hesaplamak>computo>computi>ho computato|B2;
+fare una stima=yaklaşık hesaplamak>faccio una stima>fai una stima>ho fatto una stima|B2; estrapolare=eğilimi uzatarak tahmin>estrapolo>estrapoli>ho estrapolato|C1;
+verificare=doğrulamak>verifico>verifichi>ho verificato|B2; convalidare=geçerli kılmak>convalido>convalidi>ho convalidato|B2;
+falsificare=yanlışlamak>falsifico>falsifichi>ho falsificato|C1; replicare=deneyi yinelemek>replico>replichi>ho replicato|C1;
+condurre=yürütmek>conduco>conduci>ho condotto|B2; somministrare=test uygulamak>somministro>somministri>ho somministrato|B2;
+compilare=derlemek>compilo>compili>ho compilato|B2; tabulare=tablolaştırmak>tabulo>tabuli>ho tabulato|C1;
+rappresentare graficamente=grafiğini çizmek>rappresento graficamente>rappresenti graficamente>ho rappresentato graficamente|B2; simulare=simüle etmek>simulo>simuli>ho simulato|B2;
+sondare=yoklayarak incelemek>sondo>sondi>ho sondato|C1;
 `,
     P: `
 ci vediamo domani=yarın görüşürüz|A2; buona giornata=iyi günler|A2; buona fortuna=iyi şanslar|A2; riguardati=kendine iyi bak|A2;
@@ -643,6 +906,19 @@ fare commissioni=dışarıdaki işleri halletmek|B1; guardare le vetrine=vitrin 
 perdere l'autobus=otobüsü kaçırmak|A2; prendere l'autobus=otobüse yetişmek|A2; dividere il conto=hesabı bölüşmek|B1; lasciare la mancia=bahşiş bırakmak|A2;
 ordinare da asporto=paket sipariş etmek|B1; prenotare=rezervasyon yaptırmak|B1; fare il check-in=otel girişi yapmak|A2; chiedere indicazioni=yol sormak|A2;
 perdersi=kaybolmak|A2; prendere una scorciatoia=kestirmeden gitmek|B1;
+inoltre=ayrıca (resmi dil)|C1; in aggiunta=buna ek olarak|C1; ciononostante=yine de (resmi)|C1; nonostante=rağmen (resmi edat)|C1;
+sebbene=olsa da (resmi)|C1; di contro=buna karşılık|C1; per mezzo di=aracılığıyla|C1; con la presente=işbu belgeyle|C1;
+del predetto=bahsi geçenin|C1; nel presente documento=bu belgede|C1; finora=bugüne kadar|C1; d'ora in poi=bundan böyle|C1;
+di conseguenza=sonuç olarak|B2; successivamente=ardından (süreç)|B2; inversamente=tersine|B2; allo stesso modo=benzer şekilde|B2;
+ovvero=yani (açıklama)|B2; alla luce di=ışığında|B2; per quanto riguarda=-e dair|B2; per quanto concerne=söz konusu olunca|B2;
+vale la pena notare=belirtmeye değer|B2; in termini generali=genel anlamda|B2; in senso stretto=tam anlamıyla|B2; d'altra parte=öte yandan|B2;
+tutto il contrario=tam tersine|B2; per contrasto=buna karşılık|B2; al paragone=kıyasla|B2; in conclusione=sonuç bölümünde|B2;
+per riassumere=özetlemek gerekirse|B2; tutto considerato=her şey göz önüne alınınca|C1; nel complesso=birlikte ele alınınca|C1; tutto sommato=bütüne bakınca|B2;
+in gran parte=büyük ölçüde|B2; in certa misura=bir ölçüde|B2; in larga misura=büyük oranda|B2; a prima vista=ilk bakışta|B2;
+a un esame più attento=yakından bakınca|C1; col senno di poi=geriye dönüp bakınca|C1; per se=bizzat kendisi|C1; viceversa=tam tersi de geçerli|C1;
+de facto=fiilen|C1; de iure=hukuken|C1; ad hoc=özel duruma yönelik|C1; a priori=önsel|C1;
+a posteriori=sonsal|C1; status quo=mevcut durum|C1; prima facie=ilk görünüşte|C1; sono pienamente d'accordo=tamamen katılıyorum|B2;
+capisco il tuo punto=dediğini anlıyorum|B2; tutto da vedere=henüz belli değil|C1;
 `,
   },
   ru: {
@@ -756,6 +1032,40 @@ perdersi=kaybolmak|A2; prendere una scorciatoia=kestirmeden gitmek|B1;
 отчаяние=umutsuzluk:n|B2|emotion; умиротворение=huzur:n|B2|emotion; симпатия=sempati:f|B1|emotion; эмпатия=empati:f|B2|emotion;
 сострадание=merhamet:n|B1|emotion; доброта=iyilik:f|A2|emotion; щедрость=cömertlik:f|B1|emotion; честность=dürüstlük:f|B1|emotion;
 верность=sadakat:f|B1|emotion; предательство=ihanet:n|B2|emotion; обида=kin:f|B2|emotion; настроение=ruh hali:n|B1|emotion;
+гипотеза=hipotez:f|C1|business|гипотезу; теория=teori:f|B2|business|теорию; феномен=olgu:m|C1|business; парадигма=paradigma:f|C1|business|парадигму;
+понятие=kavram:n|B2|business; представление=anlayış:n|B2|business; схема=çerçeve:f|B2|business|схему; методология=yöntembilim:f|C1|business|методологию;
+метод=yöntem:m|B2|business; анализ=analiz:m|B2|business; синтез=sentez:m|C1|business; доказательство=kanıt:n|B2|business;
+выборка=örneklem:f|C1|business|выборку; переменная=değişken:f|B2|business|переменную; корреляция=bağıntı:f|C1|business|корреляцию;
+причинность=nedensellik:f|C1|business; предвзятость=yanlılık:f|C1|business; допущение=varsayım:n|B2|business; посыл=öncül:m|B2|business;
+вывод=sonuç:n|B2|business; умозаключение=çıkarım:n|C1|business; дедукция=tümdengelim:f|C1|business|дедукцию; индукция=tümevarım:f|C1|business|индукцию;
+тезис=tez:m|B2|business; диссертация=doktora tezi:f|C1|business|диссертацию; публикация=yayın:f|B2|business|публикацию; цитата=alıntı:f|B2|business|цитату;
+библиография=kaynakça:f|B2|business|библиографию; приложение=ek:n|B2|business; реферат=özet:n|B2|business; критика=eleştiri:f|B2|business|критику;
+точка зрения=bakış açısı:f|B2|business|точку зрения; дискурс=söylem:m|C1|business; нарратив=anlatı:m|B2|business; контекст=bağlam:m|B2|business;
+подтекст=alt metin:m|C1|business; ирония=ironi:f|B2|business|иронию; парадокс=paradoks:m|C1|business; дихотомия=ikilik:f|C1|business|дихотомию;
+спектр=yelpaze:m|C1|business; иерархия=hiyerarşi:f|B2|business|иерархию; структура=yapı:f|B2|business|структуру; функция=işlev:f|B2|business|функцию;
+система=sistem:f|B2|business|систему; модель=model:f|B2|business; прототип=prototip:m|B2|business; архетип=arketip:m|C1|business;
+тренд=eğilim:m|B2|business; тенденция=yönelim:f|B2|business|тенденцию; шаблон=örüntü:m|B2|business; аномалия=aykırılık:f|C1|business|аномалию;
+норма=norm:f|B2|business|норму; критерий=ölçüt:m|C1|business; наблюдение=gözlem:n|B2|business; эксперимент=deney:m|B2|business;
+опрос=anket:m|B2|business; статистика=istatistik:f|B2|business|статистику; вероятность=olasılık:f|B2|business; значимость=anlamlılık:f|C1|business;
+отклонение=sapma:n|C1|business; среднее=ortalama:n|B2|business; медиана=ortanca:f|C1|business|медиану; диапазон=aralık:m|B2|business;
+охват=kapsam:m|B2|business; величина=boyut:f|B2|business|величину; аспект=yön:m|B2|business; фактор=etken:m|B2|business;
+элемент=öge:m|B2|business; компонент=bileşen:m|B2|business; черта=özellik:f|B2|business|черту; особенность=ayırıcı nitelik:f|B2|business;
+нрав=huy:m|B2|business; свойство=nitelik:n|B2|business; качество=kalite:n|B2|business; количество=miktar:n|B2|business;
+размах=büyüklük:m|C1|business; интенсивность=yoğunluk:f|B2|business; частота=sıklık:f|B2|business|частоту; длительность=süre:f|B2|business;
+последовательность=sıralama:f|B2|business; процесс=süreç:m|B2|business; процедура=prosedür:f|B2|business|процедуру; протокол=protokol:m|B2|business;
+указание=yönerge:n|B2|business; принцип=ilke:m|B2|business; регламент=düzenleme:m|B2|business; политика=politika:f|B2|business|политику;
+тактика=taktik:f|B2|business|тактику; подход=yaklaşım:m|B2|business; техника=teknik:f|B2|business|технику; механизм=mekanizma:m|B2|business;
+философия=felsefe:f|B2|business|философию; этика=etik:f|B2|business|этику; эстетика=estetik:f|C1|business|эстетику; логика=mantık:f|B2|business|логику;
+риторика=retorik:f|C1|business|риторику; метафора=mecaz:f|B2|business|метафору; аналогия=analoji:f|B2|business|аналогию; аллегория=alegori:f|C1|business|аллегорию;
+сатира=yergi:f|B2|business|сатиру; трагедия=trajedi:f|B2|business|трагедию; комедия=komedi:f|B2|business|комедию; эпос=destan:m|B2|business;
+проза=düzyazı:f|B2|business|прозу; стих=dize:m|B2|business; строфа=kıta:f|B2|business|строфу; абзац=paragraf:m|B2|business;
+термин=terim:m|B2|business; определение=tanım:n|B2|business; сноска=referans:f|B2|business|сноску; коннотация=çağrışım:f|C1|business|коннотацию;
+общество=toplum:n|B2|business; культура=kültür:f|B2|business|культуру; цивилизация=uygarlık:f|B2|business|цивилизацию; традиция=gelenek:f|B2|business|традицию;
+обычай=görenek:m|B2|business; ритуал=ritüel:m|B2|business; убеждение=inanış:n|B2|business; идеология=ideoloji:f|B2|business|идеологию;
+доктрина=öğreti:f|C1|business|доктрину; реформа=reform:f|B2|business|реформу; революция=devrim:f|B2|business|революцию; эволюция=evrim:f|B2|business|эволюцию;
+прогресс=ilerleme:m|B2|business; упадок=düşüş:m|B2|business; кризис=kriz:m|B2|business; конфликт=çatışma:m|B2|business;
+консенсус=fikir birliği:m|B2|business; сотрудничество=iş birliği:n|B2|business; эссе=deneme yazısı:n|B2|business; глоссарий=terimler sözlüğü:m|B2|business;
+оглавление=içindekiler:n|B2|business; предисловие=önsöz:n|B2|business; послесловие=sonsöz:n|B2|business;
 `,
     A: `
 голодный=aç|A2; жаждущий=susuz|B1; усталый=yorgun|A2; сонный=uykulu|B1; больной=hasta|A2; здоровый=sağlıklı|B1;
@@ -782,6 +1092,24 @@ perdersi=kaybolmak|A2; prendere una scorciatoia=kestirmeden gitmek|B1;
 пагубный=zararlı|C1; благотворный=faydalı|C1; ключевой=çok önemli|B2; пустяковый=önemsiz|B2; абсурдный=saçma|B2; уморительный=çok komik|B2;
 остроумный=esprili|B2; язвительный=iğneleyici|B2; наивный=saf|B2; упрямый=inatçı|B1; высокомерный=kibirli|B2; скромный=alçakgönüllü|B2;
 харизматичный=karizmatik|C1; красноречивый=etkili konuşan|C1;
+эмпирический=ampirik|C1; теоретический=kuramsal|C1; гипотетический=varsayımsal|C1; аналитический=çözümsel|C1;
+критический=eleştirel|B2; бескомпромиссный=ödünsüz|C1; системный=sistematik|B2; методичный=metodik|B2;
+объективный=nesnel|B2; субъективный=öznel|B2; беспристрастный=tarafsız|B2; явный=apaçık|B2;
+имплицитный=örtük|C1; исчерпывающий=eksiksiz|C1; всеобъемлющий=kapsamlı|B2; связный=tutarlı|B2;
+последовательный=istikrarlı|B2; противоречивый=çelişkili|B2; спорный=tartışmalı|B2; дискуссионный=tartışmaya açık|C1;
+сомнительный=kuşkulu|C1; правдоподобный=akla yatkın|C1; авторитетный=itibarlı|B2; валидный=geçerli|B2;
+необоснованный=geçersiz|B2; жёсткий=çok sıkı|C1; кардинальный=sert (köklü)|C1; радикальный=radikal|B2;
+умеренный=ılımlı|B2; постепенный=kademeli|B2; внезапный=ani|B2; спонтанный=kendiliğinden|B2;
+одновременный=eş zamanlı|B2; хронический=kronik|B2; острый=akut|C1; статический=statik|B2;
+динамичный=dinamik|B2; кинетический=kinetik|C1; потенциальный=potansiyel|B2; латентный=gizli|C1;
+неотъемлемый=yapısal (öz)|C1; сущностный=içsel|C1; внешний=dışsal|C1; негласный=zımni|C1;
+неприкрытый=aşikâr|C1; завуалированный=örtülü|C1; малоизвестный=az bilinen|C1; лаконичный=kısa ve öz|B2;
+многословный=sözü uzatan|C1; беглый=akıcı|B2; знаковый=öncü (eser)|C1; определяющий=belirleyici|C1;
+первостепенный=aşırı önemli|C1; незаменимый=vazgeçilmez|C1; неотвратимый=engellenemez|C1; неизменный=değişmez|C1;
+необратимый=geri döndürülemez|C1; неопровержимый=çürütülemez|C1; неоспоримый=yadsınamaz|C1; эстетический=estetik|B2;
+этический=ahlaki|B2; добродетельный=erdemli|B2; философский=felsefi|B2; риторический=cevabı beklenmeyen|C1;
+поэтический=şiirsel|B2; лирический=lirik|B2; драматический=dramatik|B2; трагический=trajik|B2;
+сатирический=hicivli|B2;
 `,
     V: `
 готовить=yemek pişirmek>я готовлю>ты готовишь>я готовил|B1; запекать=fırında pişirmek>я запекаю>ты запекаешь>я запекал|B1; жарить=kızartmak>я жарю>ты жаришь>я жарил|A2;
@@ -813,6 +1141,33 @@ perdersi=kaybolmak|A2; prendere una scorciatoia=kestirmeden gitmek|B1;
 следить=takip etmek>я слежу>ты следишь>я следил|A2; вести=yol göstermek>я веду>ты ведёшь>я вёл|B1; вести за собой=yol göstermek>я веду за собой>ты ведёшь за собой>я вёл за собой|B1;
 нести=taşımak>я несу>ты несёшь>я нёс|A2; перевозить=taşımak>я перевожу>ты перевозишь>я перевозил|B1; чинить=tamir etmek>я чиню>ты чинишь>я чинил|A2;
 ремонтировать=tamir etmek>я ремонтирую>ты ремонтируешь>я ремонтировал|A2;
+анализировать=analiz etmek>я анализирую>ты анализируешь>я анализировал|B2; синтезировать=sentezlemek>я синтезирую>ты синтезируешь>я синтезировал|C1;
+выдвигать=hipotez kurmak>я выдвигаю>ты выдвигаешь>я выдвигал|C1; теоретизировать=teori üretmek>я теоретизирую>ты теоретизируешь>я теоретизировал|C1;
+постулировать=varsaymak>я постулирую>ты постулируешь>я постулировал|C1; утверждать=ileri sürmek>я утверждаю>ты утверждаешь>я утверждал|C1;
+выводить=çıkarsamak>я вывожу>ты выводишь>я выводил|C1; умозаключать=sonuç çıkarmak>я умозаключаю>ты умозаключаешь>я умозаключал|B2;
+подразумевать=ima etmek>я подразумеваю>ты подразумеваешь>я подразумевал|B2; обозначать=göstermek>я обозначаю>ты обозначаешь>я обозначал|C1;
+определять=tanımlamak>я определяю>ты определяешь>я определял|B2; классифицировать=sınıflandırmak>я классифицирую>ты классифицируешь>я классифицировал|B2;
+сравнивать=mukayese etmek>я сравниваю>ты сравниваешь>я сравнивал|B2; противопоставлять=karşıt göstermek>я противопоставляю>ты противопоставляешь>я противопоставлял|C1;
+дифференцировать=farklılaştırmak>я дифференцирую>ты дифференцируешь>я дифференцировал|C1; различать=farkını görmek>я различаю>ты различаешь>я различал|B2;
+оценивать=değerlendirmek>я оцениваю>ты оцениваешь>я оценивал|B2; давать оценку=değer biçmek>я даю оценку>ты даёшь оценку>я дал оценку|B2;
+рецензировать=tenkit etmek>я рецензирую>ты рецензируешь>я рецензировал|B2; цитировать=alıntı yapmak>я цитирую>ты цитируешь>я цитировал|B2;
+дословно приводить=doğrudan aktarmak>я дословно привожу>ты дословно приводишь>я дословно приводил|B2; публиковать=yayımlamak>я публикую>ты публикуешь>я публиковал|B2;
+редактировать=redakte etmek>я редактирую>ты редактируешь>я редактировал|B2; пересматривать=gözden geçirmek>я пересматриваю>ты пересматриваешь>я пересматривал|B2;
+набросать=taslak hazırlamak>я набросаю>ты набросаешь>я набросал|B2; резюмировать=özetlemek>я резюмирую>ты резюмируешь>я резюмировал|B2;
+перефразировать=yeniden ifade etmek>я перефразирую>ты перефразируешь>я перефразировал|C1; аргументировать=gerekçeyle savunmak>я аргументирую>ты аргументируешь>я аргументировал|B2;
+заявлять=iddia etmek>я заявляю>ты заявляешь>я заявлял|B2; претендовать=hak talep etmek>я претендую>ты претендуешь>я претендовал|B2;
+отстаивать=görüşünü korumak>я отстаиваю>ты отстаиваешь>я отстаивал|B2; опровергать=çürütmek>я опровергаю>ты опровергаешь>я опровергал|C1;
+уступать=kerhen kabul etmek>я уступаю>ты уступаешь>я уступал|C1; отмечать с благодарностью=minnetle anmak>я отмечаю с благодарностью>ты отмечаешь с благодарностью>я отмечал с благодарностью|B2;
+предполагать=varsaymak>я предполагаю>ты предполагаешь>я предполагал|B2; полагать=farz etmek>я полагаю>ты полагаешь>я полагал|C1;
+считать=sanmak>я считаю>ты считаешь>я считал|B2; наблюдать=gözlemlemek>я наблюдаю>ты наблюдаешь>я наблюдал|B2;
+подсчитывать=hesaplamak>я подсчитываю>ты подсчитываешь>я подсчитывал|B2; вычислять=işlemle hesaplamak>я вычисляю>ты вычисляешь>я вычислял|B2;
+прикидывать=yaklaşık hesaplamak>я прикидываю>ты прикидываешь>я прикидывал|B2; экстраполировать=eğilimi uzatarak tahmin>я экстраполирую>ты экстраполируешь>я экстраполировал|C1;
+проверять=doğrulamak>я проверяю>ты проверяешь>я проверял|B2; признавать действительным=geçerli kılmak>я признаю действительным>ты признаёшь действительным>я признал действительным|B2;
+фальсифицировать=yanlışlamak>я фальсифицирую>ты фальсифицируешь>я фальсифицировал|C1; повторять опыт=deneyi yinelemek>я повторяю опыт>ты повторяешь опыт>я повторял опыт|C1;
+проводить=yürütmek>я провожу>ты проводишь>я проводил|B2; тестировать=test uygulamak>я тестирую>ты тестируешь>я тестировал|B2;
+составлять=derlemek>я составляю>ты составляешь>я составлял|B2; сводить в таблицы=tablolaştırmak>я свожу в таблицы>ты сводишь в таблицы>я сводил в таблицы|C1;
+строить график=grafiğini çizmek>я строю график>ты строишь график>я строил график|B2; имитировать=simüle etmek>я имитирую>ты имитируешь>я имитировал|B2;
+зондировать=yoklayarak incelemek>я зондирую>ты зондируешь>я зондировал|C1;
 `,
     P: `
 увидимся завтра=yarın görüşürüz|A2; хорошего дня=iyi günler|A2; удачи=iyi şanslar|A2; береги себя=kendine iyi bak|A2;
@@ -846,6 +1201,19 @@ perdersi=kaybolmak|A2; prendere una scorciatoia=kestirmeden gitmek|B1;
 вернуть товар=ürün iade etmek|B1; стоять в очереди=sırada beklemek|A2; опоздать на автобус=otobüsü kaçırmak|A2; успеть на автобус=otobüse yetişmek|A2;
 разделить счёт=hesabı bölüşmek|B1; оставить чаевые=bahşiş bırakmak|A2; заказать еду на вынос=paket sipariş etmek|B1; забронировать столик=rezervasyon yaptırmak|B1;
 заселиться в отель=otel girişi yapmak|A2; спросить дорогу=yol sormak|A2; заблудиться=kaybolmak|A2; срезать путь=kestirmeden gitmek|B1;
+кроме того=ayrıca (resmi dil)|C1; к тому же=buna ek olarak|C1; тем не менее=yine de (resmi)|C1; невзирая на=rağmen (resmi edat)|C1;
+пусть даже=olsa da (resmi)|C1; тогда как=buna karşılık|C1; посредством=aracılığıyla|C1; настоящим=işbu belgeyle|C1;
+вышеупомянутого=bahsi geçenin|C1; в настоящем документе=bu belgede|C1; по сей день=bugüne kadar|C1; впредь=bundan böyle|C1;
+следовательно=sonuç olarak|B2; впоследствии=ardından (süreç)|B2; наоборот=tersine|B2; подобным образом=benzer şekilde|B2;
+а именно=yani (şunlar)|B2; в свете сказанного=ışığında|B2; в отношении=-e dair|B2; что касается=söz konusu olunca|B2;
+стоит отметить=belirtmeye değer|B2; вообще говоря=genel anlamda|B2; строго говоря=tam anlamıyla|B2; с другой стороны=öte yandan|B2;
+напротив=tam tersine|B2; в отличие=buna karşılık|B2; для сравнения=kıyasla|B2; в заключение=sonuç bölümünde|B2;
+подводя итог=özetlemek gerekirse|B2; учитывая всё вышесказанное=her şey göz önüne alınınca|C1; в совокупности=birlikte ele alınınca|C1; в целом=bütüne bakınca|B2;
+по большей части=büyük ölçüde|B2; в некоторой степени=bir ölçüde|B2; в значительной степени=büyük oranda|B2; на первый взгляд=ilk bakışta|B2;
+при ближайшем рассмотрении=yakından bakınca|C1; ретроспективно=geriye dönüp bakınca|C1; как таковой=bizzat kendisi|C1; и наоборот=tam tersi de geçerli|C1;
+де-факто=fiilen|C1; де-юре=hukuken|C1; ад хок=özel duruma yönelik|C1; априори=önsel|C1;
+апостериори=sonsal|C1; статус-кво=mevcut durum|C1; с первого взгляда=ilk görünüşte (hukuk)|C1; совершенно согласен=tamamen katılıyorum|B2;
+понимаю что ты имеешь в виду=dediğini anlıyorum|B2; вопрос остаётся открытым=henüz belli değil|C1;
 `,
   },
   pt: {
@@ -962,6 +1330,40 @@ nostalgia=nostalji:f|B2|emotion; tédio=can sıkıntısı:m|B1|emotion; ansiedad
 desespero=umutsuzluk:m|B2|emotion; serenidade=huzur:f|B2|emotion; simpatia=sempati:f|B1|emotion; empatia=empati:f|B2|emotion;
 compaixão=merhamet:f|B1|emotion; bondade=iyilik:f|A2|emotion; generosidade=cömertlik:f|B1|emotion; honestidade=dürüstlük:f|B1|emotion;
 lealdade=sadakat:f|B1|emotion; traição=ihanet:f|B2|emotion; rancor=kin:m|B2|emotion; humor=ruh hali:m|B1|emotion;
+hipótese=hipotez:f|C1|business; teoria=teori:f|B2|business; fenômeno=olgu:m|C1|business; paradigma=paradigma:m|C1|business;
+conceito=kavram:m|B2|business; noção=anlayış:f|B2|business; enquadramento=çerçeve:m|B2|business; metodologia=yöntembilim:f|C1|business;
+método=yöntem:m|B2|business; análise=analiz:f|B2|business; síntese=sentez:f|C1|business; dado=veri:m|B2|business;
+evidência=kanıt:f|B2|business; amostra=örneklem:f|B2|business; variável=değişken:f|B2|business; correlação=bağıntı:f|C1|business;
+causalidade=nedensellik:f|C1|business; viés=yanlılık:m|B2|business; pressuposto=varsayım:m|B2|business; premissa=öncül:f|C1|business;
+conclusão=sonuç:f|B2|business; inferência=çıkarım:f|C1|business; dedução=tümdengelim:f|C1|business; indução=tümevarım:f|C1|business;
+tese=tez:f|B2|business; publicação=yayın:f|B2|business; citação=alıntı:f|B2|business; bibliografia=kaynakça:f|B2|business;
+apêndice=ek:m|B2|business; resumo=özet:m|B2|business; crítica=eleştiri:f|B2|business; perspectiva=bakış açısı:f|B2|business;
+ponto de vista=görüş noktası:m|B2|business; discurso=söylem:m|C1|business; narrativa=anlatı:f|B2|business; contexto=bağlam:m|B2|business;
+subtexto=alt metin:m|C1|business; ironia=ironi:f|B2|business; paradoxo=paradoks:m|C1|business; dicotomia=ikilik:f|C1|business;
+espectro=yelpaze:m|C1|business; hierarquia=hiyerarşi:f|B2|business; estrutura=yapı:f|B2|business; função=işlev:f|B2|business;
+sistema=sistem:m|B2|business; modelo=model:m|B2|business; protótipo=prototip:m|B2|business; arquétipo=arketip:m|C1|business;
+tendência=eğilim:f|B2|business; orientação=yönelim:f|B2|business; padrão=örüntü:m|B2|business; anomalia=aykırılık:f|C1|business;
+norma=norm:f|B2|business; critério=ölçüt:m|C1|business; observação=gözlem:f|B2|business; experimento=deney:m|B2|business;
+pesquisa=anket:m|B2|business; estatística=istatistik:f|B2|business; probabilidade=olasılık:f|B2|business; significância=anlamlılık:f|C1|business;
+desvio=sapma:m|C1|business; média=ortalama:f|B2|business; mediana=ortanca:f|C1|business; intervalo=aralık:m|B2|business;
+escopo=kapsam:m|B2|business; dimensão=boyut:f|B2|business; aspecto=yön:m|B2|business; fator=etken:m|B2|business;
+elemento=öge:m|B2|business; componente=bileşen:m|B2|business; traço=özellik:m|B2|business; peculiaridade=huy:f|B2|business;
+qualidade=kalite:f|B2|business; quantidade=miktar:f|B2|business; magnitude=büyüklük:f|C1|business; intensidade=yoğunluk:f|B2|business;
+frequência=sıklık:f|B2|business; duração=süre:f|B2|business; sequência=sıralama:f|B2|business; processo=süreç:m|B2|business;
+procedimento=prosedür:m|B2|business; protocolo=protokol:m|B2|business; diretriz=yönerge:f|B2|business; princípio=ilke:m|B2|business;
+regulamento=düzenleme:m|B2|business; política=politika:f|B2|business; tática=taktik:f|B2|business; abordagem=yaklaşım:f|B2|business;
+técnica=teknik:f|B2|business; mecanismo=mekanizma:m|B2|business; filosofia=felsefe:f|B2|business; ética=etik:f|B2|business;
+estética=estetik:f|C1|business; lógica=mantık:f|B2|business; retórica=retorik:f|C1|business; metáfora=mecaz:f|B2|business;
+analogia=analoji:f|B2|business; alegoria=alegori:f|C1|business; sátira=yergi:f|B2|business; tragédia=trajedi:f|B2|business;
+comédia=komedi:f|B2|business; epopeia=destan:f|B2|business; prosa=düzyazı:f|B2|business; verso=dize:m|B2|business;
+estrofe=kıta:f|B2|business; parágrafo=paragraf:m|B2|business; termo=terim:m|B2|business; definição=tanım:f|B2|business;
+referência=referans:f|B2|business; conotação=çağrışım:f|C1|business; sociedade=toplum:f|B2|business; cultura=kültür:f|B2|business;
+civilização=uygarlık:f|B2|business; tradição=gelenek:f|B2|business; costume=görenek:m|B2|business; ritual=ritüel:m|B2|business;
+crença=inanış:f|B2|business; ideologia=ideoloji:f|B2|business; doutrina=öğreti:f|C1|business; reforma=reform:f|B2|business;
+revolução=devrim:f|B2|business; evolução=evrim:f|B2|business; progresso=ilerleme:m|B2|business; declínio=düşüş:m|B2|business;
+crise=kriz:f|B2|business; conflito=çatışma:m|B2|business; consenso=fikir birliği:m|B2|business; cooperação=iş birliği:f|B2|business;
+ensaio=deneme yazısı:m|B2|business; glossário=terimler sözlüğü:m|B2|business; índice=dizin:m|B2|business; prefácio=önsöz:m|B2|business;
+posfácio=sonsöz:m|B2|business;
 `,
     A: `
 faminto=aç|A2; sedento=susuz|A2; cansado=yorgun|A2; sonolento=uykulu|B1; doente=hasta|A2; saudável=sağlıklı|B1;
@@ -994,6 +1396,24 @@ claro=açık|A2; versátil=çok yönlü|B2; pragmático=pratik zekâlı|B2; cét
 proativo=proaktif|B2; dinâmico=dinamik|B1; vibrante=canlı ve enerjik|B1; monótono=tekdüze|B1; caótico=kaotik|B2;
 harmonioso=uyumlu|B2; delicado=narin|B1; áspero=pürüzlü|B2; liso=pürüzsüz|B1; opaco=mat|B2;
 translúcido=yarı saydam|C1; enferrujado=paslı|B1; empoeirado=tozlu|B1;
+empírico=ampirik|C1; teórico=kuramsal|C1; hipotético=varsayımsal|C1; analítico=çözümsel|C1;
+crítico=eleştirel|B2; rigoroso=ödünsüz|C1; sistemático=sistematik|B2; metódico=metodik|B2;
+objetivo=nesnel|B2; subjetivo=öznel|B2; imparcial=tarafsız|B2; explícito=apaçık|B2;
+implícito=örtük|C1; exaustivo=eksiksiz|C1; abrangente=kapsamlı|B2; coerente=tutarlı|B2;
+consistente=istikrarlı|B2; contraditório=çelişkili|B2; controverso=tartışmalı|B2; discutível=tartışmaya açık|C1;
+duvidoso=kuşkulu|C1; verossímil=akla yatkın|C1; credível=itibarlı|B2; válido=geçerli|B2;
+inválido=geçersiz|B2; estrito=çok sıkı|C1; drástico=sert (köklü)|C1; radical=radikal|B2;
+moderado=ılımlı|B2; gradual=kademeli|B2; abrupto=ani|B2; espontâneo=kendiliğinden|B2;
+simultâneo=eş zamanlı|B2; crônico=kronik|B2; agudo=akut|C1; estático=statik|B2;
+dinâmico=dinamik|B2; cinético=kinetik|C1; potencial=potansiyel|B2; latente=gizli|C1;
+inerente=yapısal (öz)|C1; intrínseco=içsel|C1; extrínseco=dışsal|C1; tácito=zımni|C1;
+manifesto=aşikâr|C1; encoberto=örtülü|C1; obscuro=az bilinen|C1; conciso=kısa ve öz|B2;
+prolixo=sözü uzatan|C1; fluente=akıcı|B2; seminal=öncü (eser)|C1; decisivo=belirleyici|C1;
+supremo=aşırı önemli|C1; imprescindível=vazgeçilmez|C1; inexorável=engellenemez|C1; imutável=değişmez|C1;
+irreversível=geri döndürülemez|C1; irrefutável=çürütülemez|C1; inegável=yadsınamaz|C1; estético=estetik|B2;
+ético=ahlaki|B2; moral=erdemli|B2; filosófico=felsefi|B2; retórico=cevabı beklenmeyen|C1;
+poético=şiirsel|B2; lírico=lirik|B2; dramático=dramatik|B2; trágico=trajik|B2;
+satírico=hicivli|B2;
 `,
     V: `
 cozinhar=yemek pişirmek>cozinho>cozinhas>cozinhei|B1; assar=fırında pişirmek>asso>assas>assei|B1; fritar=kızartmak>frito>fritas>fritei|A2;
@@ -1026,6 +1446,33 @@ buscar=aramak>busco>buscas>busquei|A2; perseguir=kovalamak>persigo>persegues>per
 seguir=takip etmek>sigo>segues>segui|A2; orientar=yol göstermek>oriento>orientas>orientei|B1; guiar=yol göstermek>guio>guias>guiei|B1;
 carregar=taşımak>carrego>carregas>carreguei|A2; transportar=taşımak>transporto>transportas>transportei|B1; consertar=tamir etmek>conserto>consertas>consertei|A2;
 reparar=tamir etmek>reparo>reparas>reparei|A2;
+analisar=analiz etmek>analiso>analisas>analisei|B2; sintetizar=sentezlemek>sintetizo>sintetizas>sintetizei|C1;
+hipotetizar=hipotez kurmak>hipotetizo>hipotetizas>hipotetizei|C1; teorizar=teori üretmek>teorizo>teorizas>teorizei|C1;
+postular=varsaymak>postulo>postulas>postulei|C1; propor=ileri sürmek>proponho>propões>propus|C1;
+deduzir=çıkarsamak>deduzo>deduzes>deduzi|C1; inferir=sonuç çıkarmak>infiro>inferes>inferi|B2;
+implicar=ima etmek>implico>implicas>impliquei|B2; denotar=göstermek>denoto>denotas>denotei|C1;
+definir=tanımlamak>defino>defines>defini|B2; classificar=sınıflandırmak>classifico>classificas>classifiquei|B2;
+comparar=mukayese etmek>comparo>comparas>comparei|B2; contrastar=karşıt göstermek>contrasto>contrastas>contrastei|C1;
+diferenciar=farklılaştırmak>diferencio>diferencias>diferenciei|C1; distinguir=farkını görmek>distingo>distingues>distingui|B2;
+avaliar=değerlendirmek>avalio>avalias>avaliei|B2; mensurar=değer biçmek>mensuro>mensuras>mensurei|B2;
+criticar=tenkit etmek>critico>criticas>critiquei|B2; citar=alıntı yapmak>cito>citas>citei|B2;
+reproduzir=doğrudan aktarmak>reproduzo>reproduzes>reproduzi|B2; publicar=yayımlamak>publico>publicas>publiquei|B2;
+redigir=redakte etmek>redijo>rediges>redigi|B2; rever=gözden geçirmek>revejo>reves>revi|B2;
+esboçar=taslak hazırlamak>esboço>esboças>esbocei|B2; resumir=özetlemek>resumo>resumes>resumi|B2;
+parafrasear=yeniden ifade etmek>parafraseio>parafraseias>parafraseei|C1; argumentar=gerekçeyle savunmak>argumento>argumentas>argumentei|B2;
+afirmar=iddia etmek>afirmo>afirmas>afirmei|B2; reivindicar=hak talep etmek>reivindico>reivindicas>reivindiquei|B2;
+sustentar=görüşünü korumak>sustento>sustentas>sustentei|B2; refutar=çürütmek>refuto>refutas>refutei|C1;
+conceder=kerhen kabul etmek>concedo>concedes>concedi|C1; reconhecer=minnetle anmak>reconheço>reconheces>reconheci|B2;
+supor=varsaymak>suponho>supões>supus|B2; pressupor=farz etmek>pressuponho>pressupões>pressupus|C1;
+crer=sanmak>creio>cres>cri|B2; observar=gözlemlemek>observo>observas>observei|B2;
+calcular=hesaplamak>calculo>calculas>calculei|B2; computar=işlemle hesaplamak>computo>computas>computei|B2;
+estimar=yaklaşık hesaplamak>estimo>estimas>estimei|B2; extrapolar=eğilimi uzatarak tahmin>extrapolo>extrapolas>extrapolei|C1;
+verificar=doğrulamak>verifico>verificas>verifiquei|B2; validar=geçerli kılmak>valido>validas>validei|B2;
+falsear=yanlışlamak>falseio>falseias>falseei|C1; replicar=deneyi yinelemek>replico>replicas>repliquei|C1;
+conduzir=yürütmek>conduzo>conduzes>conduzi|B2; aplicar=test uygulamak>aplico>aplicas>apliquei|B2;
+compilar=derlemek>compilo>compilas>compilei|B2; tabular=tablolaştırmak>tabulo>tabulas>tabulei|C1;
+representar em gráfico=grafiğini çizmek>represento em gráfico>representas em gráfico>representei em gráfico|B2; simular=simüle etmek>simulo>simulas>simulei|B2;
+sondar=yoklayarak incelemek>sondo>sondas>sondei|C1;
 `,
     P: `
 até amanhã=yarın görüşürüz|A2; tem um bom dia=iyi günler|A2; boa sorte=iyi şanslar|A2; cuida-te=kendine iyi bak|A2;
@@ -1059,6 +1506,19 @@ ver montras=vitrin gezmek|B1; devolver um produto=ürün iade etmek|B1; fazer fi
 apanhar o autocarro=otobüse yetişmek|A2; dividir a conta=hesabı bölüşmek|B1; deixar gorjeta=bahşiş bırakmak|A2; pedir para levar=paket sipariş etmek|B1;
 fazer uma reserva=rezervasyon yaptırmak|B1; fazer check-in=otel girişi yapmak|A2; pedir direções=yol sormak|A2; perder-se=kaybolmak|A2;
 cortar caminho=kestirmeden gitmek|B1;
+além disso=ayrıca (resmi dil)|C1; ademais=buna ek olarak|C1; no entanto=yine de (resmi)|C1; não obstante=rağmen (resmi edat)|C1;
+ainda que=olsa da (resmi)|C1; ao passo que=buna karşılık|C1; por meio de=aracılığıyla|C1; pela presente=işbu belgeyle|C1;
+do supracitado=bahsi geçenin|C1; neste documento=bu belgede|C1; até à data=bugüne kadar|C1; doravante=bundan böyle|C1;
+por conseguinte=sonuç olarak|B2; subsequentemente=ardından (süreç)|B2; inversamente=tersine|B2; do mesmo modo=benzer şekilde|B2;
+isto é=yani (şunlar)|B2; à luz de=ışığında|B2; no que diz respeito a=-e dair|B2; no que concerne=söz konusu olunca|B2;
+vale a pena notar=belirtmeye değer|B2; em termos gerais=genel anlamda|B2; em sentido estrito=tam anlamıyla|B2; por outro lado=öte yandan|B2;
+bem pelo contrário=tam tersine|B2; em contraste=buna karşılık|B2; em comparação=kıyasla|B2; em conclusão=sonuç bölümünde|B2;
+em resumo=özetlemek gerekirse|B2; tendo tudo em conta=her şey göz önüne alınınca|C1; no conjunto=birlikte ele alınınca|C1; no geral=bütüne bakınca|B2;
+na sua maior parte=büyük ölçüde|B2; em certa medida=bir ölçüde|B2; em grande medida=büyük oranda|B2; à primeira vista=ilk bakışta|B2;
+visto de perto=yakından bakınca|C1; em retrospectiva=geriye dönüp bakınca|C1; per se=bizzat kendisi|C1; vice-versa=tam tersi de geçerli|C1;
+de facto=fiilen|C1; de jure=hukuken|C1; ad hoc=özel duruma yönelik|C1; a priori=önsel|C1;
+a posteriori=sonsal|C1; status quo=mevcut durum|C1; prima facie=ilk görünüşte|C1; concordo plenamente=tamamen katılıyorum|B2;
+percebo o teu ponto=dediğini anlıyorum|B2; está tudo em aberto=henüz belli değil|C1;
 `,
   },
   fr: {
@@ -1172,6 +1632,40 @@ nostalgie=nostalji:f|B2|emotion; ennui=can sıkıntısı:m|B1|emotion; anxiété
 désespoir=umutsuzluk:m|B2|emotion; sérénité=huzur:f|B2|emotion; sympathie=sempati:f|B1|emotion; empathie=empati:f|B2|emotion;
 compassion=merhamet:f|B1|emotion; bonté=iyilik:f|A2|emotion; générosité=cömertlik:f|B1|emotion; honnêteté=dürüstlük:f|B1|emotion;
 loyauté=sadakat:f|B1|emotion; trahison=ihanet:f|B2|emotion; rancune=kin:f|B2|emotion; humeur=ruh hali:f|B1|emotion;
+hypothèse=hipotez:f|C1|business; théorie=teori:f|B2|business; phénomène=olgu:m|C1|business; paradigme=paradigma:m|C1|business;
+concept=kavram:m|B2|business; notion=anlayış:f|B2|business; cadre=çerçeve:m|B2|business; méthodologie=yöntembilim:f|C1|business;
+méthode=yöntem:f|B2|business; analyse=analiz:f|B2|business; synthèse=sentez:f|C1|business; donnée=veri:f|B2|business;
+indice=kanıt:m|B2|business; échantillon=örneklem:m|B2|business; variable=değişken:f|B2|business; corrélation=bağıntı:f|C1|business;
+causalité=nedensellik:f|C1|business; biais=yanlılık:m|B2|business; supposition=varsayım:f|B2|business; prémisse=öncül:f|C1|business;
+conclusion=sonuç:f|B2|business; inférence=çıkarım:f|C1|business; déduction=tümdengelim:f|C1|business; induction=tümevarım:f|C1|business;
+thèse=tez:f|B2|business; publication=yayın:f|B2|business; citation=alıntı:f|B2|business; bibliographie=kaynakça:f|B2|business;
+appendice=ek:m|B2|business; résumé=özet:m|B2|business; critique=eleştiri:f|B2|business; perspective=bakış açısı:f|B2|business;
+point de vue=görüş noktası:m|B2|business; discours=söylem:m|C1|business; narration=anlatı:f|B2|business; contexte=bağlam:m|B2|business;
+sous-texte=alt metin:m|C1|business; ironie=ironi:f|B2|business; paradoxe=paradoks:m|C1|business; dichotomie=ikilik:f|C1|business;
+spectre=yelpaze:m|C1|business; hiérarchie=hiyerarşi:f|B2|business; structure=yapı:f|B2|business; fonction=işlev:f|B2|business;
+système=sistem:m|B2|business; modèle=model:m|B2|business; prototype=prototip:m|B2|business; archétype=arketip:m|C1|business;
+tendance=eğilim:f|B2|business; orientation=yönelim:f|B2|business; motif=örüntü:m|B2|business; anomalie=aykırılık:f|C1|business;
+norme=norm:f|B2|business; critère=ölçüt:m|C1|business; observation=gözlem:f|B2|business; expérience=deney:f|B2|business;
+enquête=anket:f|B2|business; statistique=istatistik:f|B2|business; probabilité=olasılık:f|B2|business; portée=anlamlılık:f|C1|business;
+écart=sapma:m|C1|business; moyenne=ortalama:f|B2|business; médiane=ortanca:f|C1|business; intervalle=aralık:m|B2|business;
+étendue=kapsam:f|B2|business; dimension=boyut:f|B2|business; aspect=yön:m|B2|business; facteur=etken:m|B2|business;
+élément=öge:m|B2|business; composant=bileşen:m|B2|business; trait=özellik:m|B2|business; caractéristique=ayırıcı nitelik:f|B2|business;
+peculiarité=huy:f|B2|business; qualité=kalite:f|B2|business; quantité=miktar:f|B2|business; ampleur=büyüklük:f|C1|business;
+intensité=yoğunluk:f|B2|business; fréquence=sıklık:f|B2|business; durée=süre:f|B2|business; séquence=sıralama:f|B2|business;
+processus=süreç:m|B2|business; procédure=prosedür:f|B2|business; protocole=protokol:m|B2|business; directive=yönerge:f|B2|business;
+principe=ilke:m|B2|business; réglementation=düzenleme:f|B2|business; politique=politika:f|B2|business; tactique=taktik:f|B2|business;
+approche=yaklaşım:f|B2|business; technique=teknik:f|B2|business; mécanisme=mekanizma:m|B2|business; philosophie=felsefe:f|B2|business;
+éthique=etik:f|B2|business; esthétique=estetik:f|C1|business; logique=mantık:f|B2|business; rhétorique=retorik:f|C1|business;
+métaphore=mecaz:f|B2|business; analogie=analoji:f|B2|business; allégorie=alegori:f|C1|business; satire=yergi:f|B2|business;
+tragédie=trajedi:f|B2|business; comédie=komedi:f|B2|business; épopée=destan:f|B2|business; prose=düzyazı:f|B2|business;
+vers=dize:m|B2|business; strophe=kıta:f|B2|business; paragraphe=paragraf:m|B2|business; terme=terim:m|B2|business;
+définition=tanım:f|B2|business; référence=referans:f|B2|business; connotation=çağrışım:f|C1|business; société=toplum:f|B2|business;
+culture=kültür:f|B2|business; civilisation=uygarlık:f|B2|business; tradition=gelenek:f|B2|business; coutume=görenek:f|B2|business;
+rituel=ritüel:m|B2|business; croyance=inanış:f|B2|business; idéologie=ideoloji:f|B2|business; doctrine=öğreti:f|C1|business;
+réforme=reform:f|B2|business; révolution=devrim:f|B2|business; évolution=evrim:f|B2|business; progrès=ilerleme:m|B2|business;
+déclin=düşüş:m|B2|business; crise=kriz:f|B2|business; conflit=çatışma:m|B2|business; consensus=fikir birliği:m|B2|business;
+coopération=iş birliği:f|B2|business; essai=deneme yazısı:m|B2|business; glossaire=terimler sözlüğü:m|B2|business; index=dizin:m|B2|business;
+préface=önsöz:f|B2|business; postface=sonsöz:f|B2|business;
 `,
     A: `
 affamé=aç|A2; assoiffé=susuz|A2; fatigué=yorgun|A2; somnolent=uykulu|B1; malade=hasta|A2; sain=sağlıklı|B1;
@@ -1204,6 +1698,24 @@ sale=kirli|A2; clair=açık|A2; polyvalent=çok yönlü|B2; pragmatique=pratik z
 méthodique=sistemli|B1; proactif=proaktif|B2; dynamique=dinamik|B1; monotone=tekdüze|B1; chaotique=kaotik|B2;
 harmonieux=uyumlu|B2; délicat=narin|B1; rugueux=pürüzlü|B2; lisse=pürüzsüz|B1; mat=mat|B2;
 translucide=yarı saydam|C1; rouillé=paslı|B1; poussiéreux=tozlu|B1;
+empirique=ampirik|C1; théorique=kuramsal|C1; hypothétique=varsayımsal|C1; analytique=çözümsel|C1;
+critique=eleştirel|B2; rigoureux=ödünsüz|C1; systématique=sistematik|B2; méthodique=metodik|B2;
+objectif=nesnel|B2; subjectif=öznel|B2; impartial=tarafsız|B2; explicite=apaçık|B2;
+implicite=örtük|C1; exhaustif=eksiksiz|C1; complet=kapsamlı|B2; cohérent=tutarlı|B2;
+constant=istikrarlı|B2; contradictoire=çelişkili|B2; controversé=tartışmalı|B2; discutable=tartışmaya açık|C1;
+douteux=kuşkulu|C1; vraisemblable=akla yatkın|C1; crédible=itibarlı|B2; valable=geçerli|B2;
+caduc=geçersiz|C1; strict=çok sıkı|C1; drastique=sert (köklü)|C1; radical=radikal|B2;
+modéré=ılımlı|B2; graduel=kademeli|B2; abrupt=ani|B2; spontané=kendiliğinden|B2;
+simultané=eş zamanlı|B2; chronique=kronik|B2; aigu=akut|C1; statique=statik|B2;
+dynamique=dinamik|B2; cinétique=kinetik|C1; potentiel=potansiyel|B2; latent=gizli|C1;
+inhérent=yapısal (öz)|C1; intrinsèque=içsel|C1; extrinsèque=dışsal|C1; tacite=zımni|C1;
+manifeste=aşikâr|C1; voilé=örtülü|C1; méconnu=az bilinen|C1; concis=kısa ve öz|B2;
+verbeux=sözü uzatan|C1; fluide=akıcı|B2; séminal=öncü (eser)|C1; déterminant=belirleyici|C1;
+primordial=aşırı önemli|C1; indispensable=vazgeçilmez|C1; inexorable=engellenemez|C1; immuable=değişmez|C1;
+irréversible=geri döndürülemez|C1; irréfutable=çürütülemez|C1; indéniable=yadsınamaz|C1; esthétique=estetik|B2;
+éthique=ahlaki|B2; moral=erdemli|B2; philosophique=felsefi|B2; rhétorique=cevabı beklenmeyen|C1;
+poétique=şiirsel|B2; lyrique=lirik|B2; dramatique=dramatik|B2; tragique=trajik|B2;
+satirique=hicivli|B2;
 `,
     V: `
 cuisiner=yemek pişirmek>je cuisine>tu cuisines>j'ai cuisiné|B1; cuire au four=fırında pişirmek>je cuis au four>tu cuis au four>j'ai cuit au four|B1; frire=kızartmak>je fris>tu fris>j'ai frit|A2;
@@ -1247,6 +1759,33 @@ enseigner=öğretmek>j'enseigne>tu enseignes>j'ai enseigné|B1; étudier=ders ç
 compter=saymak>je compte>tu comptes>j'ai compté|A2; mesurer=ölçmek>je mesure>tu mesures>j'ai mesuré|B1; peser=tartmak>je pèse>tu pèses>j'ai pesé|B1;
 vérifier=kontrol etmek>je vérifie>tu vérifies>j'ai vérifié|B1; réserver=ayırtmak>je réserve>tu réserves>j'ai réservé|B1; commander=sipariş vermek>je commande>tu commandes>j'ai commandé|B1;
 livrer=teslim etmek>je livre>tu livres>j'ai livré|B1; signer=imzalamak>je signe>tu signes>j'ai signé|B1; voter=oy vermek>je vote>tu votes>j'ai voté|B1;
+analyser=analiz etmek>j'analyse>tu analyses>j'ai analysé|B2; synthétiser=sentezlemek>je synthétise>tu synthétises>j'ai synthétisé|C1;
+formuler une hypothèse=hipotez kurmak>je formule une hypothèse>tu formules une hypothèse>j'ai formulé une hypothèse|C1; théoriser=teori üretmek>je théorise>tu théorises>j'ai théorisé|C1;
+postuler=varsaymak>je postule>tu postules>j'ai postulé|C1; avancer=ileri sürmek>j'avance>tu avances>j'ai avancé|C1;
+déduire=çıkarsamak>je déduis>tu déduis>j'ai déduit|C1; inférer=sonuç çıkarmak>j'infère>tu infères>j'ai inféré|B2;
+impliquer=ima etmek>j'implique>tu impliques>j'ai impliqué|B2; dénoter=göstermek>je dénote>tu dénotes>j'ai dénoté|C1;
+définir=tanımlamak>je définis>tu définis>j'ai défini|B2; classifier=sınıflandırmak>je classifie>tu classifies>j'ai classifié|B2;
+comparer=mukayese etmek>je compare>tu compares>j'ai comparé|B2; mettre en opposition=karşıt göstermek>je mets en opposition>tu mets en opposition>j'ai mis en opposition|C1;
+différencier=farklılaştırmak>je différencie>tu différencies>j'ai différencié|C1; distinguer=farkını görmek>je distingue>tu distingues>j'ai distingué|B2;
+évaluer=değerlendirmek>j'évalue>tu évalues>j'ai évalué|B2; estimer la valeur=değer biçmek>j'estime la valeur>tu estimes la valeur>j'ai estimé la valeur|B2;
+critiquer=tenkit etmek>je critique>tu critiques>j'ai critiqué|B2; citer=alıntı yapmak>je cite>tu cites>j'ai cité|B2;
+citer textuellement=doğrudan aktarmak>je cite textuellement>tu cites textuellement>j'ai cité textuellement|B2; publier=yayımlamak>je publie>tu publies>j'ai publié|B2;
+rédiger=redakte etmek>je rédige>tu rédiges>j'ai rédigé|B2; revoir=gözden geçirmek>je revois>tu revois>j'ai revu|B2;
+ébaucher=taslak hazırlamak>j'ébauche>tu ébauches>j'ai ébauché|B2; résumer=özetlemek>je résume>tu résumes>j'ai résumé|B2;
+paraphraser=yeniden ifade etmek>je paraphrase>tu paraphrases>j'ai paraphrasé|C1; argumenter=gerekçeyle savunmak>j'argumente>tu argumentes>j'ai argumenté|B2;
+affirmer=iddia etmek>j'affirme>tu affirmes>j'ai affirmé|B2; revendiquer=hak talep etmek>je revendique>tu revendiques>j'ai revendiqué|B2;
+soutenir=görüşünü korumak>je soutiens>tu soutiens>j'ai soutenu|B2; réfuter=çürütmek>je réfute>tu réfutes>j'ai réfuté|C1;
+concéder=kerhen kabul etmek>je concède>tu concèdes>j'ai concédé|C1; mentionner avec gratitude=minnetle anmak>je mentionne avec gratitude>tu mentionnes avec gratitude>j'ai mentionné avec gratitude|B2;
+supposer=varsaymak>je suppose>tu supposes>j'ai supposé|B2; présumer=farz etmek>je présume>tu présumes>j'ai présumé|C1;
+croire=sanmak>je crois>tu crois>j'ai cru|B2; observer=gözlemlemek>j'observe>tu observes>j'ai observé|B2;
+calculer=hesaplamak>je calcule>tu calcules>j'ai calculé|B2; évaluer numériquement=işlemle hesaplamak>j'évalue numériquement>tu évalues numériquement>j'ai évalué numériquement|B2;
+estimer=yaklaşık hesaplamak>j'estime>tu estimes>j'ai estimé|B2; extrapoler=eğilimi uzatarak tahmin>j'extrapole>tu extrapoles>j'ai extrapolé|C1;
+vérifier=doğrulamak>je vérifie>tu vérifies>j'ai vérifié|B2; valider=geçerli kılmak>je valide>tu valides>j'ai validé|B2;
+falsifier=yanlışlamak>je falsifie>tu falsifies>j'ai falsifié|C1; reproduire=deneyi yinelemek>je reproduis>tu reproduis>j'ai reproduit|C1;
+mener=yürütmek>je mène>tu mènes>j'ai mené|B2; administrer=test uygulamak>j'administre>tu administres>j'ai administré|B2;
+compiler=derlemek>je compile>tu compiles>j'ai compilé|B2; mettre en tableaux=tablolaştırmak>je mets en tableaux>tu mets en tableaux>j'ai mis en tableaux|C1;
+tracer le graphique=grafiğini çizmek>je trace le graphique>tu traces le graphique>j'ai tracé le graphique|B2; simuler=simüle etmek>je simule>tu simules>j'ai simulé|B2;
+sonder=yoklayarak incelemek>je sonde>tu sondes>j'ai sondé|C1;
 `,
     P: `
 à demain=yarın görüşürüz|A2; bonne journée=iyi günler|A2; bonne chance=iyi şanslar|A2; prends soin de toi=kendine iyi bak|A2;
@@ -1280,6 +1819,19 @@ faire des courses=dışarıdaki işleri halletmek|B1; faire du lèche-vitrines=v
 rater son bus=otobüsü kaçırmak|A2; avoir son bus=otobüse yetişmek|A2; partager l'addition=hesabı bölüşmek|B1; laisser un pourboire=bahşiş bırakmak|A2;
 commander à emporter=paket sipariş etmek|B1; réserver une table=rezervasyon yaptırmak|B1; faire le check-in=otel girişi yapmak|A2; demander son chemin=yol sormak|A2;
 se perdre=kaybolmak|A2; prendre un raccourci=kestirmeden gitmek|B1;
+en outre=ayrıca (resmi dil)|C1; de plus=buna ek olarak|C1; néanmoins=yine de (resmi)|C1; nonobstant=rağmen (resmi edat)|C1;
+quand bien même=olsa da (resmi)|C1; alors que=buna karşılık|C1; au moyen de=aracılığıyla|C1; par la présente=işbu belgeyle|C1;
+dudit=bahsi geçenin|C1; dans le présent document=bu belgede|C1; jusqu'à ce jour=bugüne kadar|C1; dorénavant=bundan böyle|C1;
+par conséquent=sonuç olarak|B2; par la suite=ardından (süreç)|B2; inversement=tersine|B2; de même=benzer şekilde|B2;
+à savoir=yani (şunlar)|B2; à la lumière de=ışığında|B2; en ce qui concerne=-e dair|B2; s'agissant de=söz konusu olunca|B2;
+il convient de noter=belirtmeye değer|B2; d'une manière générale=genel anlamda|B2; au sens strict=tam anlamıyla|B2; d'un autre côté=öte yandan|B2;
+c'est tout le contraire=tam tersine|B2; par contraste=buna karşılık|B2; en comparaison=kıyasla|B2; en conclusion=sonuç bölümünde|B2;
+en résumé=özetlemek gerekirse|B2; tout bien considéré=her şey göz önüne alınınca|C1; dans leur ensemble=birlikte ele alınınca|C1; dans l'ensemble=bütüne bakınca|B2;
+pour la plupart=büyük ölçüde|B2; dans une certaine mesure=bir ölçüde|B2; dans une large mesure=büyük oranda|B2; à première vue=ilk bakışta|B2;
+y regarder de plus près=yakından bakınca|C1; avec le recul=geriye dönüp bakınca|C1; per se=bizzat kendisi|C1; vice versa=tam tersi de geçerli|C1;
+de facto=fiilen|C1; de jure=hukuken|C1; ad hoc=özel duruma yönelik|C1; a priori=önsel|C1;
+a posteriori=sonsal|C1; statu quo=mevcut durum|C1; prima facie=ilk görünüşte|C1; tout à fait d'accord=tamamen katılıyorum|B2;
+je vois ce que tu veux dire=dediğini anlıyorum|B2; rien n'est encore joué=henüz belli değil|C1;
 `,
   },
   de: {
@@ -1394,6 +1946,40 @@ Nostalgie=nostalji:f|B2|emotion; Langeweile=can sıkıntısı:f|B1|emotion; Angs
 Verzweiflung=umutsuzluk:f|B2|emotion; Gelassenheit=huzur:f|B2|emotion; Sympathie=sempati:f|B1|emotion; Empathie=empati:f|B2|emotion;
 Mitgefühl=merhamet:n|B1|emotion; Güte=iyilik:f|A2|emotion; Großzügigkeit=cömertlik:f|B1|emotion; Ehrlichkeit=dürüstlük:f|B1|emotion;
 Treue=sadakat:f|B1|emotion; Verrat=ihanet:m|B2|emotion; Groll=kin:m|B2|emotion; Stimmung=ruh hali:f|B1|emotion;
+Hypothese=hipotez:f|C1|business; Theorie=teori:f|B2|business; Phänomen=olgu:n|C1|business; Paradigma=paradigma:n|C1|business;
+Konzept=kavram:n|B2|business; Auffassung=anlayış:f|B2|business; Rahmen=çerçeve:m|B2|business; Methodologie=yöntembilim:f|C1|business;
+Methode=yöntem:f|B2|business; Analyse=analiz:f|B2|business; Synthese=sentez:f|C1|business; Angabe=veri:f|B2|business;
+Evidenz=kanıt:f|B2|business; Stichprobe=örneklem:f|B2|business; Variable=değişken:f|B2|business; Korrelation=bağıntı:f|C1|business;
+Kausalität=nedensellik:f|C1|business; Bias=yanlılık:m|B2|business; Annahme=varsayım:f|B2|business; Prämisse=öncül:f|C1|business;
+Fazit=sonuç:n|B2|business; Schluss=çıkarım:m|C1|business; Deduktion=tümdengelim:f|C1|business; Induktion=tümevarım:f|C1|business;
+These=tez:f|B2|business; Publikation=yayın:f|B2|business; Zitat=alıntı:n|B2|business; Bibliografie=kaynakça:f|B2|business;
+Anhang=ek:m|B2|business; Abstract=özet:n|B2|business; Kritik=eleştiri:f|B2|business; Perspektive=bakış açısı:f|B2|business;
+Standpunkt=görüş noktası:m|B2|business; Diskurs=söylem:m|C1|business; Narrativ=anlatı:n|B2|business; Kontext=bağlam:m|B2|business;
+Subtext=alt metin:m|C1|business; Ironie=ironi:f|B2|business; Paradoxon=paradoks:n|C1|business; Dichotomie=ikilik:f|C1|business;
+Spektrum=yelpaze:n|C1|business; Hierarchie=hiyerarşi:f|B2|business; Struktur=yapı:f|B2|business; Funktion=işlev:f|B2|business;
+System=sistem:n|B2|business; Modell=model:n|B2|business; Prototyp=prototip:m|B2|business; Archetyp=arketip:m|C1|business;
+Trend=eğilim:m|B2|business; Tendenz=yönelim:f|B2|business; Muster=örüntü:n|B2|business; Anomalie=aykırılık:f|C1|business;
+Norm=norm:f|B2|business; Kriterium=ölçüt:n|C1|business; Beobachtung=gözlem:f|B2|business; Experiment=deney:n|B2|business;
+Umfrage=anket:f|B2|business; Statistik=istatistik:f|B2|business; Wahrscheinlichkeit=olasılık:f|B2|business; Signifikanz=anlamlılık:f|C1|business;
+Abweichung=sapma:f|C1|business; Durchschnitt=ortalama:m|B2|business; Median=ortanca:m|C1|business; Bandbreite=aralık:f|B2|business;
+Umfang=kapsam:m|B2|business; Dimension=boyut:f|B2|business; Aspekt=yön:m|B2|business; Faktor=etken:m|B2|business;
+Element=öge:n|B2|business; Komponente=bileşen:f|B2|business; Merkmal=özellik:n|B2|business; Eigenheit=huy:f|B2|business;
+Qualität=kalite:f|B2|business; Menge=miktar:f|B2|business; Größenordnung=büyüklük:f|C1|business; Intensität=yoğunluk:f|B2|business;
+Häufigkeit=sıklık:f|B2|business; Dauer=süre:f|B2|business; Reihenfolge=sıralama:f|B2|business; Prozess=süreç:m|B2|business;
+Prozedur=prosedür:f|B2|business; Protokoll=protokol:n|B2|business; Richtlinie=yönerge:f|B2|business; Prinzip=ilke:n|B2|business;
+Regelung=düzenleme:f|B2|business; Politik=politika:f|B2|business; Taktik=taktik:f|B2|business; Ansatz=yaklaşım:m|B2|business;
+Technik=teknik:f|B2|business; Mechanismus=mekanizma:m|B2|business; Philosophie=felsefe:f|B2|business; Ethik=etik:f|B2|business;
+Ästhetik=estetik:f|C1|business; Logik=mantık:f|B2|business; Rhetorik=retorik:f|C1|business; Metapher=mecaz:f|B2|business;
+Analogie=analoji:f|B2|business; Allegorie=alegori:f|C1|business; Satire=yergi:f|B2|business; Tragödie=trajedi:f|B2|business;
+Komödie=komedi:f|B2|business; Epos=destan:n|B2|business; Prosa=düzyazı:f|B2|business; Vers=dize:m|B2|business;
+Strophe=kıta:f|B2|business; Absatz=paragraf:m|B2|business; Fachbegriff=terim:m|B2|business; Definition=tanım:f|B2|business;
+Verweis=referans:m|B2|business; Konnotation=çağrışım:f|C1|business; Gesellschaft=toplum:f|B2|business; Kultur=kültür:f|B2|business;
+Zivilisation=uygarlık:f|B2|business; Tradition=gelenek:f|B2|business; Brauch=görenek:m|B2|business; Ritual=ritüel:n|B2|business;
+Überzeugung=inanış:f|B2|business; Ideologie=ideoloji:f|B2|business; Doktrin=öğreti:f|C1|business; Reform=reform:f|B2|business;
+Revolution=devrim:f|B2|business; Evolution=evrim:f|B2|business; Fortschritt=ilerleme:m|B2|business; Rückgang=düşüş:m|B2|business;
+Krise=kriz:f|B2|business; Konflikt=çatışma:m|B2|business; Konsens=fikir birliği:m|B2|business; Zusammenarbeit=iş birliği:f|B2|business;
+Essay=deneme yazısı:n|B2|business; Glossar=terimler sözlüğü:n|B2|business; Register=dizin:n|B2|business; Vorwort=önsöz:n|B2|business;
+Nachwort=sonsöz:n|B2|business;
 `,
     A: `
 hungrig=aç|A2; durstig=susuz|A2; müde=yorgun|A2; schläfrig=uykulu|B1; krank=hasta|A2; gesund=sağlıklı|B1;
@@ -1426,6 +2012,24 @@ schmutzig=kirli|A2; offen=açık|A2; vielseitig=çok yönlü|B2; pragmatisch=pra
 methodisch=sistemli|B1; proaktiv=proaktif|B2; dynamisch=dinamik|B1; monoton=tekdüze|B1; chaotisch=kaotik|B2;
 harmonisch=uyumlu|B2; zart=narin|B1; rau=pürüzlü|B2; glatt=pürüzsüz|B1; matt=mat|B2;
 durchscheinend=yarı saydam|C1; rostig=paslı|B1; staubig=tozlu|B1;
+empirisch=ampirik|C1; theoretisch=kuramsal|C1; hypothetisch=varsayımsal|C1; analytisch=çözümsel|C1;
+kritisch=eleştirel|B2; kompromisslos=ödünsüz|C1; systematisch=sistematik|B2; methodisch=metodik|B2;
+objektiv=nesnel|B2; subjektiv=öznel|B2; unparteiisch=tarafsız|B2; explizit=apaçık|B2;
+implizit=örtük|C1; erschöpfend=eksiksiz|C1; umfassend=kapsamlı|B2; kohärent=tutarlı|B2;
+konsistent=istikrarlı|B2; widersprüchlich=çelişkili|B2; umstritten=tartışmalı|B2; strittig=tartışmaya açık|C1;
+zweifelhaft=kuşkulu|C1; plausibel=akla yatkın|C1; glaubwürdig=itibarlı|B2; gültig=geçerli|B2;
+ungültig=geçersiz|B2; streng=çok sıkı|C1; drastisch=sert (köklü)|C1; radikal=radikal|B2;
+gemäßigt=ılımlı|B2; graduell=kademeli|B2; abrupt=ani|B2; spontan=kendiliğinden|B2;
+gleichzeitig=eş zamanlı|B2; chronisch=kronik|B2; akut=akut|C1; statisch=statik|B2;
+dynamisch=dinamik|B2; kinetisch=kinetik|C1; potenziell=potansiyel|B2; latent=gizli|C1;
+inhärent=yapısal (öz)|C1; intrinsisch=içsel|C1; extrinsisch=dışsal|C1; stillschweigend=zımni|C1;
+offenkundig=aşikâr|C1; verklausuliert=örtülü|C1; obskur=az bilinen|C1; prägnant=kısa ve öz|B2;
+weitschweifig=sözü uzatan|C1; flüssig=akıcı|B2; wegweisend=öncü (eser)|C1; maßgeblich=belirleyici|C1;
+überragend=aşırı önemli|C1; unverzichtbar=vazgeçilmez|C1; unaufhaltsam=engellenemez|C1; unveränderlich=değişmez|C1;
+irreversibel=geri döndürülemez|C1; unwiderlegbar=çürütülemez|C1; unbestreitbar=yadsınamaz|C1; ästhetisch=estetik|B2;
+ethisch=ahlaki|B2; tugendhaft=erdemli|B2; philosophisch=felsefi|B2; rhetorisch=cevabı beklenmeyen|C1;
+poetisch=şiirsel|B2; lyrisch=lirik|B2; dramatisch=dramatik|B2; tragisch=trajik|B2;
+satirisch=hicivli|B2;
 `,
     V: `
 kochen=yemek pişirmek>ich koche>du kochst>ich kochte|B1; backen=fırında pişirmek>ich backe>du bäckst>ich buk|B1; braten=kızartmak>ich brate>du brätst>ich briet|A2;
@@ -1472,6 +2076,33 @@ bestellen=sipariş vermek>ich bestelle>du bestellst>ich bestellte|B1; liefern=te
 abstimmen=oy vermek>ich stimme ab>du stimmst ab>ich stimmte ab|B1; sich freuen=sevinmek>ich freue mich>du freust dich>ich freute mich|A2; sich ärgern=sinirlenmek>ich ärgere mich>du ärgerst dich>ich ärgerte mich|B1;
 sich erholen=dinlenmek>ich erhole mich>du erholst dich>ich erholte mich|B1; sich verspäten=gecikmek>ich verspäte mich>du verspätest dich>ich verspätete mich|B1; sich bewerben=başvurmak>ich bewerbe mich>du bewirbst dich>ich bewarb mich|B1;
 sich anziehen=giyinmek>ich ziehe mich an>du ziehst dich an>ich zog mich an|A2; gedenken=anmak>ich gedenke>du gedenkst>ich gedachte|B2;
+analysieren=analiz etmek>ich analysiere>du analysierst>ich analysierte|B2; synthetisieren=sentezlemek>ich synthetisiere>du synthetisierst>ich synthetisierte|C1;
+eine Hypothese aufstellen=hipotez kurmak>ich stelle eine Hypothese auf>du stellst eine Hypothese auf>ich stellte eine Hypothese auf|C1; theoretisieren=teori üretmek>ich theoretisiere>du theoretisierst>ich theoretisierte|C1;
+postulieren=varsaymak>ich postuliere>du postulierst>ich postulierte|C1; vorbringen=ileri sürmek>ich bringe vor>du bringst vor>ich brachte vor|C1;
+ableiten=çıkarsamak>ich leite ab>du leitest ab>ich leitete ab|C1; schließen=sonuç çıkarmak>ich schließe>du schließt>ich schloss|B2;
+implizieren=ima etmek>ich impliziere>du implizierst>ich implizierte|B2; bezeichnen=göstermek>ich bezeichne>du bezeichnest>ich bezeichnete|C1;
+definieren=tanımlamak>ich definiere>du definierst>ich definierte|B2; klassifizieren=sınıflandırmak>ich klassifiziere>du klassifizierst>ich klassifizierte|B2;
+vergleichen=mukayese etmek>ich vergleiche>du vergleichst>ich verglich|B2; gegenüberstellen=karşıt göstermek>ich stelle gegenüber>du stellst gegenüber>ich stellte gegenüber|C1;
+differenzieren=farklılaştırmak>ich differenziere>du differenzierst>ich differenzierte|C1; unterscheiden=farkını görmek>ich unterscheide>du unterscheidest>ich unterschied|B2;
+bewerten=değerlendirmek>ich bewerte>du bewertest>ich bewertete|B2; einschätzen=değer biçmek>ich schätze ein>du schätzt ein>ich schätzte ein|B2;
+kritisieren=tenkit etmek>ich kritisiere>du kritisierst>ich kritisierte|B2; zitieren=alıntı yapmak>ich zitiere>du zitierst>ich zitierte|B2;
+wörtlich zitieren=doğrudan aktarmak>ich zitiere wörtlich>du zitierst wörtlich>ich zitierte wörtlich|B2; veröffentlichen=yayımlamak>ich veröffentliche>du veröffentlichst>ich veröffentlichte|B2;
+redigieren=redakte etmek>ich redigiere>du redigierst>ich redigierte|B2; überarbeiten=gözden geçirmek>ich überarbeite>du überarbeitest>ich überarbeitete|B2;
+skizzieren=taslak hazırlamak>ich skizziere>du skizzierst>ich skizzierte|B2; zusammenfassen=özetlemek>ich fasse zusammen>du fasst zusammen>ich fasste zusammen|B2;
+paraphrasieren=yeniden ifade etmek>ich paraphrasiere>du paraphrasierst>ich paraphrasierte|C1; begründen=gerekçeyle savunmak>ich begründe>du begründest>ich begründete|B2;
+behaupten=iddia etmek>ich behaupte>du behauptest>ich behauptete|B2; geltend machen=hak talep etmek>ich mache geltend>du machst geltend>ich machte geltend|B2;
+vertreten=görüşünü korumak>ich vertrete>du vertrittst>ich vertrat|B2; widerlegen=çürütmek>ich widerlege>du widerlegst>ich widerlegte|C1;
+zugestehen=kerhen kabul etmek>ich gestehe zu>du gestehst zu>ich gestand zu|C1; dankend erwähnen=minnetle anmak>ich erwähne dankend>du erwähnst dankend>ich erwähnte dankend|B2;
+voraussetzen=varsaymak>ich setze voraus>du setzt voraus>ich setzte voraus|B2; präsupponieren=farz etmek>ich präsupponiere>du präsupponierst>ich präsupponierte|C1;
+vermeinen=sanmak>ich vermeine>du vermeinst>ich vermeinte|B2; beobachten=gözlemlemek>ich beobachte>du beobachtest>ich beobachtete|B2;
+berechnen=hesaplamak>ich berechne>du berechnest>ich berechnete|B2; durchrechnen=işlemle hesaplamak>ich rechne durch>du rechnest durch>ich rechnete durch|B2;
+abschätzen=yaklaşık hesaplamak>ich schätze ab>du schätzt ab>ich schätzte ab|B2; extrapolieren=eğilimi uzatarak tahmin>ich extrapoliere>du extrapolierst>ich extrapolierte|C1;
+verifizieren=doğrulamak>ich verifiziere>du verifizierst>ich verifizierte|B2; validieren=geçerli kılmak>ich validiere>du validierst>ich validierte|B2;
+fälschen=yanlışlamak>ich fälsche>du fälschst>ich fälschte|C1; reproduzieren=deneyi yinelemek>ich reproduziere>du reproduzierst>ich reproduzierte|C1;
+durchführen=yürütmek>ich führe durch>du führst durch>ich führte durch|B2; testen=test uygulamak>ich teste>du testest>ich testete|B2;
+kompilieren=derlemek>ich kompiliere>du kompilierst>ich kompilierte|B2; in Tabellen fassen=tablolaştırmak>ich fasse in Tabellen>du fasst in Tabellen>ich fasste in Tabellen|C1;
+grafisch darstellen=grafiğini çizmek>ich stelle grafisch dar>du stellst grafisch dar>ich stellte grafisch dar|B2; simulieren=simüle etmek>ich simuliere>du simulierst>ich simulierte|B2;
+sondieren=yoklayarak incelemek>ich sondiere>du sondierst>ich sondierte|C1;
 `,
     P: `
 bis morgen=yarın görüşürüz|A2; schönen Tag=iyi günler|A2; viel Glück=iyi şanslar|A2; pass auf dich auf=kendine iyi bak|A2;
@@ -1505,6 +2136,19 @@ Schaufensterbummel machen=vitrin gezmek|B1; Ware umtauschen=ürün iade etmek|B1
 Bus erwischen=otobüse yetişmek|A2; Rechnung teilen=hesabı bölüşmek|B1; Trinkgeld geben=bahşiş bırakmak|A2; zum Mitnehmen bestellen=paket sipariş etmek|B1;
 Tisch reservieren=rezervasyon yaptırmak|B1; einchecken=otel girişi yapmak|A2; nach dem Weg fragen=yol sormak|A2; vom Weg abkommen=kaybolmak|A2;
 Abkürzung nehmen=kestirmeden gitmek|B1;
+außerdem=ayrıca (resmi dil)|C1; zudem=buna ek olarak|C1; dennoch=yine de (resmi)|C1; ungeachtet=rağmen (resmi edat)|C1;
+wenn auch=olsa da (resmi)|C1; wohingegen=buna karşılık|C1; mittels=aracılığıyla|C1; hiermit=işbu belgeyle|C1;
+des Erwähnten=bahsi geçenin|C1; im vorliegenden Dokument=bu belgede|C1; bislang=bugüne kadar|C1; fortan=bundan böyle|C1;
+folglich=sonuç olarak|B2; anschließend=ardından (süreç)|B2; umgekehrt=tersine|B2; gleichermaßen=benzer şekilde|B2;
+nämlich=yani (şunlar)|B2; angesichts=ışığında|B2; hinsichtlich=-e dair|B2; was das betrifft=söz konusu olunca|B2;
+erwähnenswert=belirtmeye değer|B2; im Allgemeinen=genel anlamda|B2; im strengen Sinne=tam anlamıyla|B2; andererseits=öte yandan|B2;
+ganz im Gegenteil=tam tersine|B2; im Gegensatz=buna karşılık|B2; vergleichsweise=kıyasla|B2; abschließend=sonuç bölümünde|B2;
+kurz gesagt=özetlemek gerekirse|B2; alles in allem=her şey göz önüne alınınca|C1; zusammengenommen=birlikte ele alınınca|C1; im Großen und Ganzen=bütüne bakınca|B2;
+größtenteils=büyük ölçüde|B2; in gewissem Maße=bir ölçüde|B2; in hohem Maße=büyük oranda|B2; auf den ersten Blick=ilk bakışta|B2;
+bei näherer Betrachtung=yakından bakınca|C1; rückblickend=geriye dönüp bakınca|C1; per se=bizzat kendisi|C1; vice versa=tam tersi de geçerli|C1;
+de facto=fiilen|C1; de jure=hukuken|C1; ad hoc=özel duruma yönelik|C1; a priori=önsel|C1;
+a posteriori=sonsal|C1; Status quo=mevcut durum|C1; prima facie=ilk görünüşte|C1; bin voll und ganz einverstanden=tamamen katılıyorum|B2;
+ich verstehe was du meinst=dediğini anlıyorum|B2; noch ist nichts entschieden=henüz belli değil|C1;
 `,
   },
 };
