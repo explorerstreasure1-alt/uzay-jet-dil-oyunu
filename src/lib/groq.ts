@@ -34,6 +34,11 @@ export function viteGroqKey(): string {
   }
 }
 
+/** Derleme anında gömülü anahtar var mı (Vercel VITE_GROQ_API_KEY)? */
+export function hasEmbeddedGroqKey(): boolean {
+  return viteGroqKey() !== '';
+}
+
 async function chat(key: string, model: string, system: string, user: string, timeoutMs: number, temperature: number): Promise<string> {
   const ctrl = new AbortController();
   const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);

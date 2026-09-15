@@ -81,7 +81,7 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
     audio.unlock(); audio.ui();
     // DAİMA AI: Groq yazar. Anahtar yoksa ya da üretim başarısızsa BAŞLATMA — havuza düşme yok.
     if (!groqKey) {
-      setAiError('AI anahtarı yok — Ayarlar → Groq anahtarını yapıştır (gsk_...), sonra tekrar dene. Bu bölüm daima AI ile çalışır.');
+      setAiError('AI anahtarı bulunamadı — Vercel’e VITE_GROQ_API_KEY ekleyip Redeploy yaptıysan canlıda düzelir; ya da Ayarlar’a anahtarı yapıştır (gsk_...).');
       setAiOk(false);
       return;
     }
@@ -250,7 +250,7 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
             {groqKey ? `🤖 AI CÜMLE MOTORU AKTİF · ${ROUNDS} cümle yazılır + hakemlik` : '⚠ AI ANAHTARI YOK — bu bölüm daima AI ile çalışır'}
           </div>
           <div className="font-mono-tech text-[7px] text-white/30 mt-1 text-center">
-            {groqKey ? 'Groq yazar + hakemlik yapar (internet gerekir) · müziksiz sessiz telaffuz' : 'Ayarlar → Groq anahtarını yapıştır (gsk_...), sonra BAŞLA. Havuz kullanılmaz.'}
+            {groqKey ? 'Groq yazar + hakemlik yapar (internet gerekir) · müziksiz sessiz telaffuz' : 'Vercel değişkeni + Redeploy ya da Ayarlar’a anahtar yapıştır. Havuz kullanılmaz.'}
           </div>
         </div>
         <button onClick={() => audio.preview(lang, speedRate(speed))} className="w-full glass rounded-xl py-2.5 mb-3 active:scale-95 transition-transform">
