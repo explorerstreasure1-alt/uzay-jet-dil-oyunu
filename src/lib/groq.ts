@@ -24,11 +24,11 @@ export function resolveGroqKey(settingsKey?: string, envKey?: string): string {
   return (envKey ?? '').trim();
 }
 
-/** Vite derlemesinde env'den okur (tarayıcıda process yoktur). */
+/** Vite derlemesinde env'den okur (tarayıcıda process yoktur). Kanonik desen: import.meta.env.X */
 export function viteGroqKey(): string {
   try {
-    const env = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_GROQ_API_KEY ?? '';
-    return env.trim();
+    const env = import.meta.env as unknown as Record<string, string | undefined>;
+    return (env['VITE_GROQ_API_KEY'] ?? '').trim();
   } catch {
     return '';
   }

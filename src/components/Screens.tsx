@@ -11,6 +11,9 @@ import { ACHIEVEMENTS, xpFor } from '../lib/achievements';
 import { audio } from '../lib/audio';
 import { hasEmbeddedGroqKey } from '../lib/groq';
 
+/** Canlıda hangi derlemenin koştuğunu ayırt etme etiketi — her sürümde yükseltilir. */
+const BUILD_TAG = '2026-09-15-01';
+
 const btn = (color: string, strong = false): React.CSSProperties => ({
   background: strong ? `linear-gradient(135deg, ${color}38, ${color}18)` : 'rgba(255,255,255,0.045)',
   border: `1px solid ${strong ? color : 'rgba(255,255,255,0.14)'}`,
@@ -1004,6 +1007,7 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
               ? '● AI HAZIR — Vercel değişkeni gömülü, yapıştırmana gerek yok'
               : '○ AI EKSİK — Vercel’e VITE_GROQ_API_KEY ekleyip Redeploy yap ya da anahtarı yapıştır'}
         </div>
+        <div className="font-mono-tech text-[7px] text-white/25 mt-1">derleme: {BUILD_TAG}</div>
       </div>
 
       <div className="space-y-1.5 mb-4">
