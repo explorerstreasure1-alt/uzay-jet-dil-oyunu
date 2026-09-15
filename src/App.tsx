@@ -8,6 +8,7 @@ import {
 import { highScoreKey } from './lib/storage';
 import { usePwaInstall } from './lib/pwa';
 import { TutorialOverlay } from './components/TutorialOverlay';
+import { SpeakScreen } from './components/SpeakScreen';
 import type { CategoryId, CEFRLevel, LangCode } from './data/vocabulary';
 
 type Root = 'menu' | 'playing' | 'levelComplete' | 'gameOver';
@@ -144,6 +145,7 @@ export default function App() {
             {view === 'leaderboard' && <LeaderboardScreen api={api} onBack={() => setView('menu')} />}
             {view === 'campaign' && <CampaignScreen api={api} onBack={() => setView('menu')} onStart={(lang, lv) => start(lang, lv, 'all', false)} />}
             {view === 'teacher' && <TeacherScreen api={api} onBack={() => setView('menu')} />}
+            {view === 'speak' && <SpeakScreen api={api} onBack={() => setView('menu')} />}
             {view === 'install' && (
               <InstallScreen
                 canInstall={pwa.canInstall}

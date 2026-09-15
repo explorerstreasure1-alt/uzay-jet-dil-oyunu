@@ -37,11 +37,11 @@ function Title() {
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+export function Shell({ children }: { children: React.ReactNode }) {
   return <div className="absolute inset-0 z-30 flex flex-col px-4 py-4 overflow-y-auto no-bar">{children}</div>;
 }
 
-function BackBtn({ onClick }: { onClick: () => void }) {
+export function BackBtn({ onClick }: { onClick: () => void }) {
   return (
     <button onClick={onClick} className="self-start glass rounded-lg px-3 py-1.5 mb-3 active:scale-95 transition-transform">
       <span className="font-mono-tech text-[10px] tracking-[0.2em] text-white/60">◀ GERİ</span>
@@ -263,8 +263,8 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-3 gap-2 mt-2">
-          {([['leaderboard','LİDERLİK'],['campaign','SEFER'],['teacher','ÖĞRETMEN']] as const).map(([k,label])=>(
+        <div className="grid grid-cols-4 gap-2 mt-2">
+          {([['leaderboard','LİDERLİK'],['campaign','SEFER'],['teacher','ÖĞRETMEN'],['speak','KONUŞMA']] as const).map(([k,label])=>(
             <button key={k} onClick={()=>{ audio.ui(); (go as any)(k); }} className="glass rounded-lg py-2 active:scale-95 transition-transform">
               <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55">{label}</span>
             </button>
@@ -1323,5 +1323,5 @@ export function TeacherScreen({ api, onBack }: { api: EngineApi; onBack: ()=>voi
   );
 }
 
-export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'daily' | 'leaderboard' | 'campaign' | 'teacher' | 'series';
+export type MenuView = 'menu' | 'setup' | 'deck' | 'stats' | 'settings' | 'install' | 'daily' | 'leaderboard' | 'campaign' | 'teacher' | 'series' | 'speak';
 export function heatOfUnused(h: HeatMap) { void h; }

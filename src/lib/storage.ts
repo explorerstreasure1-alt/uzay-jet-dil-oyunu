@@ -8,6 +8,7 @@ const K = {
   stats: 'wi_stats_v1',
   run: 'wi_run_v1',
   series: 'wi_series_ticks_v1',
+  speak: 'wi_speak_v1',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -33,6 +34,15 @@ export const DEFAULT_STATS: RunStats = {
   streak: 0, bestStreak: 0, lastStreakDate: null, todayCount: 0, todayDate: null,
   achievements: [], frenzyCleared: 0, wrongBookRuns: 0, dailyRuns: 0, speechCount: 0,
 };
+
+/** Konuşma bölümü ilerlemesi: oturum + doğru + en iyi seri (dil:seviye anahtarlı) */
+export interface SpeakProgress {
+  runs: number;
+  ok: number;
+  total: number;
+  best: Record<string, number>;
+}
+export const DEFAULT_SPEAK: SpeakProgress = { runs: 0, ok: 0, total: 0, best: {} };
 
 const runKey = (lang: LangCode) => `${K.run}_${lang}`;
 export const store = {
@@ -161,6 +171,9 @@ export const store = {
 
   loadStats: (): RunStats => ({ ...DEFAULT_STATS, ...read<Partial<RunStats>>(K.stats, {}) }),
   saveStats: (s: RunStats) => write(K.stats, s),
+
+  loadSpeak: (): SpeakProgress => ({ ...DEFAULT_SPEAK, ...read<Partial<SpeakProgress>>(K.speak, {}) }),
+  saveSpeak: (s: SpeakProgress) => write(K.speak, s),
 };
 
 /* ───────── Spaced repetition: FSRS/SM-2 inspired scheduler ───────── */
