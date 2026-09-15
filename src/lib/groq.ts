@@ -175,6 +175,88 @@ export async function judgeSpeaking(key: string, lang: LangCode, expected: strin
     `Target: ${expected} | Said: ${transcript}`,
     20000, 0.2,
   );
+  const parsed = parseJudge(content);
+  return parsed;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ÜCRETSİZ YEDEK MOTOR (anahtarsız) — Groq anahtarı yoksa devreye girer.
+   Kalite filtresi Groq ile aynıdır (dil + uzunluk + tekrar).
+   ══════════════════════════════════════════════════════════════════════ */
+const POLLI_OPENAI = 'https://text.pollinations.ai/openai';
+
+async function polliChat(system: string, user: string, timeoutMs: number, temperature: number): Promise<string> {
+  // 1) OpenAI-uyumlu POST
+  try {
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(POLLI_OPENAI, {
+        method: 'POST',
+        signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'openai',
+          temperature,
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user },
+          ],
+        }),
+      });
+      if (!res.ok) throw new Error(`polli ${res.status}`);
+      const data = await res.json() as { choices?: { message?: { content?: string } }[] };
+      const content = typeof data.choices?.[0]?.message?.content === 'string'
+        ? (data.choices[0].message.content as string)
+        : '';
+      if (content.trim()) return content;
+      throw new Error('polli empty');
+    } finally {
+      window.clearTimeout(timer);
+    }
+  } catch {
+    // 2) Düz GET yedeği
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const prompt = encodeURIComponent(`${system}\n\n${user}`);
+      const res = await fetch(`https://text.pollinations.ai/${prompt}?model=openai`, { signal: ctrl.signal });
+      if (!res.ok) throw new Error(`polli-get ${res.status}`);
+      const text = await res.text();
+      if (!text.trim()) throw new Error('polli-get empty');
+      return text;
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+}
+
+function validPair(lang: LangCode, foreign: string, native: string, seen: Set<string>): boolean {
+  const k = foreign.toLowerCase();
+  if (!foreign || !native) return false;
+  if (foreign.toLowerCase() === native.toLowerCase()) return false;
+  if (native.length > 180) return false;
+  if (!langOk(lang, foreign)) return false;
+  if (seen.has(k)) return false;
+  const wc = foreign.split(/\s+/).filter(Boolean).length;
+  if (wc < 3 || wc > 18) return false;
+  return true;
+}
+
+/** JSON yanıtı çöz; JSON dışı metinden tırnaklı çiftleri yakala (son çare). */
+function extractItems(content: string): { foreign?: unknown; native?: unknown }[] {
+  try {
+    const parsed = JSON.parse(content) as { items?: { foreign?: unknown; native?: unknown }[] };
+    if (Array.isArray(parsed.items)) return parsed.items;
+  } catch { /* regex yedeğine düş */ }
+  const out: { foreign?: unknown; native?: unknown }[] = [];
+  const re = /["“]([^"”]{3,140})["”]\s*[|=:–—-]\s*["“]([^"”]{2,180})["”]/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(content)) !== null) out.push({ foreign: m[1], native: m[2] });
+  return out;
+}
+
+function parseJudge(content: string): JudgeResult {
   const parsed = JSON.parse(content) as { score?: unknown; ok?: unknown; note?: unknown };
   const score = Math.max(0, Math.min(100, Number(parsed.score) || 0));
   return {
@@ -182,4 +264,53 @@ export async function judgeSpeaking(key: string, lang: LangCode, expected: strin
     score,
     note: typeof parsed.note === 'string' ? parsed.note.slice(0, 120) : '',
   };
+}
+
+export type AiEngine = 'groq' | 'free';
+
+/** Anahtar varsa Groq, yoksa ücretsiz motor. Başarısızlıkta hata fırlatır. */
+export async function genSentencesAuto(groqKey: string, lang: LangCode, level: CEFRLevel, n: number): Promise<{ items: AiSentence[]; engine: AiEngine }> {
+  if (groqKey.trim()) {
+    const items = await genSentences(groqKey, lang, level, n);
+    return { items, engine: 'groq' };
+  }
+  const count = Math.max(1, Math.min(12, n));
+  const guide = LEVEL_GUIDE[level] ?? LEVEL_GUIDE.A1;
+  const L = langName(lang);
+  const system =
+    `You write short CEFR ${level} ${L} sentences for Turkish speakers learning ${L}. Reply ONLY with JSON, no other text: {"items":[{"foreign":"...","native":"..."}]}. ` +
+    `Rules: EVERY foreign sentence MUST be written in ${L} (never Turkish, never another language); ${guide}; ` +
+    `no quotes inside sentences; start with capital letter, end with ./?/!; ` +
+    `each sentence ONE complete meaningful everyday situation (no fragments, no word salad); ` +
+    `native = its plain natural Turkish translation (never the same as foreign). Vary everyday topics.`;
+  const out: AiSentence[] = [];
+  const seen = new Set<string>();
+  for (let attempt = 0; attempt < 2 && out.length < count; attempt++) {
+    const need = count - out.length;
+    const topicSlice = [...TOPICS].sort(() => Math.random() - 0.5).slice(0, Math.min(4, need)).join(', ');
+    const content = await polliChat(system, `Write ${need} NEW ${level} sentences (topics: ${topicSlice}).`, 35000, 0.8);
+    for (const it of extractItems(content)) {
+      const foreign = typeof it.foreign === 'string' ? it.foreign.trim() : '';
+      const native = typeof it.native === 'string' ? it.native.trim() : '';
+      if (validPair(lang, foreign, native, seen)) {
+        seen.add(foreign.toLowerCase());
+        out.push({ foreign, native });
+      }
+      if (out.length >= count) break;
+    }
+  }
+  if (!out.length) throw new Error('ai empty items');
+  return { items: out, engine: 'free' };
+}
+
+/** Anahtar varsa Groq hakem, yoksa ücretsiz hakem. Başarısızlıkta hata fırlatır (çağıran yerele düşer). */
+export async function judgeSpeakingAuto(groqKey: string, lang: LangCode, expected: string, transcript: string): Promise<JudgeResult> {
+  if (groqKey.trim()) return judgeSpeaking(groqKey, lang, expected, transcript);
+  const L = langName(lang);
+  const content = await polliChat(
+    `You judge a pronunciation exercise. Target ${L} sentence: "${expected}". The learner said (speech-recognition transcript, may contain recognition noise, lowercase, no punctuation): "${transcript}". Reply ONLY with JSON, no other text: {"score":0-100,"ok":true/false,"note":"..."}. Rules: ok=true when score>=60. Be tolerant of ASR noise, missing articles and small word swaps; fail when the meaning/content is clearly different or empty. note = one short encouraging sentence in Turkish.`,
+    `Target: ${expected} | Said: ${transcript}`,
+    25000, 0.2,
+  );
+  return parseJudge(content);
 }

@@ -12,7 +12,7 @@ import { audio } from '../lib/audio';
 import { hasEmbeddedGroqKey } from '../lib/groq';
 
 /** Canlıda hangi derlemenin koştuğunu ayırt etme etiketi — her sürümde yükseltilir. */
-const BUILD_TAG = '2026-09-15-01';
+const BUILD_TAG = '2026-09-15-02';
 
 const btn = (color: string, strong = false): React.CSSProperties => ({
   background: strong ? `linear-gradient(135deg, ${color}38, ${color}18)` : 'rgba(255,255,255,0.045)',
@@ -986,7 +986,7 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
 
       <div className="font-mono-tech text-[8px] tracking-[0.3em] text-white/35 mb-1.5">GROQ ANAHTARI (AI KONUŞMA)</div>
       <div className="glass rounded-xl px-3 py-2.5 mb-4">
-        <div className="font-mono-tech text-[7px] text-white/30 mb-1.5">Konuşma daima AI ile çalışır. Vercel değişkenin gömülüyse hiçbir şey yapma — burası elle yedek anahtar içindir, cihazda durur.</div>
+        <div className="font-mono-tech text-[7px] text-white/30 mb-1.5">Konuşma daima AI ile çalışır — anahtar şart değil. Groq anahtarın varsa o kullanılır, yoksa ücretsiz motor yazar.</div>
         <div className="flex gap-2">
           <input type="password" placeholder="gsk_..." value={api.settings.groqKey ?? ''}
             onChange={e => api.updateSettings({ groqKey: e.target.value.trim() } as never)}
@@ -1000,12 +1000,10 @@ export function SettingsScreen({ api, onBack }: { api: EngineApi; onBack: () => 
             </button>
           )}
         </div>
-        <div className="font-mono-tech text-[7px] mt-1.5" style={{ color: (api.settings.groqKey ?? '') !== '' || hasEmbeddedGroqKey() ? '#00ffa3' : 'rgba(255,255,255,0.3)' }}>
-          {(api.settings.groqKey ?? '') !== ''
-            ? '● AI AKTİF — konuşma bölümünde AI cümle + hakem'
-            : hasEmbeddedGroqKey()
-              ? '● AI HAZIR — Vercel değişkeni gömülü, yapıştırmana gerek yok'
-              : '○ AI EKSİK — Vercel’e VITE_GROQ_API_KEY ekleyip Redeploy yap ya da anahtarı yapıştır'}
+        <div className="font-mono-tech text-[7px] mt-1.5" style={{ color: '#00ffa3' }}>
+          {(api.settings.groqKey ?? '') !== '' || hasEmbeddedGroqKey()
+            ? '● AI AKTİF (Groq) — cümle + hakem'
+            : '● AI HAZIR (ücretsiz motor) — anahtar gerekmez'}
         </div>
         <div className="font-mono-tech text-[7px] text-white/25 mt-1">derleme: {BUILD_TAG}</div>
       </div>

@@ -7,7 +7,8 @@ import type { SpeakProgress } from '../lib/storage';
 import { audio, haptic } from '../lib/audio';
 import { listenOnce, speechSupported } from '../lib/speech';
 import { transliterate } from '../lib/pronounce';
-import { genSentences, judgeSpeaking, resolveGroqKey, viteGroqKey } from '../lib/groq';
+import { genSentencesAuto, judgeSpeakingAuto, resolveGroqKey, viteGroqKey } from '../lib/groq';
+import type { AiEngine } from '../lib/groq';
 import { BackBtn, Shell } from './Screens';
 
 const ROUNDS = 10;
@@ -46,11 +47,11 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
   const [last, setLast] = useState<Last | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [boom, setBoom] = useState(false);
-  const source = 'ai' as const;
   const [genMsg, setGenMsg] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiOk, setAiOk] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<number | null>(null);
+  const [engine, setEngine] = useState<AiEngine>('groq');
   const [praise, setPraise] = useState<string | null>(null);
   const [speed, setSpeed] = useState<SpeedId>(() => {
     try { const v = localStorage.getItem('wi_speak_rate'); return v === 'slow' || v === 'fast' ? v : 'mid'; }
@@ -79,24 +80,20 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
 
   const start = async () => {
     audio.unlock(); audio.ui();
-    // DAİMA AI: Groq yazar. Anahtar yoksa ya da üretim başarısızsa BAŞLATMA — havuza düşme yok.
-    if (!groqKey) {
-      setAiError('AI anahtarı bulunamadı — Vercel’e VITE_GROQ_API_KEY ekleyip Redeploy yaptıysan canlıda düzelir; ya da Ayarlar’a anahtarı yapıştır (gsk_...).');
-      setAiOk(false);
-      return;
-    }
+    // DAİMA AI: önce Groq (anahtar varsa), yoksa ücretsiz motor — anahtar şart değil.
     setAiError(null);
     setAiOk(false);
-    setGenMsg('AI cümle yazıyor…');
+    setGenMsg(groqKey ? 'AI cümle yazıyor… (Groq)' : 'AI cümle yazıyor… (ücretsiz motor)');
     try {
-      const items = await genSentences(groqKey, lang, level, ROUNDS);
-      if (!items.length) throw new Error('groq empty items');
+      const { items, engine } = await genSentencesAuto(groqKey, lang, level, ROUNDS);
+      if (!items.length) throw new Error('ai empty items');
       const d: VocabWord[] = items.map((it, i) => ({
         id: `ai-${lang}-${level}-${Date.now()}-${i}`,
         foreign: it.foreign, native: it.native, lang, level, category: 'phrase' as const,
       }));
       setDeck(d); setIdx(0); setLast(null); setAttempt(0); setBoom(false); setPraise(null); setResults([]);
       setGeneratedAt(Date.now());
+      setEngine(engine);
       setAiOk(true);
       setGenMsg(null);
       setPhase('round');
@@ -106,10 +103,8 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
       setGenMsg(null);
       setAiError(
         msg.includes('groq 401') || msg.includes('groq 403')
-          ? 'Anahtar geçersiz (401/403) — Ayarlar → Groq anahtarını kontrol et, tekrar dene.'
-          : msg.includes('Failed to fetch') || msg.includes('Network')
-            ? 'İnternet/Groq erişilemedi — bağlantını kontrol et, tekrar dene.'
-            : 'AI cümle üretemedi — tekrar dene. Sorun sürerse anahtarı kontrol et.'
+          ? 'Groq anahtarı geçersiz (401/403) — Ayarlar’dan sil ya da düzelt, ücretsiz motorla devam eder.'
+          : 'AI cümle üretemedi — interneti kontrol edip tekrar dene.'
       );
     }
   };
@@ -121,11 +116,11 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
     setListening(true); setLast(null);
     const res = await listenOnce(lang, w.foreign, 10000);
     setListening(false);
-    // AI hakem: anahtar + AI turu + duyulan metin varsa Groq karar verir, yoksa yerel puan
+    // AI hakem: duyulan metin varsa AI karar verir (Groq ya da ücretsiz motor), olmazsa yerel puan
     let score = res.score, ok = res.ok, note = '';
-    if (source === 'ai' && groqKey && res.transcript.trim()) {
+    if (res.transcript.trim()) {
       try {
-        const j = await judgeSpeaking(groqKey, lang, w.foreign, res.transcript);
+        const j = await judgeSpeakingAuto(groqKey, lang, w.foreign, res.transcript);
         score = j.score / 100; ok = j.ok; note = j.note;
       } catch { /* yerel puana düş */ }
     }
@@ -245,12 +240,12 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
         </div>
 
         <div className="rounded-xl px-3 py-2.5 mb-1.5"
-          style={{ background: groqKey ? 'rgba(199,125,255,0.1)' : 'rgba(255,179,0,0.08)', border: `1px solid ${groqKey ? 'rgba(199,125,255,0.4)' : 'rgba(255,179,0,0.4)'}` }}>
-          <div className="font-mono-tech text-[9px] tracking-[0.1em] text-center" style={{ color: groqKey ? '#d9b8ff' : '#ffd166' }}>
-            {groqKey ? `🤖 AI CÜMLE MOTORU AKTİF · ${ROUNDS} cümle yazılır + hakemlik` : '⚠ AI ANAHTARI YOK — bu bölüm daima AI ile çalışır'}
+          style={{ background: groqKey ? 'rgba(199,125,255,0.1)' : 'rgba(0,255,163,0.08)', border: `1px solid ${groqKey ? 'rgba(199,125,255,0.4)' : 'rgba(0,255,163,0.4)'}` }}>
+          <div className="font-mono-tech text-[9px] tracking-[0.1em] text-center" style={{ color: groqKey ? '#d9b8ff' : '#00ffa3' }}>
+            {groqKey ? `🤖 AI MOTORU: GROQ · ${ROUNDS} cümle + hakemlik` : `🤖 AI MOTORU: ÜCRETSİZ · ${ROUNDS} cümle, anahtar gerekmez`}
           </div>
           <div className="font-mono-tech text-[7px] text-white/30 mt-1 text-center">
-            {groqKey ? 'Groq yazar + hakemlik yapar (internet gerekir) · müziksiz sessiz telaffuz' : 'Vercel değişkeni + Redeploy ya da Ayarlar’a anahtar yapıştır. Havuz kullanılmaz.'}
+            {groqKey ? 'Groq yazar + hakemlik (internet gerekir) · müziksiz telaffuz' : 'Anahtarsız çalışır · müziksiz telaffuz'}
           </div>
         </div>
         <button onClick={() => audio.preview(lang, speedRate(speed))} className="w-full glass rounded-xl py-2.5 mb-3 active:scale-95 transition-transform">
@@ -302,9 +297,9 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
             Bu tarayıcı konuşma tanımıyor — Chrome/Edge ile aç. Dinleme yine çalışır.
           </div>
         )}
-        <button onClick={start} disabled={genMsg === 'AI cümle yazıyor…'} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform disabled:opacity-60"
+        <button onClick={start} disabled={genMsg !== null} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform disabled:opacity-60"
           style={{ background: 'linear-gradient(135deg, rgba(0,255,163,0.26), rgba(0,180,120,0.12))', border: '1px solid #00ffa3', boxShadow: '0 0 18px rgba(0,255,163,0.35)' }}>
-          <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#dcfff2]">{genMsg === 'AI cümle yazıyor…' ? '…YAZIYOR' : groqKey ? '🎤 BAŞLA · AI YAZAR' : '🔑 ANAHTAR GEREKLİ'}</span>
+          <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#dcfff2]">{genMsg ? '…YAZIYOR' : '🎤 BAŞLA · AI YAZAR'}</span>
         </button>
       </Shell>
     );
@@ -368,7 +363,7 @@ export function SpeakScreen({ api, onBack, initialLang, initialLevel }: {
       <BackBtn onClick={onBack} />
       <div className="flex items-center justify-between mb-2">
         <span className="font-mono-tech text-[8px] tracking-[0.2em] text-white/35">CÜMLE {idx + 1}/{deck.length} · 🤖 AI</span>
-        <span className="font-mono-tech text-[8px] tracking-[0.14em]" style={{ color: LEVEL_CONFIG[level].color }}>{LANGUAGES.find(l => l.code === lang)?.flag} {level}{aiOk && generatedAt ? ' · ✓' : ''}</span>
+        <span className="font-mono-tech text-[8px] tracking-[0.14em]" style={{ color: LEVEL_CONFIG[level].color }}>{LANGUAGES.find(l => l.code === lang)?.flag} {level} · {engine === 'groq' ? 'Groq' : 'free'}{aiOk && generatedAt ? ' ✓' : ''}</span>
       </div>
       <div className="h-[6px] rounded-full bg-white/10 overflow-hidden mb-3">
         <div className="h-full rounded-full transition-all" style={{ width: `${((idx) / deck.length) * 100}%`, background: '#00ffa3', boxShadow: '0 0 8px #00ffa3' }} />
