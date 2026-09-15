@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { EngineApi } from '../hooks/useGameEngine';
-import { VW } from '../hooks/useGameEngine';
 import type { GameState, Settings } from '../types/game';
 import type { CategoryId, CEFRLevel, LangCode } from '../data/vocabulary';
 import {
@@ -142,13 +141,13 @@ export function MenuScreen({ api, lang, setLang, go, pwa, onContinue }: {
             {/* Günlük sandık — 5 doğruda açılır, akıcılığı ödüllendirir */}
             <button onClick={()=>{
               if(!canOpen) return;
-              try{ localStorage.setItem(chestKey,'1'); }catch{}
+              try{ localStorage.setItem(chestKey,'1'); localStorage.setItem('wi_chest_bonus','50'); }catch{}
               audio.correct(); audio.combo();
             }} disabled={!canOpen && !chestOpened} className={`w-full mt-2.5 rounded-xl py-2.5 flex items-center justify-center gap-2 active:scale-95 transition-all ${canOpen ? '' : chestOpened ? 'opacity-60' : 'opacity-40'}`} style={canOpen ? { background:`linear-gradient(135deg, ${NEON.gold}22, rgba(255,140,0,0.18))`, border:`1px solid ${NEON.gold}`, boxShadow:`0 0 14px ${NEON.gold}55` } : chestOpened ? { background:`${NEON.aqua}1E`, border:`1px solid ${NEON.aqua}55` } : { background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)' }}>
               <span className="text-[16px]">{chestOpened ? '✅' : canOpen ? '📦' : '🔒'}</span>
               <span className="font-mono-tech text-[9px] tracking-[0.14em]" style={{ color: canOpen ? NEON.gold : chestOpened ? NEON.aqua : 'rgba(255,255,255,0.35)' }}>{chestOpened ? 'SANDIK AÇILDI — YARIN YENİSİ' : canOpen ? 'GÜNLÜK SANDIK AÇ! (5✓)' : `SANDIK ${Math.max(0,5-si.today)}✓ KALDI`}</span>
             </button>
-            {canOpen && <div className="font-mono-tech text-[7px] text-center mt-1" style={{ color: `${NEON.gold}B3` }}>Aç → +50 bonus + nadir kelime</div>}
+            {canOpen && <div className="font-mono-tech text-[7px] text-center mt-1" style={{ color: `${NEON.gold}B3` }}>Aç → +50 bonus sonraki koşuda başlar</div>}
             {/* Haftalık ilerleme — nereye gittiğini gör */}
             {(() => {
               const seen = Object.keys(api.heat).length;
@@ -396,7 +395,7 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries,
               className="w-full rounded-lg px-3 py-2 flex items-center gap-3 active:scale-[0.98] transition-all" style={btn(c.color, on)}>
               <span className="font-orbitron text-[15px] font-black w-7" style={{ color: on ? c.color : 'rgba(255,255,255,0.4)' }}>{l}</span>
               <span className="font-mono-tech text-[9px] text-white/50 flex-1 text-left">{c.label.split('— ')[1]}</span>
-              <span className="font-mono-tech text-[8px] text-white/30">{c.wavesToClear} dalga</span>
+              <span className="font-mono-tech text-[8px] text-white/30">∞ sonsuz</span>
             </button>
           );
         })}
@@ -463,6 +462,10 @@ export function SetupScreen({ api, lang, setLang, onStart, onBack, onViewSeries,
         </div>
       )}
 
+      <button onClick={() => onStart(lang, lv, cat)} disabled={words.length < 4} className="w-full rounded-xl py-3.5 mb-2 active:scale-[0.97] transition-transform disabled:opacity-45"
+        style={{ background: 'linear-gradient(135deg, rgba(0,255,163,0.26), rgba(0,180,120,0.12))', border: '1px solid #00ffa3', boxShadow: '0 0 18px rgba(0,255,163,0.35)' }}>
+        <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#dcfff2]">▶ BAŞLA · {words.length} KELİME</span>
+      </button>
       <button onClick={() => onViewSeries?.(lang, lv)} className="w-full rounded-xl py-3.5 active:scale-[0.97] transition-transform" style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.22), rgba(0,102,255,0.14))', border: '1px solid #00d4ff', boxShadow: '0 0 16px rgba(0,212,255,0.32)' }}>
         <span className="font-orbitron text-[12px] font-black tracking-[0.14em] text-[#e6faff]" style={{ textShadow: '0 0 8px #00d4ff' }}>📚 {getSeriesSize(lang)}'LİK SERİYE GİR</span>
         <span className="font-mono-tech text-[7px] tracking-[0.12em] text-white/55 block mt-0.5">{getSeriesCount(lang, lv, api.customWords)} seri · Bölüm seçince direkt başlar</span>
@@ -586,81 +589,6 @@ export function SeriesScreen({ api, lang, level, onBack, onStartSeries }: { api:
 }
 
 /* ══════════════════ LEVEL COMPLETE (constellation) ══════════════════ */
-export function LevelCompleteScreen({ s, onNext, onMenu }: { s: GameState; onNext: () => void; onMenu: () => void }) {
-  const [n, setN] = useState(0);
-  const words = s.masteredThisLevel.slice(0, 12);
-  useEffect(() => {
-    const t = setInterval(() => setN(v => (v >= words.length ? (clearInterval(t), v) : v + 1)), 190);
-    return () => clearInterval(t);
-  }, [words.length]);
-
-  const pts = words.map((w, i) => {
-    const a = (i / Math.max(1, words.length)) * Math.PI * 2 - Math.PI / 2;
-    const r = 92 + (i % 3) * 26;
-    return { w, x: VW / 2 + Math.cos(a) * r, y: 250 + Math.sin(a) * r * 0.72 };
-  });
-
-  return (
-    <Shell>
-      <div className="text-center pt-2">
-        <div className="font-mono-tech text-[8px] tracking-[0.4em] text-white/35">BEYİN FIRTINASI</div>
-        <div className="font-orbitron text-[26px] font-black tracking-[0.1em] mt-1"
-          style={{ color: '#ffd166', textShadow: '0 0 20px rgba(255,209,102,0.8)' }}>SEVİYE TAMAM</div>
-      </div>
-
-      <svg width={VW - 32} height={330} viewBox={`0 0 ${VW} 400`} className="mx-auto -mb-2">
-        {pts.map((p, i) => i < n - 1 && (
-          <line key={i} x1={p.x} y1={p.y} x2={pts[i + 1].x} y2={pts[i + 1].y}
-            stroke="#00d4ff" strokeWidth="0.8" strokeDasharray="3 4" opacity="0.45" />
-        ))}
-        {pts.map((p, i) => {
-          const m = HEAT_META.crimson;
-          const on = i < n;
-          return (
-            <g key={p.w.id} opacity={on ? 1 : 0} style={{ transition: 'opacity .35s' }}>
-              <circle cx={p.x} cy={p.y} r="14" fill="#ffd166" opacity="0.09" />
-              <path d={`M${p.x},${p.y - 9} L${p.x + 5},${p.y} L${p.x},${p.y + 9} L${p.x - 5},${p.y} Z`}
-                fill={m.core} style={{ filter: `drop-shadow(0 0 7px ${m.glow})` }} />
-              <text x={p.x} y={p.y + 22} textAnchor="middle" fill="#ffffff" opacity="0.85"
-                style={{ fontFamily: "'VT323', monospace", fontSize: 13 }}>{p.w.foreign}</text>
-              <text x={p.x} y={p.y + 32} textAnchor="middle" fill="#ffffff" opacity="0.35"
-                style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 7 }}>{p.w.native}</text>
-            </g>
-          );
-        })}
-      </svg>
-
-      <div className="glass rounded-xl px-3 py-2.5 mb-3">
-        <div className="font-mono-tech text-[9px] text-white/55 leading-relaxed text-center">
-          {words.length
-            ? `${words.length} kelime artık beyninin haritasında işaretlendi.`
-            : 'Henüz kelime ustalaşmadı — aynı seviyeyi tekrarla, ısı barı kırmızıya dönsün.'}
-        </div>
-        <div className="grid grid-cols-3 gap-2 mt-2.5 text-center">
-          {[['SKOR', s.score.toString().padStart(6, '0'), '#00d4ff'],
-            ['DALGA', String(s.wavesCleared), '#c77dff'],
-            ['KOMBO', `×${s.bestCombo}`, '#00ffa3']].map(([k, v, c]) => (
-            <div key={k}>
-              <div className="font-mono-tech text-[7px] tracking-[0.2em] text-white/30">{k}</div>
-              <div className="font-orbitron text-[16px] font-black" style={{ color: String(c), textShadow: `0 0 9px ${c}` }}>{v}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-auto space-y-2">
-        <button onClick={onNext} className="w-full rounded-xl py-3 active:scale-[0.97] transition-transform"
-          style={{ background: 'linear-gradient(135deg, rgba(0,255,163,0.26), rgba(0,180,120,0.12))', border: '1px solid #00ffa3', boxShadow: '0 0 18px rgba(0,255,163,0.35)' }}>
-          <span className="font-orbitron text-[14px] font-black tracking-[0.26em] text-[#dcfff2]">SONRAKİ GÖREV</span>
-        </button>
-        <button onClick={onMenu} className="w-full glass rounded-xl py-2.5 active:scale-[0.97] transition-transform">
-          <span className="font-mono-tech text-[10px] tracking-[0.24em] text-white/55">◀ ANA MENÜ</span>
-        </button>
-      </div>
-    </Shell>
-  );
-}
-
 /* ══════════════════ GAME OVER ══════════════════ */
 export function GameOverScreen({ s, best, onRetry, onMenu }: { s: GameState; best: number; onRetry: () => void; onMenu: () => void }) {
   const runTotal = s.runCorrect + s.runWrong;

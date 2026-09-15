@@ -3,7 +3,7 @@ import { useGameEngine, VW, VH } from './hooks/useGameEngine';
 import { GameScreen } from './components/GameScreen';
 import {
   MenuScreen, SetupScreen, DeckScreen, StatsScreen, SettingsScreen, InstallScreen, DailyChallengeScreen, LeaderboardScreen, CampaignScreen, TeacherScreen,
-  LevelCompleteScreen, GameOverScreen, PauseOverlay, SeriesScreen, type MenuView,
+  GameOverScreen, PauseOverlay, SeriesScreen, type MenuView,
 } from './components/Screens';
 import { highScoreKey } from './lib/storage';
 import { usePwaInstall } from './lib/pwa';
@@ -11,7 +11,7 @@ import { TutorialOverlay } from './components/TutorialOverlay';
 import { SpeakScreen } from './components/SpeakScreen';
 import type { CategoryId, CEFRLevel, LangCode } from './data/vocabulary';
 
-type Root = 'menu' | 'playing' | 'levelComplete' | 'gameOver';
+type Root = 'menu' | 'playing' | 'gameOver';
 
 export default function App() {
   const [root, setRoot] = useState<Root>('menu');
@@ -37,8 +37,8 @@ export default function App() {
     setShowTutorial(false);
   }, []);
 
-  const api = useGameEngine((kind) => {
-    setRoot(kind === 'gameOver' ? 'gameOver' : 'levelComplete');
+  const api = useGameEngine(() => {
+    setRoot('gameOver');
   });
 
   // FIX v4: gece otomatik göz koruma — 19-07 arası veya sistem dark ise varsayılan açık, asla göz yormasın
@@ -165,17 +165,6 @@ export default function App() {
             {api.state.phase === 'paused' && (
               <PauseOverlay onResume={api.resume} onQuit={() => { api.quit(); setView('menu'); setRoot('menu'); }} />
             )}
-          </>
-        )}
-
-        {root === 'levelComplete' && (
-          <>
-            <MenuBackdrop />
-            <LevelCompleteScreen
-              s={api.state}
-              onNext={() => start(run.lang, run.level, run.category)}
-              onMenu={() => { setView('menu'); setRoot('menu'); }}
-            />
           </>
         )}
 

@@ -3,7 +3,7 @@ import type { Alien, GameState, Settings, RunStats, HeatMap } from '../types/gam
 import type { CategoryId, CEFRLevel, HeatLevel, LangCode, VocabWord } from '../data/vocabulary';
 import { LEVEL_CONFIG, getWords, HEAT_META, getSeriesWords } from '../data/vocabulary';
 import {
-  store, heatOf, isDue, applyResult, highScoreKey, DEFAULT_SETTINGS, bumpStreak,
+  store, heatOf, isDue, applyResult, highScoreKey, DEFAULT_SETTINGS, bumpStreak, takeChestBonus,
 } from '../lib/storage';
 import { ACHIEVEMENTS } from '../lib/achievements';
 import { audio, haptic } from '../lib/audio';
@@ -177,7 +177,7 @@ export interface EngineApi {
   resetProgress: () => void;
 }
 
-export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => void): EngineApi {
+export function useGameEngine(onEnd: (kind: 'gameOver') => void): EngineApi {
   const ref = useRef<GameState>(initialState());
   const [, force] = useState(0);
   const sync = useCallback(() => force(v => (v + 1) % 1e9), []);
@@ -473,6 +473,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     seriesFilterRef.current = null;
     seriesMetaRef.current = null;
     wrongFilterRef.current = null;
+    const chestBonus = takeChestBonus();
+    if (chestBonus > 0) {
+      ref.current.score += chestBonus;
+      ref.current.floats.push({ id: uid(), x: VW / 2, y: 300, text: `📦 SANDIK +${chestBonus}`, color: '#ffd166', life: 2, vy: -0.5 });
+    }
     spawnWave(1, cloze ? 'CÜMLE MODU' : 'HAZIR OL', cloze ? 'Boşluğu doldur' : LEVEL_CONFIG[level].label);
     audio.startMusic('ice');
     flushSoon();
@@ -510,6 +515,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     seriesKeyRef.current = "";
     seriesFilterRef.current = null;
     seriesMetaRef.current = null;
+    const chestBonus = takeChestBonus();
+    if (chestBonus > 0) {
+      ref.current.score += chestBonus;
+      ref.current.floats.push({ id: uid(), x: VW / 2, y: 300, text: `📦 SANDIK +${chestBonus}`, color: '#ffd166', life: 2, vy: -0.5 });
+    }
     spawnWave(1, 'YANLIŞ DEFTERİ', `${ids.length} kelime · tekrar modu`);
     audio.startMusic('ice');
     flushSoon();
@@ -542,6 +552,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     sessionCountsRef.current.clear();
     seriesQueueRef.current = [];
     seriesKeyRef.current = `${lang}-${level}-series-${idx}`;
+    const chestBonus = takeChestBonus();
+    if (chestBonus > 0) {
+      ref.current.score += chestBonus;
+      ref.current.floats.push({ id: uid(), x: VW / 2, y: 300, text: `📦 SANDIK +${chestBonus}`, color: '#ffd166', life: 2, vy: -0.5 });
+    }
     spawnWave(1, `SERİ ${idx + 1}`, `${words.length} kelime · ${level}`);
     audio.startMusic('ice');
     flushSoon();
@@ -585,6 +600,11 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     moveTarget.current = null; dirHold.current = 0;
     wrongFilterRef.current = null;
     clozeModeRef.current = false;
+    const chestBonus = takeChestBonus();
+    if (chestBonus > 0) {
+      ref.current.score += chestBonus;
+      ref.current.floats.push({ id: uid(), x: VW / 2, y: 300, text: `📦 SANDIK +${chestBonus}`, color: '#ffd166', life: 2, vy: -0.5 });
+    }
     spawnWave(saved.wave ?? 1, 'DEVAM', `DALGA ${saved.wave ?? 1} — KALDIĞIN YERDEN`);
     audio.startMusic('ice');
     sync();
@@ -1200,17 +1220,16 @@ export function useGameEngine(onEnd: (kind: 'gameOver' | 'levelComplete') => voi
     sync();
   };
 
-  const endRun = useCallback((s: GameState, kind: 'gameOver' | 'levelComplete') => {
+  const endRun = useCallback((s: GameState, kind: 'gameOver') => {
     const key = highScoreKey(s.lang, s.level);
     statsRef.current = {
       ...statsRef.current,
       highScores: { ...statsRef.current.highScores, [key]: Math.max(statsRef.current.highScores[key] ?? 0, s.score) },
     };
-    s.phase = kind === 'gameOver' ? 'gameOver' : 'levelComplete';
-    if (kind === 'gameOver') s.lives = 0;
+    s.phase = 'gameOver';
+    s.lives = 0;
     s.aliens = []; s.bullets = [];
     audio.stopMusic();
-    if (kind === 'levelComplete') { audio.levelUp(); haptic('level', setRef.current.haptics); }
     // seri bitti — sadece o dilin devamını temizle, diğer diller korunur
     try { store.clearRun(s.lang as LangCode); } catch {}
     seriesQueueRef.current = [];

@@ -489,8 +489,7 @@ export function requestDailyPush(): Promise<NotificationPermission> {
   return Notification.requestPermission();
 }
 export function scheduleDailyPush() {
-  if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;
-  // basit: 20:00'da hatırlatma (eğer bugün hedef tamamlanmadıysa)
+  if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;  // basit: 20:00'da hatırlatma (eğer bugün hedef tamamlanmadıysa)
   try {
     const now = new Date();
     const target = new Date(); target.setHours(20, 0, 0, 0);
@@ -500,4 +499,17 @@ export function scheduleDailyPush() {
       try { new Notification('Word Invaders — Günlük Hedef', { body: '🔥 Serin kırılmak üzere! 3 kelime kaldı, hemen oyna.', icon: '/icons/icon-512.png', badge: '/icons/icon-192.png' }); } catch {}
     }, delay);
   } catch {}
+}
+
+/* ───────── Günlük sandık bonusu: menüde kazanılır, sonraki koşuda skora eklenir ───────── */
+export function takeChestBonus(): number {
+  try {
+    const raw = localStorage.getItem('wi_chest_bonus');
+    if (!raw) return 0;
+    localStorage.removeItem('wi_chest_bonus');
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 500) : 0;
+  } catch {
+    return 0;
+  }
 }
